@@ -21,7 +21,6 @@ local settings = {
 local flying = false
 local flySpeed = 80
 local bodyVelocity = nil
-local bodyGyro = nil
 
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
@@ -70,7 +69,7 @@ local function setNoclip(bool)
     end
 end
 
--- FLY FUNCTION (CORRIGIDO)
+-- FLY FUNCTION (SIMPLES E FUNCIONAL)
 local function startFly()
     if flying then return end
     
@@ -84,74 +83,14 @@ local function startFly()
     
     flying = true
     
-    -- Disable gravity
+    -- Disable gravity and platform stand
     humanoid.PlatformStand = true
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     
     -- Create BodyVelocity
     bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-    bodyVelocity.P = 10000
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     bodyVelocity.Parent = hrp
-    
-    -- Create BodyGyro
-    bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-    bodyGyro.P = 10000
-    bodyGyro.CFrame = hrp.CFrame
-    bodyGyro.Parent = hrp
-    
-    -- Fly control loop
-    spawn(function()
-        while flying and player.Character and hrp and hrp.Parent do
-            local moveDirection = Vector3.new(0, 0, 0)
-            
-            -- Forward/Back
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                moveDirection = moveDirection + Vector3.new(0, 0, -1)
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                moveDirection = moveDirection + Vector3.new(0, 0, 1)
-            end
-            -- Left/Right
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                moveDirection = moveDirection + Vector3.new(-1, 0, 0)
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                moveDirection = moveDirection + Vector3.new(1, 0, 0)
-            end
-            -- Up/Down
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                moveDirection = moveDirection + Vector3.new(0, 1, 0)
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-                moveDirection = moveDirection + Vector3.new(0, -1, 0)
-            end
-            
-            -- Apply movement based on camera direction
-            if moveDirection.Magnitude > 0 then
-                local camera = workspace.CurrentCamera
-                local camCF = camera.CFrame
-                
-                -- Transform movement direction to world space based on camera
-                local worldMove = camCF:VectorToWorldSpace(moveDirection)
-                worldMove = worldMove.Unit * flySpeed
-                
-                bodyVelocity.Velocity = worldMove
-                
-                -- Face movement direction
-                if worldMove.Magnitude > 0.1 then
-                    local lookPos = hrp.Position + worldMove
-                    bodyGyro.CFrame = CFrame.lookAt(hrp.Position, lookPos)
-                end
-            else
-                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            end
-            
-            task.wait()
-        end
-    end)
     
     print("🕊️ Fly ON | Speed: " .. flySpeed)
 end
@@ -170,14 +109,9 @@ local function stopFly()
             bodyVelocity:Destroy() 
             bodyVelocity = nil
         end
-        if bodyGyro then 
-            bodyGyro:Destroy() 
-            bodyGyro = nil
-        end
         
         if humanoid then
             humanoid.PlatformStand = false
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
         end
         
         if hrp then
@@ -187,6 +121,55 @@ local function stopFly()
     
     print("🕊️ Fly OFF")
 end
+
+-- Update fly movement every frame
+RunService.RenderStepped:Connect(function()
+    if not settings.fly then return end
+    if not flying then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    if not bodyVelocity then return end
+    
+    local moveDirection = Vector3.new(0, 0, 0)
+    
+    -- Get camera direction
+    local camera = workspace.CurrentCamera
+    local camCF = camera.CFrame
+    
+    -- Forward/Back (W/S)
+    if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+        moveDirection = moveDirection - camCF.LookVector
+    end
+    if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+        moveDirection = moveDirection + camCF.LookVector
+    end
+    -- Left/Right (A/D)
+    if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+        moveDirection = moveDirection - camCF.RightVector
+    end
+    if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+        moveDirection = moveDirection + camCF.RightVector
+    end
+    -- Up/Down (Space/Ctrl)
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+        moveDirection = moveDirection + Vector3.new(0, 1, 0)
+    end
+    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        moveDirection = moveDirection - Vector3.new(0, 1, 0)
+    end
+    
+    -- Apply velocity
+    if moveDirection.Magnitude > 0 then
+        bodyVelocity.Velocity = moveDirection.Unit * flySpeed
+    else
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    end
+end)
 
 -- Toggle fly
 local function toggleFly()
@@ -214,37 +197,37 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Z BUTTON
 local openBtn = Instance.new("TextButton", gui)
-openBtn.Size = UDim2.new(0,40,0,40)
-openBtn.Position = UDim2.new(0,10,0.5,-20)
+openBtn.Size = UDim2.new(0,45,0,45)
+openBtn.Position = UDim2.new(0,12,0.5,0)
 openBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
 openBtn.Text = "Z"
 openBtn.Font = Enum.Font.GothamBlack
-openBtn.TextSize = 20
+openBtn.TextSize = 22
 openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
-Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
 -- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,420,0,420)
-frame.Position = UDim2.new(0.5,-210,0.5,-210)
+frame.Size = UDim2.new(0,500,0,450)
+frame.Position = UDim2.new(0.5,-250,0.5,-225)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
 -- TOP BAR
 local topBar = Instance.new("Frame", frame)
 topBar.Size = UDim2.new(1,0,0,35)
 topBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,10)
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,12)
 
 local title = Instance.new("TextLabel", topBar)
 title.Size = UDim2.new(1,-45,1,0)
 title.Position = UDim2.new(0,12,0,0)
 title.Text = "PVP LAB"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 15
+title.TextSize = 16
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -271,7 +254,7 @@ pvpTab.Size = UDim2.new(0.85,0,0,35)
 pvpTab.Position = UDim2.new(0.075,0,0,25)
 pvpTab.Text = "PVP"
 pvpTab.Font = Enum.Font.GothamBold
-pvpTab.TextSize = 12
+pvpTab.TextSize = 13
 pvpTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
 pvpTab.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", pvpTab).CornerRadius = UDim.new(0,8)
@@ -281,24 +264,24 @@ creditsTab.Size = UDim2.new(0.85,0,0,35)
 creditsTab.Position = UDim2.new(0.075,0,0,70)
 creditsTab.Text = "CREDITS"
 creditsTab.Font = Enum.Font.GothamBold
-creditsTab.TextSize = 11
+creditsTab.TextSize = 12
 creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
 creditsTab.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", creditsTab).CornerRadius = UDim.new(0,8)
 
 -- RIGHT PANEL
-local contentPanel = Instance.new("Frame", frame)
+local contentPanel = Instance.new("ScrollingFrame", frame)
 contentPanel.Size = UDim2.new(1,-90,1,-35)
 contentPanel.Position = UDim2.new(0,85,0,35)
 contentPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 contentPanel.BackgroundTransparency = 1
+contentPanel.CanvasSize = UDim2.new(0,0,0,500)
+contentPanel.ScrollBarThickness = 4
 
 -- PVP PANEL
-local pvpPanel = Instance.new("ScrollingFrame", contentPanel)
+local pvpPanel = Instance.new("Frame", contentPanel)
 pvpPanel.Size = UDim2.new(1,0,1,0)
 pvpPanel.BackgroundTransparency = 1
-pvpPanel.CanvasSize = UDim2.new(0,0,0,450)
-pvpPanel.ScrollBarThickness = 4
 pvpPanel.Visible = true
 
 local pvpTitle = Instance.new("TextLabel", pvpPanel)
@@ -399,7 +382,7 @@ currentY = currentY + 43
 createToggleRow(pvpPanel, "Speed", currentY, "speed")
 currentY = currentY + 48
 
--- Fly Title
+-- Fly Section Title
 local flyTitle = Instance.new("TextLabel", pvpPanel)
 flyTitle.Size = UDim2.new(1,0,0,25)
 flyTitle.Position = UDim2.new(0,0,0,currentY)
@@ -466,27 +449,6 @@ speedSlider.InputBegan:Connect(function(input)
                 speedFill.Size = UDim2.new(x, 0, 1, 0)
                 speedValue.Text = tostring(flySpeed)
                 speedLabel.Text = "Fly Speed: " .. flySpeed
-                
-                if settings.fly and flying and bodyVelocity then
-                    local character = player.Character
-                    if character and character:FindFirstChild("HumanoidRootPart") then
-                        local hrp = character.HumanoidRootPart
-                        local moveDirection = Vector3.new(0, 0, 0)
-                        
-                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + Vector3.new(0, 0, -1) end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection + Vector3.new(0, 0, 1) end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection + Vector3.new(-1, 0, 0) end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + Vector3.new(1, 0, 0) end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDirection = moveDirection + Vector3.new(0, -1, 0) end
-                        
-                        if moveDirection.Magnitude > 0 then
-                            local camera = workspace.CurrentCamera
-                            local worldMove = camera.CFrame:VectorToWorldSpace(moveDirection).Unit * flySpeed
-                            bodyVelocity.Velocity = worldMove
-                        end
-                    end
-                end
             end
         end
         local connection
@@ -508,17 +470,17 @@ currentY = currentY + 55
 
 -- Controls info
 local controlsInfo = Instance.new("TextLabel", pvpPanel)
-controlsInfo.Size = UDim2.new(0.96,0,0,70)
+controlsInfo.Size = UDim2.new(0.96,0,0,80)
 controlsInfo.Position = UDim2.new(0.02,0,0,currentY)
-controlsInfo.Text = "🎮 FLY CONTROLS:\nW = Forward\nS = Backward\nA = Left\nD = Right\nSPACE = Fly Up\nCTRL = Fly Down"
+controlsInfo.Text = "🎮 FLY CONTROLS:\n\nW = Forward\nS = Backward\nA = Left\nD = Right\nSPACE = Fly Up\nCTRL = Fly Down"
 controlsInfo.Font = Enum.Font.Gotham
-controlsInfo.TextSize = 9
+controlsInfo.TextSize = 10
 controlsInfo.TextColor3 = Color3.fromRGB(150,150,150)
 controlsInfo.BackgroundTransparency = 1
 controlsInfo.TextXAlignment = Enum.TextXAlignment.Left
 controlsInfo.TextWrapped = true
 
-currentY = currentY + 80
+currentY = currentY + 90
 pvpPanel.CanvasSize = UDim2.new(0,0,0,currentY + 20)
 
 -- CREDITS PANEL
@@ -532,7 +494,7 @@ creditsTitle.TextColor3 = Color3.fromRGB(255,200,0)
 creditsTitle.BackgroundTransparency = 1
 
 local devCard = Instance.new("Frame", creditsPanel)
-devCard.Size = UDim2.new(0.96,0,0,55)
+devCard.Size = UDim2.new(0.96,0,0,70)
 devCard.Position = UDim2.new(0.02,0,0,40)
 devCard.BackgroundColor3 = Color3.fromRGB(35,35,35)
 Instance.new("UICorner", devCard).CornerRadius = UDim.new(0,8)
@@ -557,13 +519,23 @@ devRole.TextColor3 = Color3.fromRGB(180,180,180)
 devRole.BackgroundTransparency = 1
 devRole.TextXAlignment = Enum.TextXAlignment.Left
 
+local devDesc = Instance.new("TextLabel", devCard)
+devDesc.Size = UDim2.new(1,0,0,18)
+devDesc.Position = UDim2.new(0,8,0,48)
+devDesc.Text = "PVP + Fly + NoClip System"
+devDesc.Font = Enum.Font.Gotham
+devDesc.TextSize = 9
+devDesc.TextColor3 = Color3.fromRGB(150,150,150)
+devDesc.BackgroundTransparency = 1
+devDesc.TextXAlignment = Enum.TextXAlignment.Left
+
 -- Discord Button
 local discordBtn = Instance.new("TextButton", creditsPanel)
-discordBtn.Size = UDim2.new(0.96,0,0,45)
-discordBtn.Position = UDim2.new(0.02,0,0,110)
-discordBtn.Text = "💬 JOIN DISCORD"
+discordBtn.Size = UDim2.new(0.96,0,0,50)
+discordBtn.Position = UDim2.new(0.02,0,0,125)
+discordBtn.Text = "💬 JOIN OUR DISCORD"
 discordBtn.Font = Enum.Font.GothamBold
-discordBtn.TextSize = 11
+discordBtn.TextSize = 12
 discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
 discordBtn.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
@@ -572,8 +544,8 @@ discordBtn.MouseButton1Click:Connect(function()
     local link = "https://discord.gg/PDmAh9Ua4"
     if setclipboard then setclipboard(link) end
     local notif = Instance.new("TextLabel", frame)
-    notif.Size = UDim2.new(0,180,0,25)
-    notif.Position = UDim2.new(0.5,-90,0.5,130)
+    notif.Size = UDim2.new(0,200,0,25)
+    notif.Position = UDim2.new(0.5,-100,0.5,130)
     notif.Text = "Discord link copied!"
     notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
     notif.TextColor3 = Color3.new(1,1,1)
@@ -586,7 +558,7 @@ end)
 
 local versionLabel = Instance.new("TextLabel", creditsPanel)
 versionLabel.Size = UDim2.new(1,0,0,18)
-versionLabel.Position = UDim2.new(0,0,0,170)
+versionLabel.Position = UDim2.new(0,0,0,190)
 versionLabel.Text = "Version 3.0 | PVP + Fly + NoClip"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
@@ -595,12 +567,14 @@ versionLabel.BackgroundTransparency = 1
 
 local thanksLabel = Instance.new("TextLabel", creditsPanel)
 thanksLabel.Size = UDim2.new(1,0,0,18)
-thanksLabel.Position = UDim2.new(0,0,0,190)
+thanksLabel.Position = UDim2.new(0,0,0,210)
 thanksLabel.Text = "Thanks for using our script!"
 thanksLabel.Font = Enum.Font.Gotham
 thanksLabel.TextSize = 8
 thanksLabel.TextColor3 = Color3.fromRGB(200,200,200)
 thanksLabel.BackgroundTransparency = 1
+
+creditsPanel.CanvasSize = UDim2.new(0,0,0,250)
 
 -- Tab switching
 pvpTab.MouseButton1Click:Connect(function()
