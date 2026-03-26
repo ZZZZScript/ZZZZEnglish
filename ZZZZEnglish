@@ -1,8 +1,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
 
 local player = Players.LocalPlayer
 
@@ -15,61 +14,17 @@ local settings = {
     jump = false,
     hit = false,
     speed = false,
-    autoSell = false,
-    autoCollect = false
+    fly = false
 }
+
+-- Fly variables
+local flying = false
+local flySpeed = 80
+local bodyVelocity = nil
+local bodyGyro = nil
 
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
-
--- Auto Sell List - All brainrot names (English categories)
-local autoSellCategories = {
-    COMMON = {
-        "Noobini Pizzanini", "Lirili Larila", "Fluri Flura", "Cacto Hipopotamo",
-        "Pipi Potato", "Tric Trac Barabum", "Burbaloni Loliloli"
-    },
-    UNCOMMON = {
-        "Boneca Ambalabu", "Trippi Troppi", "Svinina Bombardino", "Bambini Crostini",
-        "Avocadini Guffo", "Bandito Bobrito", "Tatatata Sahur"
-    },
-    RARE = {
-        "Gangster Footera", "Tung Tung Sahur", "Cappuccino Assasino", "Pipi Kiwi",
-        "Orangutini Ananassini", "Talpa Di Fero", "Espresso Signora"
-    },
-    EPIC = {
-        "Brr Brr Patapim", "Rhino Toasterino", "Brr Bicus Dicus", "Strawberelli Flamingelli",
-        "Bananito Delfinito", "Balerina Cappucina", "Glorbo Fruttodrillo"
-    },
-    LEGENDARY = {
-        "Blueberrinni Octopusini", "Chimpanzini Bananini", "Bombardiro Crocodilo",
-        "Elefanto Cocofanto", "Bombombini Gusini", "Pandaccini Bananini", "Chef Crabracadabra"
-    },
-    MYTHIC = {
-        "Gorillo Watermelondrillo", "Frigo Camelo", "Girafa Celestre", "Ganganzelli Trulala",
-        "Tigroligre Frutonni", "Matteo", "Cavallo Virtuoso"
-    },
-    SECRET = {
-        "La Vacca Saturno Saturnita", "Esok Sekolah", "Tralaledon", "Tralalero Tralala",
-        "Chicleteira Bicicleteira", "Tortugini Dragonfrutini", "Nuclearo Dinossauro",
-        "Quesadilla Crocodila", "Caramelini Brasilini", "Penguino Cocosini", "Cupcake Koala",
-        "Cookie And Milk", "Capitano Mob", "Garama and Madundung", "Lucky Block"
-    },
-    STELLAR = {
-        "Elefanto Geladerino", "Meowl", "Smurf Cat", "Capitão Clash Warnini", "Strawberry Elephant"
-    }
-}
-
--- Flatten all items for selection
-local allItems = {}
-local selectedItems = {}
-local showItemList = false -- Controla se a lista de items aparece
-
-for category, items in pairs(autoSellCategories) do
-    for _, item in pairs(items) do
-        table.insert(allItems, item)
-        selectedItems[item] = true -- All selected by default
-    end
-end
 
 -- Load settings
 local function loadSettings()
@@ -82,37 +37,13 @@ local function loadSettings()
         settings.jump = string.find(data, '"jump":true') and true or false
         settings.hit = string.find(data, '"hit":true') and true or false
         settings.speed = string.find(data, '"speed":true') and true or false
-        settings.autoSell = string.find(data, '"autoSell":true') and true or false
-        settings.autoCollect = string.find(data, '"autoCollect":true') and true or false
-        
-        -- Load selected items
-        local selectedData = string.match(data, '"selectedItems":"(.-)"')
-        if selectedData and selectedData ~= "" then
-            for item, _ in pairs(selectedItems) do
-                selectedItems[item] = false
-            end
-            for item in string.gmatch(selectedData, "([^,]+)") do
-                if selectedItems[item] ~= nil then
-                    selectedItems[item] = true
-                end
-            end
-        end
+        settings.fly = string.find(data, '"fly":true') and true or false
         print("✅ Loaded")
     end
 end
 
 -- Save settings
 local function saveSettings()
-    local selectedStr = ""
-    for item, selected in pairs(selectedItems) do
-        if selected then
-            selectedStr = selectedStr .. item .. ","
-        end
-    end
-    if selectedStr ~= "" then
-        selectedStr = selectedStr:sub(1, -2)
-    end
-    
     local json = '{"auto":'..tostring(settings.auto)..
                  ',"esp":'..tostring(settings.esp)..
                  ',"spin":'..tostring(settings.spin)..
@@ -120,11 +51,136 @@ local function saveSettings()
                  ',"jump":'..tostring(settings.jump)..
                  ',"hit":'..tostring(settings.hit)..
                  ',"speed":'..tostring(settings.speed)..
-                 ',"autoSell":'..tostring(settings.autoSell)..
-                 ',"autoCollect":'..tostring(settings.autoCollect)..
-                 ',"selectedItems":"'..selectedStr..'"}'
+                 ',"fly":'..tostring(settings.fly)..'}'
     player:SetAttribute(SAVE_KEY, json)
     print("💾 Saved!")
+end
+
+-- FLY FUNCTION (with no hit taken)
+local function startFly()
+    if flying then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    
+    if not humanoid or not hrp then return end
+    
+    flying = true
+    
+    -- Remove collision with other players (no hit)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+    
+    -- Make character immune to damage
+    humanoid.BreakJointsOnDeath = false
+    
+    -- BodyVelocity for movement
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
+    bodyVelocity.P = 10000
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = hrp
+    
+    -- BodyGyro for rotation control
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(100000, 100000, 100000)
+    bodyGyro.P = 10000
+    bodyGyro.CFrame = hrp.CFrame
+    bodyGyro.Parent = hrp
+    
+    -- Disable gravity
+    humanoid.PlatformStand = true
+    hrp.Anchored = false
+    
+    -- Fly control loop
+    spawn(function()
+        while flying and player.Character and hrp do
+            local moveDirection = Vector3.new(0, 0, 0)
+            
+            -- WASD / Arrow keys movement
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) or UserInputService:IsKeyDown(Enum.KeyCode.Up) then
+                moveDirection = moveDirection + hrp.CFrame.LookVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) or UserInputService:IsKeyDown(Enum.KeyCode.Down) then
+                moveDirection = moveDirection - hrp.CFrame.LookVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) or UserInputService:IsKeyDown(Enum.KeyCode.Left) then
+                moveDirection = moveDirection - hrp.CFrame.RightVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) or UserInputService:IsKeyDown(Enum.KeyCode.Right) then
+                moveDirection = moveDirection + hrp.CFrame.RightVector
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                moveDirection = moveDirection + Vector3.new(0, 1, 0)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+                moveDirection = moveDirection - Vector3.new(0, 1, 0)
+            end
+            
+            -- Normalize and set velocity
+            if moveDirection.Magnitude > 0 then
+                moveDirection = moveDirection.Unit
+            end
+            
+            bodyVelocity.Velocity = moveDirection * flySpeed
+            
+            -- Update gyro to look in movement direction
+            if moveDirection.Magnitude > 0 then
+                local lookCFrame = CFrame.lookAt(hrp.Position, hrp.Position + moveDirection)
+                bodyGyro.CFrame = lookCFrame
+            end
+            
+            task.wait()
+        end
+    end)
+end
+
+local function stopFly()
+    if not flying then return end
+    
+    flying = false
+    
+    local character = player.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    
+    if bodyVelocity then bodyVelocity:Destroy() end
+    if bodyGyro then bodyGyro:Destroy() end
+    
+    if humanoid then
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, true)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+        humanoid.PlatformStand = false
+        humanoid.BreakJointsOnDeath = true
+    end
+    
+    if hrp then
+        hrp.Velocity = Vector3.new(0, 0, 0)
+    end
+    
+    bodyVelocity = nil
+    bodyGyro = nil
+end
+
+-- Toggle fly on/off
+local function toggleFly()
+    settings.fly = not settings.fly
+    if settings.fly then
+        startFly()
+    else
+        stopFly()
+    end
+    saveSettings()
+    print("Fly is now " .. tostring(settings.fly))
 end
 
 -- Create GUI
@@ -145,10 +201,10 @@ openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
--- MAIN FRAME (REDUCED SIZE)
+-- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,550,0,450)
-frame.Position = UDim2.new(0.5,-275,0.5,-225)
+frame.Size = UDim2.new(0,500,0,420)
+frame.Position = UDim2.new(0.5,-250,0.5,-210)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -197,15 +253,15 @@ pvpTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
 pvpTab.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", pvpTab).CornerRadius = UDim.new(0,8)
 
-local farmTab = Instance.new("TextButton", sidebar)
-farmTab.Size = UDim2.new(0.85,0,0,35)
-farmTab.Position = UDim2.new(0.075,0,0,70)
-farmTab.Text = "FARM"
-farmTab.Font = Enum.Font.GothamBold
-farmTab.TextSize = 12
-farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-farmTab.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", farmTab).CornerRadius = UDim.new(0,8)
+local flyTab = Instance.new("TextButton", sidebar)
+flyTab.Size = UDim2.new(0.85,0,0,35)
+flyTab.Position = UDim2.new(0.075,0,0,70)
+flyTab.Text = "FLY"
+flyTab.Font = Enum.Font.GothamBold
+flyTab.TextSize = 12
+flyTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+flyTab.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", flyTab).CornerRadius = UDim.new(0,8)
 
 local creditsTab = Instance.new("TextButton", sidebar)
 creditsTab.Size = UDim2.new(0.85,0,0,35)
@@ -223,7 +279,7 @@ contentPanel.Size = UDim2.new(1,-80,1,-35)
 contentPanel.Position = UDim2.new(0,75,0,35)
 contentPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 contentPanel.BackgroundTransparency = 1
-contentPanel.CanvasSize = UDim2.new(0,0,0,0)
+contentPanel.CanvasSize = UDim2.new(0,0,0,400)
 contentPanel.ScrollBarThickness = 4
 
 -- PVP PANEL
@@ -241,20 +297,20 @@ pvpTitle.TextSize = 12
 pvpTitle.TextColor3 = Color3.fromRGB(255,200,0)
 pvpTitle.BackgroundTransparency = 1
 
--- FARM PANEL
-local farmPanel = Instance.new("Frame", contentPanel)
-farmPanel.Size = UDim2.new(1,0,1,0)
-farmPanel.BackgroundTransparency = 1
-farmPanel.Visible = false
+-- FLY PANEL
+local flyPanel = Instance.new("Frame", contentPanel)
+flyPanel.Size = UDim2.new(1,0,1,0)
+flyPanel.BackgroundTransparency = 1
+flyPanel.Visible = false
 
-local farmTitle = Instance.new("TextLabel", farmPanel)
-farmTitle.Size = UDim2.new(1,0,0,25)
-farmTitle.Position = UDim2.new(0,0,0,5)
-farmTitle.Text = "FARM FUNCTIONS"
-farmTitle.Font = Enum.Font.GothamBold
-farmTitle.TextSize = 12
-farmTitle.TextColor3 = Color3.fromRGB(255,200,0)
-farmTitle.BackgroundTransparency = 1
+local flyTitle = Instance.new("TextLabel", flyPanel)
+flyTitle.Size = UDim2.new(1,0,0,25)
+flyTitle.Position = UDim2.new(0,0,0,5)
+flyTitle.Text = "FLY SYSTEM"
+flyTitle.Font = Enum.Font.GothamBold
+flyTitle.TextSize = 12
+flyTitle.TextColor3 = Color3.fromRGB(255,200,0)
+flyTitle.BackgroundTransparency = 1
 
 -- CREDITS PANEL
 local creditsPanel = Instance.new("Frame", contentPanel)
@@ -262,10 +318,8 @@ creditsPanel.Size = UDim2.new(1,0,1,0)
 creditsPanel.BackgroundTransparency = 1
 creditsPanel.Visible = false
 
--- Store toggles and item buttons
+-- Store toggles
 local toggles = {}
-local itemButtons = {}
-local itemListFrame = nil
 
 -- Function to create a toggle switch
 local function createToggleRow(panel, name, yPos, key)
@@ -316,14 +370,13 @@ local function createToggleRow(panel, name, yPos, key)
             circle.Position = UDim2.new(0,3,0.5,-9)
         end
         
-        -- Mostrar ou esconder a lista de items quando autoSell muda
-        if key == "autoSell" then
-            if itemListFrame then
-                itemListFrame.Visible = settings.autoSell
+        -- Special handling for fly toggle
+        if key == "fly" then
+            if settings.fly then
+                startFly()
+            else
+                stopFly()
             end
-            -- Ajustar tamanho do canvas
-            task.wait(0.1)
-            updateCanvasSize()
         end
         
         saveSettings()
@@ -331,157 +384,6 @@ local function createToggleRow(panel, name, yPos, key)
     end)
     
     return row
-end
-
--- Função para criar a lista de items
-local function createItemList()
-    if itemListFrame then return end
-    
-    itemListFrame = Instance.new("ScrollingFrame", farmPanel)
-    itemListFrame.Size = UDim2.new(0.96,0,0,280)
-    itemListFrame.Position = UDim2.new(0.02,0,0,140)
-    itemListFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-    itemListFrame.BackgroundTransparency = 0
-    itemListFrame.CanvasSize = UDim2.new(0,0,0,0)
-    itemListFrame.ScrollBarThickness = 6
-    itemListFrame.BorderSizePixel = 0
-    Instance.new("UICorner", itemListFrame).CornerRadius = UDim.new(0,6)
-    itemListFrame.Visible = settings.autoSell
-    
-    local titleBar = Instance.new("TextLabel", itemListFrame)
-    titleBar.Size = UDim2.new(1,0,0,25)
-    titleBar.Position = UDim2.new(0,0,0,0)
-    titleBar.Text = "SELECT ITEMS TO SELL"
-    titleBar.Font = Enum.Font.GothamBold
-    titleBar.TextSize = 10
-    titleBar.TextColor3 = Color3.fromRGB(255,200,0)
-    titleBar.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    titleBar.BackgroundTransparency = 0
-    
-    local currentY = 30
-    for category, items in pairs(autoSellCategories) do
-        local header = Instance.new("TextLabel", itemListFrame)
-        header.Size = UDim2.new(1,0,0,22)
-        header.Position = UDim2.new(0,0,0,currentY)
-        header.Text = "▸ " .. category
-        header.Font = Enum.Font.GothamBold
-        header.TextSize = 9
-        header.TextColor3 = Color3.fromRGB(200,200,200)
-        header.BackgroundTransparency = 1
-        header.TextXAlignment = Enum.TextXAlignment.Left
-        currentY = currentY + 22
-        
-        for _, item in pairs(items) do
-            local row = Instance.new("Frame", itemListFrame)
-            row.Size = UDim2.new(1,0,0,24)
-            row.Position = UDim2.new(0,0,0,currentY)
-            row.BackgroundColor3 = Color3.fromRGB(30,30,30)
-            row.BackgroundTransparency = 0
-            
-            local label = Instance.new("TextLabel", row)
-            label.Size = UDim2.new(0.75,0,1,0)
-            label.Position = UDim2.new(0,8,0,0)
-            label.Text = item
-            label.Font = Enum.Font.Gotham
-            label.TextSize = 8
-            label.TextColor3 = Color3.new(1,1,1)
-            label.BackgroundTransparency = 1
-            label.TextXAlignment = Enum.TextXAlignment.Left
-            
-            local checkBox = Instance.new("TextButton", row)
-            checkBox.Size = UDim2.new(0,18,0,18)
-            checkBox.Position = UDim2.new(1,-26,0.5,-9)
-            checkBox.Text = selectedItems[item] and "✓" or ""
-            checkBox.Font = Enum.Font.GothamBold
-            checkBox.TextSize = 10
-            checkBox.TextColor3 = Color3.new(1,1,1)
-            checkBox.BackgroundColor3 = selectedItems[item] and Color3.fromRGB(0,170,0) or Color3.fromRGB(80,80,80)
-            Instance.new("UICorner", checkBox).CornerRadius = UDim.new(0,3)
-            
-            checkBox.MouseButton1Click:Connect(function()
-                selectedItems[item] = not selectedItems[item]
-                if selectedItems[item] then
-                    checkBox.Text = "✓"
-                    checkBox.BackgroundColor3 = Color3.fromRGB(0,170,0)
-                else
-                    checkBox.Text = ""
-                    checkBox.BackgroundColor3 = Color3.fromRGB(80,80,80)
-                end
-                saveSettings()
-            end)
-            
-            itemButtons[item] = checkBox
-            currentY = currentY + 24
-        end
-        currentY = currentY + 5
-    end
-    
-    -- Buttons row
-    local buttonRow = Instance.new("Frame", itemListFrame)
-    buttonRow.Size = UDim2.new(1,0,0,32)
-    buttonRow.Position = UDim2.new(0,0,0,currentY)
-    buttonRow.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    
-    local selectAllBtn = Instance.new("TextButton", buttonRow)
-    selectAllBtn.Size = UDim2.new(0.48,0,0.8,0)
-    selectAllBtn.Position = UDim2.new(0.02,0,0.1,0)
-    selectAllBtn.Text = "ALL"
-    selectAllBtn.Font = Enum.Font.GothamBold
-    selectAllBtn.TextSize = 9
-    selectAllBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-    selectAllBtn.TextColor3 = Color3.new(1,1,1)
-    Instance.new("UICorner", selectAllBtn).CornerRadius = UDim.new(0,4)
-    
-    local deselectAllBtn = Instance.new("TextButton", buttonRow)
-    deselectAllBtn.Size = UDim2.new(0.48,0,0.8,0)
-    deselectAllBtn.Position = UDim2.new(0.5,0,0.1,0)
-    deselectAllBtn.Text = "NONE"
-    deselectAllBtn.Font = Enum.Font.GothamBold
-    deselectAllBtn.TextSize = 9
-    deselectAllBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
-    deselectAllBtn.TextColor3 = Color3.new(1,1,1)
-    Instance.new("UICorner", deselectAllBtn).CornerRadius = UDim.new(0,4)
-    
-    selectAllBtn.MouseButton1Click:Connect(function()
-        for item, _ in pairs(selectedItems) do
-            selectedItems[item] = true
-            if itemButtons[item] then
-                itemButtons[item].Text = "✓"
-                itemButtons[item].BackgroundColor3 = Color3.fromRGB(0,170,0)
-            end
-        end
-        saveSettings()
-    end)
-    
-    deselectAllBtn.MouseButton1Click:Connect(function()
-        for item, _ in pairs(selectedItems) do
-            selectedItems[item] = false
-            if itemButtons[item] then
-                itemButtons[item].Text = ""
-                itemButtons[item].BackgroundColor3 = Color3.fromRGB(80,80,80)
-            end
-        end
-        saveSettings()
-    end)
-    
-    currentY = currentY + 37
-    itemListFrame.CanvasSize = UDim2.new(0,0,0,currentY)
-end
-
--- Atualizar tamanho do canvas
-local function updateCanvasSize()
-    local totalHeight = 0
-    if pvpPanel.Visible then
-        totalHeight = 360
-    elseif farmPanel.Visible then
-        totalHeight = 420
-        if settings.autoSell and itemListFrame then
-            totalHeight = 460
-        end
-    elseif creditsPanel.Visible then
-        totalHeight = 280
-    end
-    contentPanel.CanvasSize = UDim2.new(0,0,0,totalHeight)
 end
 
 -- Create PVP toggles
@@ -493,23 +395,107 @@ createToggleRow(pvpPanel, "Super Jump", 220, "jump")
 createToggleRow(pvpPanel, "Auto Hit", 265, "hit")
 createToggleRow(pvpPanel, "Speed", 310, "speed")
 
--- Create FARM toggles
-createToggleRow(farmPanel, "Auto Sell", 45, "autoSell")
-createToggleRow(farmPanel, "Auto Collect Money", 90, "autoCollect")
+-- Create FLY toggle and info
+createToggleRow(flyPanel, "Enable Fly", 40, "fly")
 
--- Info text
-local infoText = Instance.new("TextLabel", farmPanel)
-infoText.Size = UDim2.new(0.96,0,0,35)
-infoText.Position = UDim2.new(0.02,0,0,135)
-infoText.Text = "💰 Auto Collect: Collects coins/money from ground\n🛒 Auto Sell: Sells selected items from inventory"
-infoText.Font = Enum.Font.Gotham
-infoText.TextSize = 8
-infoText.TextColor3 = Color3.fromRGB(150,150,150)
-infoText.BackgroundTransparency = 1
-infoText.TextXAlignment = Enum.TextXAlignment.Left
+-- Fly info
+local flyInfo = Instance.new("TextLabel", flyPanel)
+flyInfo.Size = UDim2.new(0.96,0,0,80)
+flyInfo.Position = UDim2.new(0.02,0,0,90)
+flyInfo.Text = "🕊️ FLY CONTROLS:\n\nW / ↑ = Forward\nS / ↓ = Backward\nA / ← = Left\nD / → = Right\nSPACE = Up\nCTRL = Down\n\n✨ No damage while flying!"
+flyInfo.Font = Enum.Font.Gotham
+flyInfo.TextSize = 10
+flyInfo.TextColor3 = Color3.fromRGB(150,150,150)
+flyInfo.BackgroundTransparency = 1
+flyInfo.TextXAlignment = Enum.TextXAlignment.Left
+flyInfo.TextWrapped = true
 
--- Create item list
-createItemList()
+local flySpeedSlider = Instance.new("Frame", flyPanel)
+flySpeedSlider.Size = UDim2.new(0.96,0,0,40)
+flySpeedSlider.Position = UDim2.new(0.02,0,0,180)
+flySpeedSlider.BackgroundColor3 = Color3.fromRGB(35,35,35)
+Instance.new("UICorner", flySpeedSlider).CornerRadius = UDim.new(0,6)
+
+local speedLabel = Instance.new("TextLabel", flySpeedSlider)
+speedLabel.Size = UDim2.new(0.4,0,1,0)
+speedLabel.Position = UDim2.new(0,8,0,0)
+speedLabel.Text = "Fly Speed: " .. flySpeed
+speedLabel.Font = Enum.Font.GothamBold
+speedLabel.TextSize = 10
+speedLabel.TextColor3 = Color3.new(1,1,1)
+speedLabel.BackgroundTransparency = 1
+speedLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local speedSlider = Instance.new("TextButton", flySpeedSlider)
+speedSlider.Size = UDim2.new(0.5,0,0.6,0)
+speedSlider.Position = UDim2.new(0.48,0,0.2,0)
+speedSlider.Text = ""
+speedSlider.BackgroundColor3 = Color3.fromRGB(80,80,80)
+Instance.new("UICorner", speedSlider).CornerRadius = UDim.new(1,0)
+
+local speedFill = Instance.new("Frame", speedSlider)
+speedFill.Size = UDim2.new((flySpeed - 20) / 180, 0, 1, 0)
+speedFill.BackgroundColor3 = Color3.fromRGB(0,170,0)
+speedFill.BorderSizePixel = 0
+Instance.new("UICorner", speedFill).CornerRadius = UDim.new(1,0)
+
+local speedValue = Instance.new("TextLabel", speedSlider)
+speedValue.Size = UDim2.new(1,0,1,0)
+speedValue.Text = tostring(flySpeed)
+speedValue.Font = Enum.Font.GothamBold
+speedValue.TextSize = 10
+speedValue.TextColor3 = Color3.new(1,1,1)
+speedValue.BackgroundTransparency = 1
+
+-- Speed slider dragging
+local dragging = false
+speedSlider.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        local function update(input)
+            if dragging then
+                local x = math.clamp((input.Position.X - speedSlider.AbsolutePosition.X) / speedSlider.AbsoluteSize.X, 0, 1)
+                flySpeed = math.floor(20 + (x * 180))
+                flySpeed = math.clamp(flySpeed, 20, 200)
+                speedFill.Size = UDim2.new(x, 0, 1, 0)
+                speedValue.Text = tostring(flySpeed)
+                speedLabel.Text = "Fly Speed: " .. flySpeed
+                
+                -- Update velocity if flying
+                if settings.fly and flying and bodyVelocity then
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") then
+                        local hrp = character.HumanoidRootPart
+                        local moveDirection = Vector3.new(0, 0, 0)
+                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + hrp.CFrame.LookVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - hrp.CFrame.LookVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - hrp.CFrame.RightVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + hrp.CFrame.RightVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
+                        
+                        if moveDirection.Magnitude > 0 then
+                            moveDirection = moveDirection.Unit
+                        end
+                        bodyVelocity.Velocity = moveDirection * flySpeed
+                    end
+                end
+            end
+        end
+        local connection
+        connection = UserInputService.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement then
+                update(input)
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+                connection:Disconnect()
+            end
+        end)
+    end
+end)
 
 -- CREDITS PANEL
 local creditsTitle = Instance.new("TextLabel", creditsPanel)
@@ -540,7 +526,7 @@ devName.TextXAlignment = Enum.TextXAlignment.Left
 local versionLabel = Instance.new("TextLabel", creditsPanel)
 versionLabel.Size = UDim2.new(1,0,0,18)
 versionLabel.Position = UDim2.new(0,0,0,110)
-versionLabel.Text = "Version 2.3 | Premium Script"
+versionLabel.Text = "Version 3.0 | PVP + Fly System"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
 versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
@@ -558,32 +544,29 @@ thanksLabel.BackgroundTransparency = 1
 -- Tab switching
 pvpTab.MouseButton1Click:Connect(function()
     pvpTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    flyTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
     creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
     pvpPanel.Visible = true
-    farmPanel.Visible = false
+    flyPanel.Visible = false
     creditsPanel.Visible = false
-    updateCanvasSize()
 end)
 
-farmTab.MouseButton1Click:Connect(function()
-    farmTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+flyTab.MouseButton1Click:Connect(function()
+    flyTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
     pvpTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
     creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
     pvpPanel.Visible = false
-    farmPanel.Visible = true
+    flyPanel.Visible = true
     creditsPanel.Visible = false
-    updateCanvasSize()
 end)
 
 creditsTab.MouseButton1Click:Connect(function()
     creditsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
     pvpTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    flyTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
     pvpPanel.Visible = false
-    farmPanel.Visible = false
+    flyPanel.Visible = false
     creditsPanel.Visible = true
-    updateCanvasSize()
 end)
 
 -- Open/Close
@@ -610,161 +593,15 @@ for key, toggle in pairs(toggles) do
     end
 end
 
--- Update item checkboxes after loading
-for item, selected in pairs(selectedItems) do
-    if itemButtons[item] then
-        if selected then
-            itemButtons[item].Text = "✓"
-            itemButtons[item].BackgroundColor3 = Color3.fromRGB(0,170,0)
-        else
-            itemButtons[item].Text = ""
-            itemButtons[item].BackgroundColor3 = Color3.fromRGB(80,80,80)
-        end
-    end
+-- Start fly if enabled on load
+if settings.fly then
+    task.wait(1)
+    startFly()
 end
 
--- Update list visibility based on autoSell setting
-if itemListFrame then
-    itemListFrame.Visible = settings.autoSell
-end
-updateCanvasSize()
+-- PVP FUNCTIONS
 
--- AUTO COLLECT MONEY FUNCTION (CORRIGIDO)
-local function autoCollectMoney()
-    if not settings.autoCollect then return end
-    
-    local character = player.Character
-    if not character then return end
-    
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    
-    -- Procura por objetos de dinheiro no chão
-    for _, obj in pairs(Workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Parent then
-            local name = obj.Name:lower()
-            -- Verifica se é dinheiro/coin
-            if string.find(name, "coin") or 
-               string.find(name, "money") or 
-               string.find(name, "cash") or
-               string.find(name, "drop") or
-               obj:FindFirstChild("TouchInterest") or
-               obj:FindFirstChild("ClickDetector") then
-                
-                pcall(function()
-                    local distance = (obj.Position - hrp.Position).Magnitude
-                    if distance < 8 then
-                        -- Move para o dinheiro
-                        hrp.CFrame = CFrame.new(obj.Position.X, hrp.Position.Y, obj.Position.Z)
-                        wait(0.05)
-                    end
-                end)
-            end
-        end
-    end
-end
-
--- AUTO SELL FUNCTION (CORRIGIDO)
-local function autoSell()
-    if not settings.autoSell then return end
-    
-    local soldCount = 0
-    
-    -- Vende do Backpack
-    if player.Backpack then
-        local toolsToSell = {}
-        for _, tool in pairs(player.Backpack:GetChildren()) do
-            if tool:IsA("Tool") then
-                for sellName, selected in pairs(selectedItems) do
-                    if selected and (tool.Name == sellName or string.find(tool.Name, sellName)) then
-                        table.insert(toolsToSell, tool)
-                        break
-                    end
-                end
-            end
-        end
-        for _, tool in pairs(toolsToSell) do
-            pcall(function()
-                tool:Destroy()
-                soldCount = soldCount + 1
-                print("💰 Sold: " .. tool.Name)
-            end)
-        end
-    end
-    
-    -- Vende do Character
-    if player.Character then
-        local toolsToSell = {}
-        for _, tool in pairs(player.Character:GetChildren()) do
-            if tool:IsA("Tool") then
-                for sellName, selected in pairs(selectedItems) do
-                    if selected and (tool.Name == sellName or string.find(tool.Name, sellName)) then
-                        table.insert(toolsToSell, tool)
-                        break
-                    end
-                end
-            end
-        end
-        for _, tool in pairs(toolsToSell) do
-            pcall(function()
-                tool:Destroy()
-                soldCount = soldCount + 1
-                print("💰 Sold: " .. tool.Name)
-            end)
-        end
-    end
-end
-
--- Run Auto Sell every 1 second
-spawn(function()
-    while true do
-        task.wait(1)
-        autoSell()
-    end
-end)
-
--- Run Auto Collect every 0.3 seconds (mais rápido)
-spawn(function()
-    while true do
-        task.wait(0.3)
-        autoCollectMoney()
-    end
-end)
-
--- Auto Collect movement loop
-spawn(function()
-    while true do
-        task.wait(0.1)
-        if settings.autoCollect then
-            local character = player.Character
-            if character and character:FindFirstChild("HumanoidRootPart") then
-                local hrp = character.HumanoidRootPart
-                local closestMoney = nil
-                local closestDist = 15
-                
-                for _, obj in pairs(Workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") and obj.Parent then
-                        local name = obj.Name:lower()
-                        if string.find(name, "coin") or string.find(name, "money") or string.find(name, "cash") then
-                            local dist = (obj.Position - hrp.Position).Magnitude
-                            if dist < closestDist then
-                                closestDist = dist
-                                closestMoney = obj
-                            end
-                        end
-                    end
-                end
-                
-                if closestMoney then
-                    local direction = (closestMoney.Position - hrp.Position).Unit
-                    hrp.Velocity = Vector3.new(direction.X * 45, hrp.Velocity.Y, direction.Z * 45)
-                end
-            end
-        end
-    end
-end)
-
--- PVP FUNCTIONS (Mantidas as mesmas)
+-- Auto Attack
 RunService.RenderStepped:Connect(function()
     if settings.auto and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
@@ -787,6 +624,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- Auto Hit
 RunService.RenderStepped:Connect(function()
     if settings.hit and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -815,11 +653,12 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- Speed
 local speedActive = false
 local function setSpeed()
     if not player.Character then return end
     local hum = player.Character:FindFirstChildOfClass("Humanoid")
-    if hum then
+    if hum and not settings.fly then
         hum.WalkSpeed = speedActive and 50 or 27
     end
 end
@@ -838,14 +677,20 @@ end)
 player.CharacterAdded:Connect(function()
     task.wait(0.2)
     setSpeed()
+    if settings.fly then
+        task.wait(0.5)
+        startFly()
+    end
 end)
 
+-- Spin Bot
 RunService.RenderStepped:Connect(function()
     if settings.spin and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(25), 0)
     end
 end)
 
+-- Reset Player
 local resetCooldown = false
 RunService.RenderStepped:Connect(function()
     if settings.resetP and not resetCooldown then
@@ -858,10 +703,11 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- Super Jump
 local jumpTime = 0
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
-    if settings.jump and input.KeyCode == Enum.KeyCode.Space then
+    if settings.jump and input.KeyCode == Enum.KeyCode.Space and not settings.fly then
         local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
         if hum and tick() - jumpTime > 0.1 then
             jumpTime = tick()
@@ -872,7 +718,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 RunService.RenderStepped:Connect(function()
-    if player.Character then
+    if player.Character and not settings.fly then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         if hum then
             hum.JumpPower = settings.jump and 120 or 50
@@ -880,6 +726,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- ESP
 RunService.RenderStepped:Connect(function()
     if settings.esp then
         for _, v in pairs(Players:GetPlayers()) do
@@ -906,8 +753,13 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- Clean up fly when player dies or leaves
+player.CharacterRemoving:Connect(function()
+    stopFly()
+end)
+
 print("✅ Script Loaded!")
-print("📁 Tabs: PVP | FARM | CREDITS")
-print("💰 Auto Sell: Only appears when you enable Auto Sell")
-print("💰 Auto Collect Money: Collects coins from ground automatically")
+print("📁 Tabs: PVP | FLY | INFO")
+print("🕊️ FLY: Enable fly mode with no damage taken!")
+print("🎮 Controls: WASD / Arrow Keys + Space (Up) + CTRL (Down)")
 print("📌 Press Z to open menu")
