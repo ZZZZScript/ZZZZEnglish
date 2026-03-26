@@ -4,11 +4,6 @@ local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 
--- Variáveis
-local flying = false
-local flySpeed = 50
-local noclipActive = false
-
 -- Remover GUIs antigas
 for _, gui in pairs(player.PlayerGui:GetChildren()) do
     if gui.Name == "PvpLab" then
@@ -90,7 +85,7 @@ local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Size = UDim2.new(1, -20, 1, -90)
 scrollFrame.Position = UDim2.new(0, 10, 0, 80)
 scrollFrame.BackgroundTransparency = 1
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 520)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 450)
 scrollFrame.ScrollBarThickness = 3
 scrollFrame.ScrollBarImageColor3 = corAzul
 scrollFrame.Parent = mainFrame
@@ -218,34 +213,23 @@ yPos = yPos + 35
 
 funcoes.auto = criarCard("⚔️", "Auto Attack", "Auto attack enemies", yPos)
 yPos = yPos + 65
+
+funcoes.autoJump = criarCard("🦘", "Auto Jump", "Jump automatically while attacking", yPos)
+yPos = yPos + 65
+
 funcoes.esp = criarCard("👁️", "ESP", "See enemies through walls", yPos)
 yPos = yPos + 65
+
 funcoes.spin = criarCard("🌀", "Spin Bot", "Auto spin while moving", yPos)
 yPos = yPos + 65
+
 funcoes.reset = criarCard("💀", "Reset Player", "Auto reset when low health", yPos)
 yPos = yPos + 65
-funcoes.jump = criarCard("🦘", "Super Jump", "Jump higher than normal", yPos)
-yPos = yPos + 65
+
 funcoes.hit = criarCard("👊", "Auto Hit", "Auto attack nearby", yPos)
 yPos = yPos + 65
+
 funcoes.speed = criarCard("🏃", "Speed", "Increase movement speed", yPos)
-yPos = yPos + 75
-
-local flyTitle = Instance.new("TextLabel")
-flyTitle.Size = UDim2.new(1, 0, 0, 30)
-flyTitle.Position = UDim2.new(0, 0, 0, yPos)
-flyTitle.Text = "🕊️ FLY SYSTEM"
-flyTitle.Font = Enum.Font.GothamBold
-flyTitle.TextSize = 13
-flyTitle.TextColor3 = corAzul
-flyTitle.BackgroundTransparency = 1
-flyTitle.TextXAlignment = Enum.TextXAlignment.Left
-flyTitle.Parent = scrollFrame
-yPos = yPos + 35
-
-local flyCard = criarCard("🕊️", "Fly Mode", "Use joystick to fly", yPos)
-yPos = yPos + 65
-local noclipCard = criarCard("🔓", "NoClip", "Walk through walls", yPos)
 yPos = yPos + 75
 
 local socialTitle = Instance.new("TextLabel")
@@ -336,154 +320,118 @@ versionLabel.Parent = scrollFrame
 scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPos + 35)
 
 -- ========== FUNÇÕES ==========
-local flyingActive = false
-local noclipActiveVar = false
-local bv = nil
-
--- NoClip
-local function setNoclip(val)
-    noclipActiveVar = val
-    noclipCard.setAtivo(val)
-    local character = player.Character
-    if character then
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = not val
-            end
-        end
-    end
-end
-
--- Fly CORRIGIDO
-local function startFly()
-    if flyingActive then return end
-    local character = player.Character
-    if not character then return end
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    if not humanoid or not hrp then return end
-    
-    flyingActive = true
-    flyCard.setAtivo(true)
-    
-    humanoid.PlatformStand = true
-    bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-    bv.Velocity = Vector3.new(0, 0, 0)
-    bv.Parent = hrp
-end
-
-local function stopFly()
-    if not flyingActive then return end
-    flyingActive = false
-    flyCard.setAtivo(false)
-    
-    local character = player.Character
-    if character then
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then humanoid.PlatformStand = false end
-        if bv then bv:Destroy() end
-        bv = nil
-    end
-end
-
--- Movimento Fly CORRIGIDO (direção correta)
-RunService.RenderStepped:Connect(function()
-    if not flyingActive then return end
-    local character = player.Character
-    if not character then return end
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    if not hrp or not bv then return end
-    if humanoid then humanoid.PlatformStand = true end
-    
-    -- Pega a direção do movimento do joystick/teclado
-    local moveDir = humanoid.MoveDirection
-    
-    if moveDir.Magnitude > 0 then
-        -- CORREÇÃO: Inverte a direção Z para frente/trás
-        local correctedDir = Vector3.new(moveDir.X, moveDir.Y, -moveDir.Z)
-        
-        -- Aplica a velocidade
-        bv.Velocity = correctedDir * flySpeed
-        
-        -- Faz o personagem olhar na direção do movimento
-        if correctedDir.Magnitude > 0.1 then
-            local lookPos = hrp.Position + correctedDir
-            hrp.CFrame = CFrame.lookAt(hrp.Position, lookPos)
-        end
-    else
-        bv.Velocity = Vector3.new(0, 0, 0)
-    end
-end)
-
--- Conectar cards
 local activeFunctions = {
-    auto = false, esp = false, spin = false, reset = false, jump = false, hit = false, speed = false
+    auto = false,
+    autoJump = false,
+    esp = false,
+    spin = false,
+    reset = false,
+    hit = false,
+    speed = false
 }
 
+-- Variável para controlar o pulo
+local jumpCooldown = false
+local lastAttackTime = 0
+
+-- Conectar cards
 funcoes.auto.onToggle(function(v) activeFunctions.auto = v end)
+funcoes.autoJump.onToggle(function(v) activeFunctions.autoJump = v end)
 funcoes.esp.onToggle(function(v) activeFunctions.esp = v end)
 funcoes.spin.onToggle(function(v) activeFunctions.spin = v end)
 funcoes.reset.onToggle(function(v) activeFunctions.reset = v end)
-funcoes.jump.onToggle(function(v) activeFunctions.jump = v end)
 funcoes.hit.onToggle(function(v) activeFunctions.hit = v end)
 funcoes.speed.onToggle(function(v) activeFunctions.speed = v end)
 
-flyCard.onToggle(function(v)
-    if v then startFly() else stopFly() end
-end)
-
-noclipCard.onToggle(function(v)
-    setNoclip(v)
-end)
-
--- PVP Functions
+-- ========== AUTO ATTACK COM PULO AUTOMÁTICO ==========
 RunService.RenderStepped:Connect(function()
-    if activeFunctions.auto and player.Character and not flyingActive then
+    if activeFunctions.auto and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
-            local closest, dist = nil, math.huge
+            local closest, closestDist = nil, math.huge
             for _, v in pairs(Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                     local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < dist then dist, closest = d, v end
+                    if d < closestDist then
+                        closestDist = d
+                        closest = v
+                    end
                 end
             end
-            if closest then
+            
+            if closest and closestDist < 20 then
+                -- Move em direção ao inimigo
                 hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
+                
+                -- Se estiver perto o suficiente para atacar
+                if closestDist < 8 then
+                    -- Atacar
+                    local tool = player.Character:FindFirstChildOfClass("Tool")
+                    if tool then
+                        tool:Activate()
+                        lastAttackTime = tick()
+                    end
+                    
+                    -- PULO AUTOMÁTICO (quando auto jump está ativado)
+                    if activeFunctions.autoJump and not jumpCooldown then
+                        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                        if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
+                            jumpCooldown = true
+                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                            humanoid.JumpPower = 80
+                            
+                            -- Cooldown do pulo (0.5 segundos)
+                            task.wait(0.5)
+                            jumpCooldown = false
+                        end
+                    end
+                end
             end
         end
     end
 end)
 
+-- ========== AUTO HIT ==========
 RunService.RenderStepped:Connect(function()
-    if activeFunctions.hit and player.Character and not flyingActive then
+    if activeFunctions.hit and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hum and hrp then
-            local closest, dist = nil, math.huge
+            local closest, closestDist = nil, math.huge
             for _, v in pairs(Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                     local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < dist and d < 10 then dist, closest = d, v end
+                    if d < closestDist and d < 10 then
+                        closestDist = d
+                        closest = v
+                    end
                 end
             end
+            
             if closest and closest.Character then
                 hum:MoveTo(closest.Character.HumanoidRootPart.Position)
                 local tool = player.Character:FindFirstChildOfClass("Tool")
                 if tool then tool:Activate() end
+                
+                -- Pulo automático também no auto hit
+                if activeFunctions.autoJump and not jumpCooldown and closestDist < 8 then
+                    jumpCooldown = true
+                    hum:ChangeState(Enum.HumanoidStateType.Jumping)
+                    hum.JumpPower = 80
+                    task.wait(0.5)
+                    jumpCooldown = false
+                end
             end
         end
     end
 end)
 
--- Speed
+-- ========== SPEED ==========
 local speedActiveFlag = false
 local function setSpeed()
     if player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum and not flyingActive then
+        if hum then
             hum.WalkSpeed = speedActiveFlag and 50 or 27
         end
     end
@@ -503,53 +451,33 @@ end)
 player.CharacterAdded:Connect(function()
     task.wait(0.2)
     setSpeed()
-    if noclipActiveVar then
-        task.wait(0.3)
-        setNoclip(true)
-    end
 end)
 
--- Spin Bot
+-- ========== SPIN BOT ==========
 RunService.RenderStepped:Connect(function()
-    if activeFunctions.spin and player.Character and not flyingActive then
+    if activeFunctions.spin and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
+        if hrp then
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0)
+        end
     end
 end)
 
--- Reset Player
+-- ========== RESET PLAYER ==========
 local resetCooldown = false
 RunService.RenderStepped:Connect(function()
     if activeFunctions.reset and not resetCooldown then
         resetCooldown = true
         local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.Health = 0 end
+        if hum then
+            hum.Health = 0
+        end
         task.wait(1)
         resetCooldown = false
     end
 end)
 
--- Super Jump
-local jumpTime = 0
-UserInputService.InputBegan:Connect(function(input)
-    if activeFunctions.jump and input.KeyCode == Enum.KeyCode.Space and not flyingActive then
-        local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-        if hum and tick() - jumpTime > 0.1 then
-            jumpTime = tick()
-            hum:ChangeState(Enum.HumanoidStateType.Jumping)
-            hum.JumpPower = 120
-        end
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if player.Character and not flyingActive then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.JumpPower = activeFunctions.jump and 120 or 50 end
-    end
-end)
-
--- ESP
+-- ========== ESP ==========
 RunService.RenderStepped:Connect(function()
     if activeFunctions.esp then
         for _, v in pairs(Players:GetPlayers()) do
@@ -573,7 +501,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Abrir/fechar menu
+-- ========== ABRIR/FECHAR MENU ==========
 iconButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = not mainFrame.Visible
 end)
@@ -582,8 +510,7 @@ closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
 end)
 
-player.CharacterRemoving:Connect(stopFly)
-
 print("✅ PVP LAB CARREGADO!")
 print("📌 Clique no ícone ZZZZ para abrir o menu")
-print("🕊️ Fly corrigido - agora vai para frente quando você aperta para frente!")
+print("⚔️ Auto Attack + Auto Jump combinados!")
+print("🦘 Quando Auto Jump está ON, você pula automaticamente enquanto ataca!")
