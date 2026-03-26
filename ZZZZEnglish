@@ -83,8 +83,15 @@ local function loadSettings()
         -- Load selected items
         local selectedData = string.match(data, '"selectedItems":"(.-)"')
         if selectedData then
+            -- Reset all selections first
+            for item, _ in pairs(selectedItems) do
+                selectedItems[item] = false
+            end
+            -- Load saved selections
             for item in string.gmatch(selectedData, "([^,]+)") do
-                selectedItems[item] = true
+                if selectedItems[item] ~= nil then
+                    selectedItems[item] = true
+                end
             end
         end
         print("✅ Loaded")
@@ -99,7 +106,10 @@ local function saveSettings()
             selectedStr = selectedStr .. item .. ","
         end
     end
-    selectedStr = selectedStr:sub(1, -2)
+    -- Remove trailing comma
+    if selectedStr ~= "" then
+        selectedStr = selectedStr:sub(1, -2)
+    end
     
     local json = '{"auto":'..tostring(settings.auto)..
                  ',"esp":'..tostring(settings.esp)..
@@ -134,8 +144,8 @@ Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
 -- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,680,0,480)
-frame.Position = UDim2.new(0.5,-340,0.5,-240)
+frame.Size = UDim2.new(0,680,0,520)
+frame.Position = UDim2.new(0.5,-340,0.5,-260)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -228,11 +238,11 @@ pvpTitle.TextSize = 12
 pvpTitle.TextColor3 = Color3.fromRGB(255,200,0)
 pvpTitle.BackgroundTransparency = 1
 
--- FARM PANEL (with scrollable item list)
+-- FARM PANEL
 local farmPanel = Instance.new("ScrollingFrame", contentPanel)
 farmPanel.Size = UDim2.new(1,0,1,0)
 farmPanel.BackgroundTransparency = 1
-farmPanel.CanvasSize = UDim2.new(0,0,0,600)
+farmPanel.CanvasSize = UDim2.new(0,0,0,800)
 farmPanel.ScrollBarThickness = 4
 farmPanel.Visible = false
 
@@ -318,9 +328,9 @@ local function createCategoryHeader(panel, categoryName, yPos)
     local header = Instance.new("TextLabel", panel)
     header.Size = UDim2.new(0.96,0,0,25)
     header.Position = UDim2.new(0.02,0,0,yPos)
-    header.Text = categoryName
+    header.Text = "=== " .. categoryName .. " ==="
     header.Font = Enum.Font.GothamBold
-    header.TextSize = 11
+    header.TextSize = 10
     header.TextColor3 = Color3.fromRGB(255,200,0)
     header.BackgroundTransparency = 1
     header.TextXAlignment = Enum.TextXAlignment.Left
@@ -365,7 +375,6 @@ local function createItemRow(panel, itemName, yPos)
             checkBox.BackgroundColor3 = Color3.fromRGB(80,80,80)
         end
         saveSettings()
-        print("Item " .. itemName .. " is now " .. (selectedItems[itemName] and "selected" or "deselected"))
     end)
     
     itemButtons[itemName] = checkBox
@@ -388,7 +397,7 @@ createToggleRow(farmPanel, "Auto Sell (Enable)", 45, "autoSell")
 local currentY = 95
 for category, items in pairs(autoSellCategories) do
     currentY = currentY + 5
-    createCategoryHeader(farmPanel, "=== " .. category .. " ===", currentY)
+    createCategoryHeader(farmPanel, category, currentY)
     currentY = currentY + 28
     
     for _, item in pairs(items) do
@@ -433,7 +442,6 @@ selectAllBtn.MouseButton1Click:Connect(function()
         end
     end
     saveSettings()
-    print("All items selected")
 end)
 
 deselectAllBtn.MouseButton1Click:Connect(function()
@@ -445,7 +453,6 @@ deselectAllBtn.MouseButton1Click:Connect(function()
         end
     end
     saveSettings()
-    print("All items deselected")
 end)
 
 currentY = currentY + 45
@@ -628,6 +635,7 @@ end
 local function autoSell()
     if not settings.autoSell then return end
     
+    -- Check workspace
     for _, item in pairs(workspace:GetDescendants()) do
         if item:IsA("Model") or item:IsA("Part") or item:IsA("Tool") then
             local itemName = item.Name
@@ -641,11 +649,13 @@ local function autoSell()
                         end
                         print("💰 Auto Sold: " .. itemName)
                     end)
+                    break
                 end
             end
         end
     end
     
+    -- Check Backpack
     if player.Backpack then
         for _, tool in pairs(player.Backpack:GetChildren()) do
             for sellName, selected in pairs(selectedItems) do
@@ -654,11 +664,13 @@ local function autoSell()
                         tool:Destroy()
                         print("💰 Auto Sold from Backpack: " .. tool.Name)
                     end)
+                    break
                 end
             end
         end
     end
     
+    -- Check Character
     if player.Character then
         for _, tool in pairs(player.Character:GetChildren()) do
             if tool:IsA("Tool") then
@@ -668,6 +680,7 @@ local function autoSell()
                             tool:Destroy()
                             print("💰 Auto Sold from Character: " .. tool.Name)
                         end)
+                        break
                     end
                 end
             end
@@ -683,7 +696,8 @@ spawn(function()
     end
 end)
 
--- PVP FUNCTIONS (same as before)
+-- PVP FUNCTIONS
+
 -- Auto Attack
 RunService.RenderStepped:Connect(function()
     if settings.auto and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -757,4 +771,82 @@ spawn(function()
     end
 end)
 
-player.CharacterAdded:Connect
+player.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    setSpeed()
+end)
+
+-- Spin Bot
+RunService.RenderStepped:Connect(function()
+    if settings.spin and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(25), 0)
+    end
+end)
+
+-- Reset Player
+local resetCooldown = false
+RunService.RenderStepped:Connect(function()
+    if settings.resetP and not resetCooldown then
+        resetCooldown = true
+        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+            player.Character:FindFirstChildOfClass("Humanoid").Health = 0
+        end
+        task.wait(1)
+        resetCooldown = false
+    end
+end)
+
+-- Super Jump
+local jumpTime = 0
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if settings.jump and input.KeyCode == Enum.KeyCode.Space then
+        local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if hum and tick() - jumpTime > 0.1 then
+            jumpTime = tick()
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+            hum.JumpPower = 120
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.JumpPower = settings.jump and 120 or 50
+        end
+    end
+end)
+
+-- ESP
+RunService.RenderStepped:Connect(function()
+    if settings.esp then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character then
+                if not v.Character:FindFirstChild("ESP_Box") then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Name = "ESP_Box"
+                    box.Size = Vector3.new(4, 5, 4)
+                    box.Color3 = Color3.fromRGB(255,0,0)
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 10
+                    box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
+                    box.Parent = v.Character
+                end
+            end
+        end
+    else
+        for _, v in pairs(Players:GetPlayers()) do
+            if v.Character then
+                local box = v.Character:FindFirstChild("ESP_Box")
+                if box then box:Destroy() end
+            end
+        end
+    end
+end)
+
+print("✅ Script Loaded!")
+print("📁 Tabs: PVP | FARM | CREDITS")
+print("💰 Auto Sell agora tem lista selecionável!")
+print("📌 Pressione Z para abrir o menu")
