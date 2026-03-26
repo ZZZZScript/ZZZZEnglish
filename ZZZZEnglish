@@ -64,10 +64,10 @@ openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
--- MAIN FRAME
+-- MAIN FRAME - LANDSCAPE MODE
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,350,0,450)
-frame.Position = UDim2.new(0.5,-175,0.5,-225)
+frame.Size = UDim2.new(0,650,0,420)
+frame.Position = UDim2.new(0.5,-325,0.5,-210)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -100,36 +100,36 @@ closeBtn.TextColor3 = Color3.new(1,1,1)
 
 -- LEFT SIDEBAR (TABS)
 local sidebar = Instance.new("Frame", frame)
-sidebar.Size = UDim2.new(0,90,1,-45)
+sidebar.Size = UDim2.new(0,100,1,-45)
 sidebar.Position = UDim2.new(0,0,0,45)
 sidebar.BackgroundColor3 = Color3.fromRGB(25,25,25)
 sidebar.BorderSizePixel = 0
 
 -- Tab Buttons
 local functionsTab = Instance.new("TextButton", sidebar)
-functionsTab.Size = UDim2.new(0.85,0,0,40)
-functionsTab.Position = UDim2.new(0.075,0,0,30)
-functionsTab.Text = "⚙️"
+functionsTab.Size = UDim2.new(0.85,0,0,45)
+functionsTab.Position = UDim2.new(0.075,0,0,40)
+functionsTab.Text = "PVP"
 functionsTab.Font = Enum.Font.GothamBold
-functionsTab.TextSize = 20
+functionsTab.TextSize = 16
 functionsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
 functionsTab.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", functionsTab).CornerRadius = UDim.new(0,8)
 
 local creditsTab = Instance.new("TextButton", sidebar)
-creditsTab.Size = UDim2.new(0.85,0,0,40)
-creditsTab.Position = UDim2.new(0.075,0,0,80)
-creditsTab.Text = "👥"
+creditsTab.Size = UDim2.new(0.85,0,0,45)
+creditsTab.Position = UDim2.new(0.075,0,0,100)
+creditsTab.Text = "CREDITS"
 creditsTab.Font = Enum.Font.GothamBold
-creditsTab.TextSize = 20
+creditsTab.TextSize = 14
 creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
 creditsTab.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", creditsTab).CornerRadius = UDim.new(0,8)
 
 -- RIGHT PANEL (CONTENT)
 local contentPanel = Instance.new("Frame", frame)
-contentPanel.Size = UDim2.new(1,-100,1,-45)
-contentPanel.Position = UDim2.new(0,95,0,45)
+contentPanel.Size = UDim2.new(1,-110,1,-45)
+contentPanel.Position = UDim2.new(0,105,0,45)
 contentPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 contentPanel.BackgroundTransparency = 1
 
@@ -137,8 +137,8 @@ contentPanel.BackgroundTransparency = 1
 local functionsPanel = Instance.new("ScrollingFrame", contentPanel)
 functionsPanel.Size = UDim2.new(1,0,1,0)
 functionsPanel.BackgroundTransparency = 1
-functionsPanel.CanvasSize = UDim2.new(0,0,0,380)
-functionsPanel.ScrollBarThickness = 5
+functionsPanel.CanvasSize = UDim2.new(0,0,0,420)
+functionsPanel.ScrollBarThickness = 6
 functionsPanel.Visible = true
 
 local functionsTitle = Instance.new("TextLabel", functionsPanel)
@@ -146,53 +146,52 @@ functionsTitle.Size = UDim2.new(1,0,0,35)
 functionsTitle.Position = UDim2.new(0,0,0,5)
 functionsTitle.Text = "FUNCTIONS"
 functionsTitle.Font = Enum.Font.GothamBold
-functionsTitle.TextSize = 14
+functionsTitle.TextSize = 16
 functionsTitle.TextColor3 = Color3.fromRGB(255,200,0)
 functionsTitle.BackgroundTransparency = 1
 
--- Store buttons and toggles
-local buttons = {}
+-- Store toggles
 local toggles = {}
 
 -- Function to create a toggle switch
 local function createToggleRow(name, yPos, key)
     -- Background row
     local row = Instance.new("Frame", functionsPanel)
-    row.Size = UDim2.new(0.95,0,0,45)
-    row.Position = UDim2.new(0.025,0,0,yPos)
+    row.Size = UDim2.new(0.96,0,0,48)
+    row.Position = UDim2.new(0.02,0,0,yPos)
     row.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0,6)
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0,8)
     
     -- Text label
     local label = Instance.new("TextLabel", row)
     label.Size = UDim2.new(0.65,0,1,0)
-    label.Position = UDim2.new(0,10,0,0)
+    label.Position = UDim2.new(0,12,0,0)
     label.Text = name
     label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
+    label.TextSize = 13
     label.TextColor3 = Color3.new(1,1,1)
     label.BackgroundTransparency = 1
     label.TextXAlignment = Enum.TextXAlignment.Left
     
-    -- Toggle button
+    -- Toggle button (slider)
     local toggleBtn = Instance.new("TextButton", row)
-    toggleBtn.Size = UDim2.new(0,50,0,28)
-    toggleBtn.Position = UDim2.new(1,-60,0.5,-14)
+    toggleBtn.Size = UDim2.new(0,55,0,30)
+    toggleBtn.Position = UDim2.new(1,-70,0.5,-15)
     toggleBtn.Text = ""
     toggleBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
     Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
     
     -- Circle inside toggle
     local circle = Instance.new("Frame", toggleBtn)
-    circle.Size = UDim2.new(0,22,0,22)
-    circle.Position = UDim2.new(0,3,0.5,-11)
+    circle.Size = UDim2.new(0,24,0,24)
+    circle.Position = UDim2.new(0,3,0.5,-12)
     circle.BackgroundColor3 = Color3.new(1,1,1)
     Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
     
     -- Set initial state
     if settings[key] then
         toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-        circle.Position = UDim2.new(1,-25,0.5,-11)
+        circle.Position = UDim2.new(1,-27,0.5,-12)
     end
     
     -- Store references
@@ -204,10 +203,10 @@ local function createToggleRow(name, yPos, key)
         
         if settings[key] then
             toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-            circle.Position = UDim2.new(1,-25,0.5,-11)
+            circle.Position = UDim2.new(1,-27,0.5,-12)
         else
             toggleBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
-            circle.Position = UDim2.new(0,3,0.5,-11)
+            circle.Position = UDim2.new(0,3,0.5,-12)
         end
         
         saveSettings()
@@ -219,19 +218,19 @@ end
 
 -- Create all toggle rows
 createToggleRow("Auto Attack", 50, "auto")
-createToggleRow("ESP", 105, "esp")
-createToggleRow("Spin Bot", 160, "spin")
-createToggleRow("Reset Player", 215, "resetP")
-createToggleRow("Super Jump", 270, "jump")
-createToggleRow("Auto Hit", 325, "hit")
-createToggleRow("Speed", 380, "speed")
+createToggleRow("ESP", 108, "esp")
+createToggleRow("Spin Bot", 166, "spin")
+createToggleRow("Reset Player", 224, "resetP")
+createToggleRow("Super Jump", 282, "jump")
+createToggleRow("Auto Hit", 340, "hit")
+createToggleRow("Speed", 398, "speed")
 
 -- CREDITS PANEL (with scrolling)
 local creditsPanel = Instance.new("ScrollingFrame", contentPanel)
 creditsPanel.Size = UDim2.new(1,0,1,0)
 creditsPanel.BackgroundTransparency = 1
-creditsPanel.CanvasSize = UDim2.new(0,0,0,380)
-creditsPanel.ScrollBarThickness = 5
+creditsPanel.CanvasSize = UDim2.new(0,0,0,420)
+creditsPanel.ScrollBarThickness = 6
 creditsPanel.Visible = false
 
 local creditsTitle2 = Instance.new("TextLabel", creditsPanel)
@@ -239,81 +238,81 @@ creditsTitle2.Size = UDim2.new(1,0,0,35)
 creditsTitle2.Position = UDim2.new(0,0,0,5)
 creditsTitle2.Text = "CREDITS"
 creditsTitle2.Font = Enum.Font.GothamBold
-creditsTitle2.TextSize = 14
+creditsTitle2.TextSize = 16
 creditsTitle2.TextColor3 = Color3.fromRGB(255,200,0)
 creditsTitle2.BackgroundTransparency = 1
 
 -- Developer cards
 local dev1Card = Instance.new("Frame", creditsPanel)
-dev1Card.Size = UDim2.new(0.95,0,0,70)
-dev1Card.Position = UDim2.new(0.025,0,0,50)
+dev1Card.Size = UDim2.new(0.96,0,0,75)
+dev1Card.Position = UDim2.new(0.02,0,0,55)
 dev1Card.BackgroundColor3 = Color3.fromRGB(35,35,35)
-Instance.new("UICorner", dev1Card).CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", dev1Card).CornerRadius = UDim.new(0,10)
 
 local dev1Name = Instance.new("TextLabel", dev1Card)
-dev1Name.Size = UDim2.new(1,0,0,25)
-dev1Name.Position = UDim2.new(0,10,0,8)
-dev1Name.Text = "⭐ ZZZ"
+dev1Name.Size = UDim2.new(1,0,0,28)
+dev1Name.Position = UDim2.new(0,12,0,10)
+dev1Name.Text = "ZZZ"
 dev1Name.Font = Enum.Font.GothamBold
-dev1Name.TextSize = 13
+dev1Name.TextSize = 14
 dev1Name.TextColor3 = Color3.new(1,1,1)
 dev1Name.BackgroundTransparency = 1
 dev1Name.TextXAlignment = Enum.TextXAlignment.Left
 
 local dev1Role = Instance.new("TextLabel", dev1Card)
-dev1Role.Size = UDim2.new(1,0,0,20)
-dev1Role.Position = UDim2.new(0,10,0,38)
+dev1Role.Size = UDim2.new(1,0,0,22)
+dev1Role.Position = UDim2.new(0,12,0,42)
 dev1Role.Text = "Lead Developer | Project Creator"
 dev1Role.Font = Enum.Font.Gotham
-dev1Role.TextSize = 10
+dev1Role.TextSize = 11
 dev1Role.TextColor3 = Color3.fromRGB(180,180,180)
 dev1Role.BackgroundTransparency = 1
 dev1Role.TextXAlignment = Enum.TextXAlignment.Left
 
 local dev2Card = Instance.new("Frame", creditsPanel)
-dev2Card.Size = UDim2.new(0.95,0,0,70)
-dev2Card.Position = UDim2.new(0.025,0,0,130)
+dev2Card.Size = UDim2.new(0.96,0,0,75)
+dev2Card.Position = UDim2.new(0.02,0,0,140)
 dev2Card.BackgroundColor3 = Color3.fromRGB(35,35,35)
-Instance.new("UICorner", dev2Card).CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", dev2Card).CornerRadius = UDim.new(0,10)
 
 local dev2Name = Instance.new("TextLabel", dev2Card)
-dev2Name.Size = UDim2.new(1,0,0,25)
-dev2Name.Position = UDim2.new(0,10,0,8)
-dev2Name.Text = "⚡ mathyas"
+dev2Name.Size = UDim2.new(1,0,0,28)
+dev2Name.Position = UDim2.new(0,12,0,10)
+dev2Name.Text = "mathyas"
 dev2Name.Font = Enum.Font.GothamBold
-dev2Name.TextSize = 13
+dev2Name.TextSize = 14
 dev2Name.TextColor3 = Color3.new(1,1,1)
 dev2Name.BackgroundTransparency = 1
 dev2Name.TextXAlignment = Enum.TextXAlignment.Left
 
 local dev2Role = Instance.new("TextLabel", dev2Card)
-dev2Role.Size = UDim2.new(1,0,0,20)
-dev2Role.Position = UDim2.new(0,10,0,38)
+dev2Role.Size = UDim2.new(1,0,0,22)
+dev2Role.Position = UDim2.new(0,12,0,42)
 dev2Role.Text = "Co-Developer | Programmer"
 dev2Role.Font = Enum.Font.Gotham
-dev2Role.TextSize = 10
+dev2Role.TextSize = 11
 dev2Role.TextColor3 = Color3.fromRGB(180,180,180)
 dev2Role.BackgroundTransparency = 1
 dev2Role.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Discord button
 local discordBtn = Instance.new("TextButton", creditsPanel)
-discordBtn.Size = UDim2.new(0.9,0,0,55)
-discordBtn.Position = UDim2.new(0.05,0,0,215)
-discordBtn.Text = "💬 JOIN DISCORD\nClick to copy link"
+discordBtn.Size = UDim2.new(0.96,0,0,55)
+discordBtn.Position = UDim2.new(0.02,0,0,230)
+discordBtn.Text = "JOIN DISCORD"
 discordBtn.Font = Enum.Font.GothamBold
-discordBtn.TextSize = 11
+discordBtn.TextSize = 13
 discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
 discordBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,10)
 
 discordBtn.MouseButton1Click:Connect(function()
     local link = "https://discord.gg/bBWPETWW"
     if setclipboard then setclipboard(link) end
     local notif = Instance.new("TextLabel", frame)
     notif.Size = UDim2.new(0,200,0,30)
-    notif.Position = UDim2.new(0.5,-100,0.5,160)
-    notif.Text = "🔗 Link copied!"
+    notif.Position = UDim2.new(0.5,-100,0.5,170)
+    notif.Text = "Link copied!"
     notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
     notif.TextColor3 = Color3.new(1,1,1)
     notif.Font = Enum.Font.GothamBold
@@ -323,22 +322,31 @@ discordBtn.MouseButton1Click:Connect(function()
     notif:Destroy()
 end)
 
+local copyText = Instance.new("TextLabel", creditsPanel)
+copyText.Size = UDim2.new(1,0,0,20)
+copyText.Position = UDim2.new(0,0,0,290)
+copyText.Text = "discord.gg/bBWPETWW"
+copyText.Font = Enum.Font.Gotham
+copyText.TextSize = 10
+copyText.TextColor3 = Color3.fromRGB(150,150,150)
+copyText.BackgroundTransparency = 1
+
 -- Version info
 local versionLabel = Instance.new("TextLabel", creditsPanel)
 versionLabel.Size = UDim2.new(1,0,0,25)
-versionLabel.Position = UDim2.new(0,0,0,285)
-versionLabel.Text = "📌 Version 2.0 | Premium Script"
+versionLabel.Position = UDim2.new(0,0,0,320)
+versionLabel.Text = "Version 2.0 | Premium Script"
 versionLabel.Font = Enum.Font.Gotham
-versionLabel.TextSize = 9
+versionLabel.TextSize = 10
 versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
 versionLabel.BackgroundTransparency = 1
 
 local thanksLabel = Instance.new("TextLabel", creditsPanel)
 thanksLabel.Size = UDim2.new(1,0,0,25)
-thanksLabel.Position = UDim2.new(0,0,0,310)
-thanksLabel.Text = "❤️ Thanks for using our script!"
+thanksLabel.Position = UDim2.new(0,0,0,345)
+thanksLabel.Text = "Thanks for using our script!"
 thanksLabel.Font = Enum.Font.Gotham
-thanksLabel.TextSize = 9
+thanksLabel.TextSize = 10
 thanksLabel.TextColor3 = Color3.fromRGB(200,200,200)
 thanksLabel.BackgroundTransparency = 1
 
@@ -374,10 +382,10 @@ task.wait(0.5)
 for key, toggle in pairs(toggles) do
     if settings[key] then
         toggle.btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-        toggle.circle.Position = UDim2.new(1,-25,0.5,-11)
+        toggle.circle.Position = UDim2.new(1,-27,0.5,-12)
     else
         toggle.btn.BackgroundColor3 = Color3.fromRGB(80,80,80)
-        toggle.circle.Position = UDim2.new(0,3,0.5,-11)
+        toggle.circle.Position = UDim2.new(0,3,0.5,-12)
     end
 end
 
@@ -531,7 +539,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ Script Loaded!")
+print("✅ Script Loaded - Landscape Mode!")
 print("💾 Settings auto-save when you toggle!")
 print("📌 Press Z to open menu")
-print("🔄 Scroll down to see all functions")
+print("📁 Tabs: PVP | CREDITS")
