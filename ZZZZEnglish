@@ -36,16 +36,12 @@ local function loadData()
     return false
 end
 
--- Save data
-local function saveDataToFile()
+-- Auto save function (saves instantly)
+local function autoSave()
     local http = game:GetService("HttpService")
     local json = http:JSONEncode(saveData)
     player:SetAttribute("ZzzUI_SaveData", json)
-    print("💾 Settings saved! Current values:")
-    for k, v in pairs(saveData) do
-        print("  " .. k .. ": " .. tostring(v))
-    end
-    return true
+    print("💾 Auto-saved: " .. json)
 end
 
 -- GUI
@@ -170,7 +166,7 @@ local function updateToggle(saveKey, state)
     end
 end
 
--- 🔘 CREATE TOGGLE
+-- 🔘 CREATE TOGGLE WITH AUTO-SAVE
 local function createToggle(name, posY, saveKey)
     local bg = Instance.new("Frame", mainContainer)
     bg.Size = UDim2.new(1,-20,0,35)
@@ -212,10 +208,14 @@ local function createToggle(name, posY, saveKey)
     updateToggle(saveKey, saveData[saveKey])
 
     toggle.MouseButton1Click:Connect(function()
+        -- Toggle state
         saveData[saveKey] = not saveData[saveKey]
         toggleValues[saveKey].state = saveData[saveKey]
         updateToggle(saveKey, saveData[saveKey])
-        saveDataToFile()
+        
+        -- AUTO-SAVE instantly
+        autoSave()
+        
         print("🔄 " .. name .. " changed to: " .. tostring(saveData[saveKey]))
     end)
 
@@ -223,74 +223,6 @@ local function createToggle(name, posY, saveKey)
         return saveData[saveKey]
     end
 end
-
--- Save Button
-local saveBtn = Instance.new("TextButton", mainContainer)
-saveBtn.Size = UDim2.new(1,-20,0,35)
-saveBtn.Position = UDim2.new(0,10,0,295)
-saveBtn.Text = "💾 SAVE SETTINGS"
-saveBtn.Font = Enum.Font.GothamBold
-saveBtn.TextColor3 = Color3.new(1,1,1)
-saveBtn.BackgroundColor3 = Color3.fromRGB(0,100,0)
-saveBtn.TextSize = 12
-Instance.new("UICorner", saveBtn).CornerRadius = UDim.new(0,8)
-
-saveBtn.MouseButton1Click:Connect(function()
-    saveDataToFile()
-    
-    local notif = Instance.new("TextLabel", frame)
-    notif.Size = UDim2.new(0,200,0,30)
-    notif.Position = UDim2.new(0.5,-100,0.5,100)
-    notif.Text = "💾 Settings saved!"
-    notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
-    notif.TextColor3 = Color3.new(1,1,1)
-    notif.Font = Enum.Font.GothamBold
-    notif.TextSize = 12
-    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,5)
-    notif.ZIndex = 10
-    
-    task.wait(2)
-    notif:Destroy()
-end)
-
--- Reset Button
-local resetBtn = Instance.new("TextButton", mainContainer)
-resetBtn.Size = UDim2.new(1,-20,0,35)
-resetBtn.Position = UDim2.new(0,10,0,340)
-resetBtn.Text = "🔄 RESET SETTINGS"
-resetBtn.Font = Enum.Font.GothamBold
-resetBtn.TextColor3 = Color3.new(1,1,1)
-resetBtn.BackgroundColor3 = Color3.fromRGB(150,50,50)
-resetBtn.TextSize = 12
-Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0,8)
-
-resetBtn.MouseButton1Click:Connect(function()
-    for key in pairs(saveData) do
-        saveData[key] = false
-    end
-    
-    for key, data in pairs(toggleValues) do
-        if data then
-            updateToggle(key, false)
-        end
-    end
-    
-    saveDataToFile()
-    
-    local notif = Instance.new("TextLabel", frame)
-    notif.Size = UDim2.new(0,200,0,30)
-    notif.Position = UDim2.new(0.5,-100,0.5,100)
-    notif.Text = "🔄 Settings reset!"
-    notif.BackgroundColor3 = Color3.fromRGB(200,50,50)
-    notif.TextColor3 = Color3.new(1,1,1)
-    notif.Font = Enum.Font.GothamBold
-    notif.TextSize = 12
-    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,5)
-    notif.ZIndex = 10
-    
-    task.wait(2)
-    notif:Destroy()
-end)
 
 -- FUNCTIONS
 local getAuto = createToggle("Auto Attack", 5, "autoAttack")
@@ -708,6 +640,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ Script loaded with save system!")
-print("💾 Settings are saved in player attributes!")
+print("✅ Script loaded with AUTO-SAVE system!")
+print("💾 Settings are automatically saved when you toggle any feature!")
 print("📌 Press Z button to open menu")
