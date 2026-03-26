@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
@@ -16,407 +17,406 @@ end
 local gui = Instance.new("ScreenGui")
 gui.Name = "ZzzzUI"
 gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- CORES (exatamente igual a imagem)
-local corFundo = Color3.fromRGB(18, 20, 28)
-local corCard = Color3.fromRGB(28, 30, 40)
-local corAzul = Color3.fromRGB(66, 133, 244)
-local corTextoBranco = Color3.fromRGB(255, 255, 255)
-local corTextoClaro = Color3.fromRGB(180, 185, 200)
+-- CORES ROXO
+local roxo = Color3.fromRGB(156, 39, 176)
+local roxoClaro = Color3.fromRGB(186, 104, 200)
+local roxoEscuro = Color3.fromRGB(106, 27, 154)
+local roxoTransparente = Color3.fromRGB(156, 39, 176)
+local fundoTransparente = Color3.fromRGB(0, 0, 0)
 
--- ========== ÍCONE FLUTUANTE "ZZZZ" IGUAL AO FUN ==========
+-- ========== ÍCONE FLUTUANTE ROXO ==========
 local iconButton = Instance.new("TextButton")
 iconButton.Size = UDim2.new(0, 70, 0, 70)
 iconButton.Position = UDim2.new(0, 15, 0.5, -35)
-iconButton.BackgroundColor3 = corAzul
+iconButton.BackgroundColor3 = roxo
 iconButton.BackgroundTransparency = 0
 iconButton.Text = "ZZZZ"
-iconButton.TextColor3 = corTextoBranco
+iconButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 iconButton.TextScaled = true
 iconButton.Font = Enum.Font.GothamBlack
 iconButton.Parent = gui
 Instance.new("UICorner", iconButton).CornerRadius = UDim.new(0, 20)
 
--- ========== MENU PRINCIPAL (estilo da imagem) ==========
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 350, 0, 480)
-mainFrame.Position = UDim2.new(0.5, -175, 0.5, -240)
-mainFrame.BackgroundColor3 = corFundo
-mainFrame.BackgroundTransparency = 0
-mainFrame.Visible = false
-mainFrame.Parent = gui
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 24)
+-- Efeito de brilho roxo
+local glow = Instance.new("ImageLabel")
+glow.Size = UDim2.new(1.2, 0, 1.2, 0)
+glow.Position = UDim2.new(-0.1, 0, -0.1, 0)
+glow.Image = "rbxassetid://0"
+glow.BackgroundTransparency = 1
+glow.ImageTransparency = 0.5
+glow.Parent = iconButton
 
--- ========== TOPO COM TÍTULO "Zzzz V1" ==========
-local topFrame = Instance.new("Frame")
-topFrame.Size = UDim2.new(1, 0, 0, 80)
-topFrame.Position = UDim2.new(0, 0, 0, 0)
-topFrame.BackgroundColor3 = corAzul
-topFrame.BackgroundTransparency = 0
-topFrame.Parent = mainFrame
-Instance.new("UICorner", topFrame).CornerRadius = UDim.new(0, 24)
+-- ========== MENU PRINCIPAL (FUNDO TRANSPARENTE) ==========
+local menu = Instance.new("Frame")
+menu.Size = UDim2.new(0, 340, 0, 480)
+menu.Position = UDim2.new(0.5, -170, 0.5, -240)
+menu.BackgroundColor3 = fundoTransparente
+menu.BackgroundTransparency = 0.15
+menu.Visible = false
+menu.Parent = gui
+Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 24)
 
--- Título Zzzz V1 (igual imagem)
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 50)
-titleLabel.Position = UDim2.new(0, 0, 0, 18)
-titleLabel.Text = "Zzzz V1"
-titleLabel.Font = Enum.Font.GothamBlack
-titleLabel.TextSize = 32
-titleLabel.TextColor3 = corTextoBranco
-titleLabel.BackgroundTransparency = 1
-titleLabel.Parent = topFrame
+-- Efeito blur no fundo
+local blur = Instance.new("BlurEffect")
+blur.Size = 12
+blur.Parent = game:GetService("Lighting")
 
--- Botão fechar (X)
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 36, 0, 36)
-closeBtn.Position = UDim2.new(1, -48, 0, 10)
-closeBtn.Text = "✕"
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 20
-closeBtn.TextColor3 = corTextoBranco
-closeBtn.BackgroundTransparency = 1
-closeBtn.Parent = topFrame
+-- Borda roxa
+local border = Instance.new("UIStroke")
+border.Color = roxo
+border.Thickness = 2
+border.Transparency = 0.3
+border.Parent = menu
 
--- ========== ABA "Pvp utils" ==========
-local tabBar = Instance.new("Frame")
-tabBar.Size = UDim2.new(1, 0, 0, 50)
-tabBar.Position = UDim2.new(0, 0, 0, 80)
-tabBar.BackgroundColor3 = corCard
-tabBar.BackgroundTransparency = 0
-tabBar.Parent = mainFrame
+-- ========== TOPO ROXO ==========
+local topo = Instance.new("Frame")
+topo.Size = UDim2.new(1, 0, 0, 75)
+topo.Position = UDim2.new(0, 0, 0, 0)
+topo.BackgroundColor3 = roxo
+topo.BackgroundTransparency = 0.2
+topo.Parent = menu
+Instance.new("UICorner", topo).CornerRadius = UDim.new(0, 24)
 
--- Botão da aba única "Pvp utils"
-local abaPvp = Instance.new("TextButton")
-abaPvp.Size = UDim2.new(1, 0, 1, 0)
-abaPvp.Position = UDim2.new(0, 0, 0, 0)
-abaPvp.Text = "Pvp utils"
-abaPvp.Font = Enum.Font.GothamBold
-abaPvp.TextSize = 16
-abaPvp.TextColor3 = corTextoBranco
-abaPvp.BackgroundColor3 = corAzul
-abaPvp.BackgroundTransparency = 0
-abaPvp.Parent = tabBar
-Instance.new("UICorner", abaPvp).CornerRadius = UDim.new(0, 0)
+-- Título Zzzz V1
+local titulo = Instance.new("TextLabel")
+titulo.Size = UDim2.new(1, 0, 1, 0)
+titulo.Text = "Zzzz V1"
+titulo.Font = Enum.Font.GothamBlack
+titulo.TextSize = 30
+titulo.TextColor3 = Color3.fromRGB(255, 255, 255)
+titulo.BackgroundTransparency = 1
+titulo.Parent = topo
 
--- ========== CONTEÚDO ==========
-local contentContainer = Instance.new("ScrollingFrame")
-contentContainer.Size = UDim2.new(1, -20, 1, -150)
-contentContainer.Position = UDim2.new(0, 10, 0, 140)
-contentContainer.BackgroundTransparency = 1
-contentContainer.CanvasSize = UDim2.new(0, 0, 0, 550)
-contentContainer.ScrollBarThickness = 3
-contentContainer.ScrollBarImageColor3 = corAzul
-contentContainer.Parent = mainFrame
+-- Botão fechar
+local fechar = Instance.new("TextButton")
+fechar.Size = UDim2.new(0, 32, 0, 32)
+fechar.Position = UDim2.new(1, -42, 0, 12)
+fechar.Text = "✕"
+fechar.Font = Enum.Font.GothamBold
+fechar.TextSize = 18
+fechar.TextColor3 = Color3.fromRGB(255, 255, 255)
+fechar.BackgroundTransparency = 1
+fechar.Parent = topo
+
+-- ========== ABA PVP UTILS ==========
+local abaFrame = Instance.new("Frame")
+abaFrame.Size = UDim2.new(1, 0, 0, 48)
+abaFrame.Position = UDim2.new(0, 0, 0, 75)
+abaFrame.BackgroundColor3 = roxoEscuro
+abaFrame.BackgroundTransparency = 0.3
+abaFrame.Parent = menu
+
+local abaBtn = Instance.new("TextButton")
+abaBtn.Size = UDim2.new(1, 0, 1, 0)
+abaBtn.Text = "Pvp utils"
+abaBtn.Font = Enum.Font.GothamBold
+abaBtn.TextSize = 16
+abaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+abaBtn.BackgroundColor3 = roxo
+abaBtn.BackgroundTransparency = 0
+abaBtn.Parent = abaFrame
+Instance.new("UICorner", abaBtn).CornerRadius = UDim.new(0, 0)
+
+-- ========== CONTEÚDO SCROLL ==========
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, -20, 1, -140)
+scroll.Position = UDim2.new(0, 10, 0, 130)
+scroll.BackgroundTransparency = 1
+scroll.CanvasSize = UDim2.new(0, 0, 0, 550)
+scroll.ScrollBarThickness = 3
+scroll.ScrollBarImageColor3 = roxo
+scroll.Parent = menu
 
 -- ========== FUNÇÃO CRIAR CARD ==========
-local function criarCard(icone, titulo, desc, yPos)
+local y = 10
+
+local function addCard(icone, texto, desc)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 65)
-    card.Position = UDim2.new(0, 0, 0, yPos)
-    card.BackgroundColor3 = corCard
-    card.Parent = contentContainer
+    card.Position = UDim2.new(0, 0, 0, y)
+    card.BackgroundColor3 = roxoEscuro
+    card.BackgroundTransparency = 0.4
+    card.Parent = scroll
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 12)
     
-    local iconLabel = Instance.new("TextLabel")
-    iconLabel.Size = UDim2.new(0, 45, 0, 45)
-    iconLabel.Position = UDim2.new(0, 12, 0.5, -22.5)
-    iconLabel.Text = icone
-    iconLabel.Font = Enum.Font.Gotham
-    iconLabel.TextSize = 26
-    iconLabel.TextColor3 = corAzul
-    iconLabel.BackgroundTransparency = 1
-    iconLabel.Parent = card
+    -- Borda roxa sutil
+    local cardBorder = Instance.new("UIStroke")
+    cardBorder.Color = roxo
+    cardBorder.Thickness = 1
+    cardBorder.Transparency = 0.6
+    cardBorder.Parent = card
     
-    local titleCard = Instance.new("TextLabel")
-    titleCard.Size = UDim2.new(0, 180, 0, 22)
-    titleCard.Position = UDim2.new(0, 65, 0, 12)
-    titleCard.Text = titulo
-    titleCard.Font = Enum.Font.GothamBold
-    titleCard.TextSize = 14
-    titleCard.TextColor3 = corTextoBranco
-    titleCard.BackgroundTransparency = 1
-    titleCard.TextXAlignment = Enum.TextXAlignment.Left
-    titleCard.Parent = card
+    local iconeLab = Instance.new("TextLabel")
+    iconeLab.Size = UDim2.new(0, 45, 0, 45)
+    iconeLab.Position = UDim2.new(0, 12, 0.5, -22.5)
+    iconeLab.Text = icone
+    iconeLab.Font = Enum.Font.Gotham
+    iconeLab.TextSize = 26
+    iconeLab.TextColor3 = roxoClaro
+    iconeLab.BackgroundTransparency = 1
+    iconeLab.Parent = card
+    
+    local tituloCard = Instance.new("TextLabel")
+    tituloCard.Size = UDim2.new(0, 160, 0, 22)
+    tituloCard.Position = UDim2.new(0, 65, 0, 10)
+    tituloCard.Text = texto
+    tituloCard.Font = Enum.Font.GothamBold
+    tituloCard.TextSize = 14
+    tituloCard.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tituloCard.BackgroundTransparency = 1
+    tituloCard.TextXAlignment = Enum.TextXAlignment.Left
+    tituloCard.Parent = card
     
     local descCard = Instance.new("TextLabel")
     descCard.Size = UDim2.new(0, 200, 0, 18)
-    descCard.Position = UDim2.new(0, 65, 0, 35)
+    descCard.Position = UDim2.new(0, 65, 0, 34)
     descCard.Text = desc
     descCard.Font = Enum.Font.Gotham
     descCard.TextSize = 9
-    descCard.TextColor3 = corTextoClaro
+    descCard.TextColor3 = Color3.fromRGB(200, 200, 220)
     descCard.BackgroundTransparency = 1
     descCard.TextXAlignment = Enum.TextXAlignment.Left
     descCard.Parent = card
     
-    local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Size = UDim2.new(0, 52, 0, 28)
-    toggleBtn.Position = UDim2.new(1, -62, 0.5, -14)
-    toggleBtn.Text = ""
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
-    toggleBtn.Parent = card
-    Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1, 0)
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 52, 0, 28)
+    toggle.Position = UDim2.new(1, -62, 0.5, -14)
+    toggle.Text = ""
+    toggle.BackgroundColor3 = roxoEscuro
+    toggle.BackgroundTransparency = 0.5
+    toggle.Parent = card
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
     
-    local circle = Instance.new("Frame")
-    circle.Size = UDim2.new(0, 22, 0, 22)
-    circle.Position = UDim2.new(0, 4, 0.5, -11)
-    circle.BackgroundColor3 = corTextoBranco
-    circle.Parent = toggleBtn
-    Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+    local bola = Instance.new("Frame")
+    bola.Size = UDim2.new(0, 22, 0, 22)
+    bola.Position = UDim2.new(0, 4, 0.5, -11)
+    bola.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    bola.Parent = toggle
+    Instance.new("UICorner", bola).CornerRadius = UDim.new(1, 0)
     
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(0, 40, 0, 20)
-    statusLabel.Position = UDim2.new(1, -118, 0.5, -10)
-    statusLabel.Text = "OFF"
-    statusLabel.Font = Enum.Font.GothamBold
-    statusLabel.TextSize = 9
-    statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.Parent = card
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(0, 40, 0, 20)
+    status.Position = UDim2.new(1, -118, 0.5, -10)
+    status.Text = "OFF"
+    status.Font = Enum.Font.GothamBold
+    status.TextSize = 9
+    status.TextColor3 = Color3.fromRGB(255, 100, 100)
+    status.BackgroundTransparency = 1
+    status.Parent = card
     
     local ativo = false
     local callback = nil
     
-    toggleBtn.MouseButton1Click:Connect(function()
+    toggle.MouseButton1Click:Connect(function()
         ativo = not ativo
         if ativo then
-            toggleBtn.BackgroundColor3 = corAzul
-            circle.Position = UDim2.new(1, -26, 0.5, -11)
-            statusLabel.Text = "ON"
-            statusLabel.TextColor3 = Color3.fromRGB(80, 255, 80)
+            toggle.BackgroundColor3 = roxo
+            bola.Position = UDim2.new(1, -26, 0.5, -11)
+            status.Text = "ON"
+            status.TextColor3 = Color3.fromRGB(100, 255, 100)
         else
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
-            circle.Position = UDim2.new(0, 4, 0.5, -11)
-            statusLabel.Text = "OFF"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+            toggle.BackgroundColor3 = roxoEscuro
+            bola.Position = UDim2.new(0, 4, 0.5, -11)
+            status.Text = "OFF"
+            status.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
         if callback then callback(ativo) end
     end)
     
+    y = y + 72
+    
     return {
-        setAtivo = function(val)
-            ativo = val
-            if ativo then
-                toggleBtn.BackgroundColor3 = corAzul
-                circle.Position = UDim2.new(1, -26, 0.5, -11)
-                statusLabel.Text = "ON"
-                statusLabel.TextColor3 = Color3.fromRGB(80, 255, 80)
-            else
-                toggleBtn.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
-                circle.Position = UDim2.new(0, 4, 0.5, -11)
-                statusLabel.Text = "OFF"
-                statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-            end
-            if callback then callback(ativo) end
-        end,
         onToggle = function(cb) callback = cb end
     }
 end
 
--- ========== FUNÇÃO CRIAR BOTÃO ==========
-local function criarBotao(icone, titulo, desc, yPos, onClick)
+local function addBotao(icone, texto, desc, onClick)
     local card = Instance.new("TextButton")
     card.Size = UDim2.new(1, 0, 0, 65)
-    card.Position = UDim2.new(0, 0, 0, yPos)
-    card.BackgroundColor3 = corCard
-    card.Parent = contentContainer
+    card.Position = UDim2.new(0, 0, 0, y)
+    card.BackgroundColor3 = roxoEscuro
+    card.BackgroundTransparency = 0.4
+    card.Parent = scroll
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 12)
     card.AutoButtonColor = true
     
-    local iconLabel = Instance.new("TextLabel")
-    iconLabel.Size = UDim2.new(0, 45, 0, 45)
-    iconLabel.Position = UDim2.new(0, 12, 0.5, -22.5)
-    iconLabel.Text = icone
-    iconLabel.Font = Enum.Font.Gotham
-    iconLabel.TextSize = 26
-    iconLabel.TextColor3 = corAzul
-    iconLabel.BackgroundTransparency = 1
-    iconLabel.Parent = card
+    local cardBorder = Instance.new("UIStroke")
+    cardBorder.Color = roxo
+    cardBorder.Thickness = 1
+    cardBorder.Transparency = 0.6
+    cardBorder.Parent = card
     
-    local titleCard = Instance.new("TextLabel")
-    titleCard.Size = UDim2.new(0, 180, 0, 22)
-    titleCard.Position = UDim2.new(0, 65, 0, 12)
-    titleCard.Text = titulo
-    titleCard.Font = Enum.Font.GothamBold
-    titleCard.TextSize = 14
-    titleCard.TextColor3 = corTextoBranco
-    titleCard.BackgroundTransparency = 1
-    titleCard.TextXAlignment = Enum.TextXAlignment.Left
-    titleCard.Parent = card
+    local iconeLab = Instance.new("TextLabel")
+    iconeLab.Size = UDim2.new(0, 45, 0, 45)
+    iconeLab.Position = UDim2.new(0, 12, 0.5, -22.5)
+    iconeLab.Text = icone
+    iconeLab.Font = Enum.Font.Gotham
+    iconeLab.TextSize = 26
+    iconeLab.TextColor3 = roxoClaro
+    iconeLab.BackgroundTransparency = 1
+    iconeLab.Parent = card
+    
+    local tituloCard = Instance.new("TextLabel")
+    tituloCard.Size = UDim2.new(0, 160, 0, 22)
+    tituloCard.Position = UDim2.new(0, 65, 0, 10)
+    tituloCard.Text = texto
+    tituloCard.Font = Enum.Font.GothamBold
+    tituloCard.TextSize = 14
+    tituloCard.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tituloCard.BackgroundTransparency = 1
+    tituloCard.TextXAlignment = Enum.TextXAlignment.Left
+    tituloCard.Parent = card
     
     local descCard = Instance.new("TextLabel")
     descCard.Size = UDim2.new(0, 200, 0, 18)
-    descCard.Position = UDim2.new(0, 65, 0, 35)
+    descCard.Position = UDim2.new(0, 65, 0, 34)
     descCard.Text = desc
     descCard.Font = Enum.Font.Gotham
     descCard.TextSize = 9
-    descCard.TextColor3 = corTextoClaro
+    descCard.TextColor3 = Color3.fromRGB(200, 200, 220)
     descCard.BackgroundTransparency = 1
     descCard.TextXAlignment = Enum.TextXAlignment.Left
     descCard.Parent = card
     
-    local setaLabel = Instance.new("TextLabel")
-    setaLabel.Size = UDim2.new(0, 30, 0, 30)
-    setaLabel.Position = UDim2.new(1, -45, 0.5, -15)
-    setaLabel.Text = "→"
-    setaLabel.Font = Enum.Font.GothamBold
-    setaLabel.TextSize = 18
-    setaLabel.TextColor3 = corAzul
-    setaLabel.BackgroundTransparency = 1
-    setaLabel.Parent = card
+    local seta = Instance.new("TextLabel")
+    seta.Size = UDim2.new(0, 30, 0, 30)
+    seta.Position = UDim2.new(1, -48, 0.5, -15)
+    seta.Text = "→"
+    seta.Font = Enum.Font.GothamBold
+    seta.TextSize = 20
+    seta.TextColor3 = roxoClaro
+    seta.BackgroundTransparency = 1
+    seta.Parent = card
     
     card.MouseButton1Click:Connect(onClick)
     
     card.MouseEnter:Connect(function()
-        card.BackgroundColor3 = Color3.fromRGB(40, 42, 52)
+        card.BackgroundTransparency = 0.2
     end)
     card.MouseLeave:Connect(function()
-        card.BackgroundColor3 = corCard
+        card.BackgroundTransparency = 0.4
     end)
     
-    return card
+    y = y + 72
 end
 
--- ========== CRIAR CARDS ==========
-local yPos = 0
-
+-- ========== ADICIONAR CARDS ==========
 -- Título Combat
-local combatTitle = Instance.new("TextLabel")
-combatTitle.Size = UDim2.new(1, 0, 0, 35)
-combatTitle.Position = UDim2.new(0, 0, 0, yPos)
-combatTitle.Text = "⚔️ COMBAT"
-combatTitle.Font = Enum.Font.GothamBold
-combatTitle.TextSize = 13
-combatTitle.TextColor3 = corAzul
-combatTitle.BackgroundTransparency = 1
-combatTitle.TextXAlignment = Enum.TextXAlignment.Left
-combatTitle.Parent = contentContainer
-yPos = yPos + 40
+local combatTit = Instance.new("TextLabel")
+combatTit.Size = UDim2.new(1, 0, 0, 32)
+combatTit.Position = UDim2.new(0, 0, 0, y)
+combatTit.Text = "⚔️ COMBAT"
+combatTit.Font = Enum.Font.GothamBold
+combatTit.TextSize = 13
+combatTit.TextColor3 = roxoClaro
+combatTit.BackgroundTransparency = 1
+combatTit.TextXAlignment = Enum.TextXAlignment.Left
+combatTit.Parent = scroll
+y = y + 38
 
-local autoAttack = criarCard("⚔️", "Auto Attack", "Auto attack enemies", yPos)
-yPos = yPos + 70
-
-local autoJump = criarCard("🦘", "Auto Jump", "Jump while attacking", yPos)
-yPos = yPos + 70
-
-local superJump = criarCard("⭐", "Super Jump", "Jump much higher", yPos)
-yPos = yPos + 70
-
-local autoHit = criarCard("👊", "Auto Hit", "Auto attack nearby", yPos)
-yPos = yPos + 70
-
-local spinBot = criarCard("🌀", "Spin Bot", "Auto spin while moving", yPos)
-yPos = yPos + 70
-
-local speed = criarCard("🏃", "Speed", "Increase movement speed", yPos)
-yPos = yPos + 80
+local autoAttack = addCard("⚔️", "Auto Attack", "Auto attack enemies")
+local autoJump = addCard("🦘", "Auto Jump", "Jump while attacking")
+local superJump = addCard("⭐", "Super Jump", "Jump much higher")
+local autoHit = addCard("👊", "Auto Hit", "Auto attack nearby")
+local spinBot = addCard("🌀", "Spin Bot", "Auto spin while moving")
+local speed = addCard("🏃", "Speed", "Increase movement speed")
 
 -- Título Visual
-local visualTitle = Instance.new("TextLabel")
-visualTitle.Size = UDim2.new(1, 0, 0, 35)
-visualTitle.Position = UDim2.new(0, 0, 0, yPos)
-visualTitle.Text = "👁️ VISUAL"
-visualTitle.Font = Enum.Font.GothamBold
-visualTitle.TextSize = 13
-visualTitle.TextColor3 = corAzul
-visualTitle.BackgroundTransparency = 1
-visualTitle.TextXAlignment = Enum.TextXAlignment.Left
-visualTitle.Parent = contentContainer
-yPos = yPos + 40
+local visualTit = Instance.new("TextLabel")
+visualTit.Size = UDim2.new(1, 0, 0, 32)
+visualTit.Position = UDim2.new(0, 0, 0, y)
+visualTit.Text = "👁️ VISUAL"
+visualTit.Font = Enum.Font.GothamBold
+visualTit.TextSize = 13
+visualTit.TextColor3 = roxoClaro
+visualTit.BackgroundTransparency = 1
+visualTit.TextXAlignment = Enum.TextXAlignment.Left
+visualTit.Parent = scroll
+y = y + 38
 
-local esp = criarCard("👁️", "ESP", "See enemies through walls", yPos)
-yPos = yPos + 80
+local esp = addCard("👁️", "ESP", "See enemies through walls")
 
 -- Título Utility
-local utilTitle = Instance.new("TextLabel")
-utilTitle.Size = UDim2.new(1, 0, 0, 35)
-utilTitle.Position = UDim2.new(0, 0, 0, yPos)
-utilTitle.Text = "🔧 UTILITY"
-utilTitle.Font = Enum.Font.GothamBold
-utilTitle.TextSize = 13
-utilTitle.TextColor3 = corAzul
-utilTitle.BackgroundTransparency = 1
-utilTitle.TextXAlignment = Enum.TextXAlignment.Left
-utilTitle.Parent = contentContainer
-yPos = yPos + 40
+local utilTit = Instance.new("TextLabel")
+utilTit.Size = UDim2.new(1, 0, 0, 32)
+utilTit.Position = UDim2.new(0, 0, 0, y)
+utilTit.Text = "🔧 UTILITY"
+utilTit.Font = Enum.Font.GothamBold
+utilTit.TextSize = 13
+utilTit.TextColor3 = roxoClaro
+utilTit.BackgroundTransparency = 1
+utilTit.TextXAlignment = Enum.TextXAlignment.Left
+utilTit.Parent = scroll
+y = y + 38
 
-local autoRejoin = criarBotao("🔄", "Auto Rejoin", "Leave and rejoin server", yPos, function()
+addBotao("🔄", "Auto Rejoin", "Leave and rejoin server", function()
     local notif = Instance.new("TextLabel")
-    notif.Size = UDim2.new(0, 200, 0, 28)
+    notif.Size = UDim2.new(0, 200, 0, 30)
     notif.Position = UDim2.new(0.5, -100, 0.5, 150)
     notif.Text = "🔄 Rejoining..."
-    notif.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
-    notif.TextColor3 = corTextoBranco
+    notif.BackgroundColor3 = roxo
+    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
     notif.Font = Enum.Font.GothamBold
     notif.TextSize = 11
-    notif.Parent = mainFrame
+    notif.Parent = menu
     Instance.new("UICorner", notif).CornerRadius = UDim.new(0, 8)
     task.wait(1)
     notif:Destroy()
     TeleportService:Teleport(game.PlaceId, player)
 end)
-yPos = yPos + 70
 
--- Discord
-local discordBtn = criarBotao("💬", "Join Discord", "Copy Discord link", yPos, function()
+addBotao("💬", "Join Discord", "Copy Discord link", function()
     setclipboard("https://discord.gg/PDmAh9Ua4")
     local notif = Instance.new("TextLabel")
-    notif.Size = UDim2.new(0, 200, 0, 28)
+    notif.Size = UDim2.new(0, 200, 0, 30)
     notif.Position = UDim2.new(0.5, -100, 0.5, 150)
     notif.Text = "✓ Discord link copied!"
-    notif.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-    notif.TextColor3 = corTextoBranco
+    notif.BackgroundColor3 = roxo
+    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
     notif.Font = Enum.Font.GothamBold
     notif.TextSize = 11
-    notif.Parent = mainFrame
+    notif.Parent = menu
     Instance.new("UICorner", notif).CornerRadius = UDim.new(0, 8)
     task.wait(2)
     notif:Destroy()
 end)
-yPos = yPos + 70
 
 -- Versão
-local versionLabel = Instance.new("TextLabel")
-versionLabel.Size = UDim2.new(1, 0, 0, 25)
-versionLabel.Position = UDim2.new(0, 0, 0, yPos)
-versionLabel.Text = "Zzzz V1 | Premium Script"
-versionLabel.Font = Enum.Font.Gotham
-versionLabel.TextSize = 8
-versionLabel.TextColor3 = Color3.fromRGB(100, 105, 120)
-versionLabel.BackgroundTransparency = 1
-versionLabel.Parent = contentContainer
+local versao = Instance.new("TextLabel")
+versao.Size = UDim2.new(1, 0, 0, 28)
+versao.Position = UDim2.new(0, 0, 0, y)
+versao.Text = "Zzzz V1 | Premium Script"
+versao.Font = Enum.Font.Gotham
+versao.TextSize = 8
+versao.TextColor3 = Color3.fromRGB(150, 150, 180)
+versao.BackgroundTransparency = 1
+versao.Parent = scroll
 
-yPos = yPos + 35
-contentContainer.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+y = y + 35
+scroll.CanvasSize = UDim2.new(0, 0, 0, y + 20)
 
 -- ========== FUNÇÕES ==========
-local activeFunctions = {
-    auto = false,
-    autoJump = false,
-    superJump = false,
-    hit = false,
-    spin = false,
-    speed = false,
-    esp = false
+local active = {
+    auto = false, autoJump = false, superJump = false,
+    hit = false, spin = false, speed = false, esp = false
 }
 
-autoAttack.onToggle(function(v) activeFunctions.auto = v end)
-autoJump.onToggle(function(v) activeFunctions.autoJump = v end)
-superJump.onToggle(function(v) activeFunctions.superJump = v end)
-autoHit.onToggle(function(v) activeFunctions.hit = v end)
-spinBot.onToggle(function(v) activeFunctions.spin = v end)
-speed.onToggle(function(v) activeFunctions.speed = v end)
-esp.onToggle(function(v) activeFunctions.esp = v end)
+autoAttack.onToggle(function(v) active.auto = v end)
+autoJump.onToggle(function(v) active.autoJump = v end)
+superJump.onToggle(function(v) active.superJump = v end)
+autoHit.onToggle(function(v) active.hit = v end)
+spinBot.onToggle(function(v) active.spin = v end)
+speed.onToggle(function(v) active.speed = v end)
+esp.onToggle(function(v) active.esp = v end)
 
 -- Super Jump
 local function setSuperJump()
     if player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.JumpPower = activeFunctions.superJump and 120 or 50
-        end
+        if hum then hum.JumpPower = active.superJump and 120 or 50 end
     end
 end
 
@@ -426,42 +426,34 @@ player.CharacterAdded:Connect(function()
     setSpeed()
 end)
 
-RunService.RenderStepped:Connect(function()
-    setSuperJump()
-end)
+RunService.RenderStepped:Connect(setSuperJump)
 
 -- Auto Attack
-local jumpCooldown = false
+local jumpCD = false
 RunService.RenderStepped:Connect(function()
-    if activeFunctions.auto and player.Character then
+    if active.auto and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
-            local closest, closestDist = nil, math.huge
+            local closest, dist = nil, math.huge
             for _, v in pairs(Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                     local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < closestDist then
-                        closestDist = d
-                        closest = v
-                    end
+                    if d < dist then dist, closest = d, v end
                 end
             end
-            
-            if closest and closestDist < 20 then
+            if closest and dist < 20 then
                 hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
-                
-                if closestDist < 8 then
+                if dist < 8 then
                     local tool = player.Character:FindFirstChildOfClass("Tool")
                     if tool then tool:Activate() end
-                    
-                    if activeFunctions.autoJump and not jumpCooldown then
-                        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                        if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
-                            jumpCooldown = true
-                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                            humanoid.JumpPower = activeFunctions.superJump and 120 or 80
+                    if active.autoJump and not jumpCD then
+                        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+                        if hum and hum:GetState() ~= Enum.HumanoidStateType.Jumping then
+                            jumpCD = true
+                            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+                            hum.JumpPower = active.superJump and 120 or 80
                             task.wait(0.3)
-                            jumpCooldown = false
+                            jumpCD = false
                         end
                     end
                 end
@@ -472,32 +464,27 @@ end)
 
 -- Auto Hit
 RunService.RenderStepped:Connect(function()
-    if activeFunctions.hit and player.Character then
+    if active.hit and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hum and hrp then
-            local closest, closestDist = nil, math.huge
+            local closest, dist = nil, math.huge
             for _, v in pairs(Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                     local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < closestDist and d < 10 then
-                        closestDist = d
-                        closest = v
-                    end
+                    if d < dist and d < 10 then dist, closest = d, v end
                 end
             end
-            
-            if closest and closest.Character then
+            if closest then
                 hum:MoveTo(closest.Character.HumanoidRootPart.Position)
                 local tool = player.Character:FindFirstChildOfClass("Tool")
                 if tool then tool:Activate() end
-                
-                if activeFunctions.autoJump and not jumpCooldown and closestDist < 8 then
-                    jumpCooldown = true
+                if active.autoJump and not jumpCD and dist < 8 then
+                    jumpCD = true
                     hum:ChangeState(Enum.HumanoidStateType.Jumping)
-                    hum.JumpPower = activeFunctions.superJump and 120 or 80
+                    hum.JumpPower = active.superJump and 120 or 80
                     task.wait(0.3)
-                    jumpCooldown = false
+                    jumpCD = false
                 end
             end
         end
@@ -505,21 +492,19 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- Speed
-local speedActiveFlag = false
+local speedActive = false
 local function setSpeed()
     if player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = speedActiveFlag and 50 or 27
-        end
+        if hum then hum.WalkSpeed = speedActive and 50 or 27 end
     end
 end
 
 spawn(function()
     while true do
         task.wait(0.1)
-        if speedActiveFlag ~= activeFunctions.speed then
-            speedActiveFlag = activeFunctions.speed
+        if speedActive ~= active.speed then
+            speedActive = active.speed
             setSpeed()
         end
         setSpeed()
@@ -528,23 +513,21 @@ end)
 
 -- Spin Bot
 RunService.RenderStepped:Connect(function()
-    if activeFunctions.spin and player.Character then
+    if active.spin and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0)
-        end
+        if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
     end
 end)
 
 -- ESP
 RunService.RenderStepped:Connect(function()
-    if activeFunctions.esp then
+    if active.esp then
         for _, v in pairs(Players:GetPlayers()) do
             if v ~= player and v.Character and not v.Character:FindFirstChild("ESP_Box") then
                 local box = Instance.new("BoxHandleAdornment")
                 box.Name = "ESP_Box"
                 box.Size = Vector3.new(4, 5, 4)
-                box.Color3 = corAzul
+                box.Color3 = roxo
                 box.AlwaysOnTop = true
                 box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
                 box.Parent = v.Character
@@ -562,13 +545,17 @@ end)
 
 -- Abrir/fechar menu
 iconButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = not mainFrame.Visible
+    menu.Visible = not menu.Visible
+    if menu.Visible then
+        -- Animação suave
+        menu:TweenPosition(UDim2.new(0.5, -170, 0.5, -240), "Out", "Quad", 0.3, true)
+    end
 end)
 
-closeBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
+fechar.MouseButton1Click:Connect(function()
+    menu.Visible = false
 end)
 
 print("✅ Zzzz V1 Carregado!")
+print("🎨 Tema Roxo com fundo transparente!")
 print("📌 Clique no ícone ZZZZ para abrir o menu")
-print("📁 Aba: Pvp utils")
