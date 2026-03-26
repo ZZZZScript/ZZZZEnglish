@@ -1,10 +1,11 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 
--- Save System using Player Attributes
+-- Save System
 local saveData = {
     autoAttack = false,
     esp = false,
@@ -15,12 +16,46 @@ local saveData = {
     speed = false
 }
 
--- Load saved data
+-- Multiple save methods to ensure it works
+local function autoSave()
+    -- Method 1: Save to Player Attributes
+    local success1, err1 = pcall(function()
+        local json = HttpService:JSONEncode(saveData)
+        player:SetAttribute("ZzzUI_SaveData", json)
+        print("✅ Auto-saved to Attributes: " .. json)
+    end)
+    
+    -- Method 2: Save to _G (global)
+    local success2, err2 = pcall(function()
+        _G["ZzzUI_SavedData"] = {}
+        for k, v in pairs(saveData) do
+            _G["ZzzUI_SavedData"][k] = v
+        end
+        print("✅ Auto-saved to _G")
+    end)
+    
+    -- Method 3: Save using writefile if available
+    local success3, err3 = pcall(function()
+        if writefile then
+            local json = HttpService:JSONEncode(saveData)
+            writefile("ZzzUI_Save.txt", json)
+            print("✅ Auto-saved to file")
+        end
+    end)
+    
+    if not success1 then print("⚠️ Attribute save failed: " .. tostring(err1)) end
+    if not success2 then print("⚠️ _G save failed: " .. tostring(err2)) end
+end
+
+-- Load data from all sources
 local function loadData()
+    local loaded = false
+    
+    -- Try to load from Attributes first
     local saved = player:GetAttribute("ZzzUI_SaveData")
     if saved then
         local success, data = pcall(function()
-            return game:GetService("HttpService"):JSONDecode(saved)
+            return HttpService:JSONDecode(saved)
         end)
         if success and data then
             for key, value in pairs(data) do
@@ -28,20 +63,50 @@ local function loadData()
                     saveData[key] = value
                 end
             end
-            print("✅ Data loaded successfully!")
-            return true
+            print("✅ Data loaded from Attributes!")
+            loaded = true
         end
     end
-    print("⚠️ No saved data found, using defaults")
-    return false
-end
-
--- Auto save function (saves instantly)
-local function autoSave()
-    local http = game:GetService("HttpService")
-    local json = http:JSONEncode(saveData)
-    player:SetAttribute("ZzzUI_SaveData", json)
-    print("💾 Auto-saved: " .. json)
+    
+    -- If not found in Attributes, try _G
+    if not loaded and _G["ZzzUI_SavedData"] then
+        for key, value in pairs(_G["ZzzUI_SavedData"]) do
+            if saveData[key] ~= nil then
+                saveData[key] = value
+            end
+        end
+        print("✅ Data loaded from _G!")
+        loaded = true
+    end
+    
+    -- If still not found, try file
+    if not loaded then
+        pcall(function()
+            if readfile then
+                local content = readfile("ZzzUI_Save.txt")
+                if content then
+                    local data = HttpService:JSONDecode(content)
+                    for key, value in pairs(data) do
+                        if saveData[key] ~= nil then
+                            saveData[key] = value
+                        end
+                    end
+                    print("✅ Data loaded from file!")
+                    loaded = true
+                end
+            end
+        end)
+    end
+    
+    if not loaded then
+        print("⚠️ No saved data found, using defaults")
+    end
+    
+    -- Print current settings
+    print("📋 Current settings:")
+    for k, v in pairs(saveData) do
+        print("  " .. k .. ": " .. tostring(v))
+    end
 end
 
 -- GUI
@@ -50,7 +115,7 @@ gui.Name = "ZzzUI"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- 🔳 Z BUTTON
+-- Z BUTTON
 local openBtn = Instance.new("TextButton", gui)
 openBtn.Size = UDim2.new(0,50,0,50)
 openBtn.Position = UDim2.new(0,15,0.5,0)
@@ -61,14 +126,13 @@ openBtn.TextSize = 24
 openBtn.TextColor3 = Color3.fromRGB(255,255,255)
 openBtn.Active = true
 openBtn.Draggable = true
-
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
 local strokeBtn = Instance.new("UIStroke", openBtn)
 strokeBtn.Color = Color3.fromRGB(150,150,150)
 strokeBtn.Thickness = 2
 
--- 🧱 MAIN PANEL
+-- MAIN PANEL
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0,280,0,400)
 frame.Position = UDim2.new(0.5,-140,0.5,-200)
@@ -76,7 +140,6 @@ frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
 frame.Visible = false
 frame.Active = true
 frame.Draggable = true
-
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
 local stroke = Instance.new("UIStroke", frame)
@@ -93,7 +156,7 @@ title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- ❌ CLOSE
+-- CLOSE
 local close = Instance.new("TextButton", frame)
 close.Size = UDim2.new(0,30,0,30)
 close.Position = UDim2.new(1,-30,0,0)
@@ -149,6 +212,7 @@ creditsContainer.Visible = false
 
 -- Store toggle references
 local toggleValues = {}
+local toggleFunctions = {}
 
 -- Update toggle visual
 local function updateToggle(saveKey, state)
@@ -166,7 +230,7 @@ local function updateToggle(saveKey, state)
     end
 end
 
--- 🔘 CREATE TOGGLE WITH AUTO-SAVE
+-- CREATE TOGGLE WITH AUTO-SAVE
 local function createToggle(name, posY, saveKey)
     local bg = Instance.new("Frame", mainContainer)
     bg.Size = UDim2.new(1,-20,0,35)
@@ -207,24 +271,44 @@ local function createToggle(name, posY, saveKey)
     -- Apply initial state
     updateToggle(saveKey, saveData[saveKey])
 
+    -- Create click connection
     toggle.MouseButton1Click:Connect(function()
         -- Toggle state
         saveData[saveKey] = not saveData[saveKey]
         toggleValues[saveKey].state = saveData[saveKey]
         updateToggle(saveKey, saveData[saveKey])
         
-        -- AUTO-SAVE instantly
+        -- AUTO-SAVE immediately
         autoSave()
         
-        print("🔄 " .. name .. " changed to: " .. tostring(saveData[saveKey]))
+        print("🔄 " .. name .. " → " .. tostring(saveData[saveKey]))
+        
+        -- Show visual feedback
+        local feedback = Instance.new("TextLabel", frame)
+        feedback.Size = UDim2.new(0,150,0,25)
+        feedback.Position = UDim2.new(0.5,-75,0.5,150)
+        feedback.Text = name .. ": " .. tostring(saveData[saveKey])
+        feedback.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        feedback.TextColor3 = Color3.new(1,1,1)
+        feedback.Font = Enum.Font.GothamBold
+        feedback.TextSize = 10
+        feedback.BackgroundTransparency = 0.5
+        Instance.new("UICorner", feedback).CornerRadius = UDim.new(0,5)
+        feedback.ZIndex = 10
+        
+        task.wait(1)
+        feedback:Destroy()
     end)
 
-    return function() 
+    -- Return getter function
+    local getter = function() 
         return saveData[saveKey]
     end
+    toggleFunctions[saveKey] = getter
+    return getter
 end
 
--- FUNCTIONS
+-- Create all toggles
 local getAuto = createToggle("Auto Attack", 5, "autoAttack")
 local getEsp = createToggle("ESP", 45, "esp")
 local getSpin = createToggle("Spin Bot", 85, "spin")
@@ -641,5 +725,6 @@ RunService.RenderStepped:Connect(function()
 end)
 
 print("✅ Script loaded with AUTO-SAVE system!")
-print("💾 Settings are automatically saved when you toggle any feature!")
+print("💾 Settings are saved automatically when you click any toggle!")
 print("📌 Press Z button to open menu")
+print("🔍 Check F9 console to see save confirmations")
