@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
@@ -23,14 +22,14 @@ gui.Name = "PvpLab"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- CORES (IGUAL A IMAGEM)
+-- CORES
 local corFundo = Color3.fromRGB(20, 22, 28)
 local corCard = Color3.fromRGB(30, 32, 40)
 local corAzul = Color3.fromRGB(66, 133, 244)
 local corTextoBranco = Color3.fromRGB(255, 255, 255)
 local corTextoClaro = Color3.fromRGB(180, 185, 200)
 
--- ========== ÍCONE FLUTUANTE ==========
+-- ========== ÍCONE FLUTUANTE ZZZZ ==========
 local iconButton = Instance.new("ImageButton")
 iconButton.Size = UDim2.new(0, 50, 0, 50)
 iconButton.Position = UDim2.new(0, 10, 0.5, -25)
@@ -76,7 +75,6 @@ titleLabel.TextColor3 = corTextoBranco
 titleLabel.BackgroundTransparency = 1
 titleLabel.Parent = topFrame
 
--- Botão fechar
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -38, 0, 8)
@@ -97,7 +95,7 @@ scrollFrame.ScrollBarThickness = 3
 scrollFrame.ScrollBarImageColor3 = corAzul
 scrollFrame.Parent = mainFrame
 
--- ========== FUNÇÃO CRIAR CARD (IGUAL IMAGEM) ==========
+-- ========== FUNÇÃO CRIAR CARD ==========
 local function criarCard(icone, titulo, desc, yPos)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 60)
@@ -106,7 +104,6 @@ local function criarCard(icone, titulo, desc, yPos)
     card.Parent = scrollFrame
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
     
-    -- Ícone
     local iconLabel = Instance.new("TextLabel")
     iconLabel.Size = UDim2.new(0, 40, 0, 40)
     iconLabel.Position = UDim2.new(0, 12, 0.5, -20)
@@ -117,7 +114,6 @@ local function criarCard(icone, titulo, desc, yPos)
     iconLabel.BackgroundTransparency = 1
     iconLabel.Parent = card
     
-    -- Título
     local titleCard = Instance.new("TextLabel")
     titleCard.Size = UDim2.new(0, 150, 0, 20)
     titleCard.Position = UDim2.new(0, 60, 0, 12)
@@ -129,7 +125,6 @@ local function criarCard(icone, titulo, desc, yPos)
     titleCard.TextXAlignment = Enum.TextXAlignment.Left
     titleCard.Parent = card
     
-    -- Descrição
     local descCard = Instance.new("TextLabel")
     descCard.Size = UDim2.new(0, 150, 0, 18)
     descCard.Position = UDim2.new(0, 60, 0, 32)
@@ -141,7 +136,6 @@ local function criarCard(icone, titulo, desc, yPos)
     descCard.TextXAlignment = Enum.TextXAlignment.Left
     descCard.Parent = card
     
-    -- Botão toggle
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Size = UDim2.new(0, 48, 0, 26)
     toggleBtn.Position = UDim2.new(1, -58, 0.5, -13)
@@ -150,7 +144,6 @@ local function criarCard(icone, titulo, desc, yPos)
     toggleBtn.Parent = card
     Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1, 0)
     
-    -- Círculo
     local circle = Instance.new("Frame")
     circle.Size = UDim2.new(0, 20, 0, 20)
     circle.Position = UDim2.new(0, 4, 0.5, -10)
@@ -158,7 +151,6 @@ local function criarCard(icone, titulo, desc, yPos)
     circle.Parent = toggleBtn
     Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
     
-    -- Status
     local statusLabel = Instance.new("TextLabel")
     statusLabel.Size = UDim2.new(0, 35, 0, 18)
     statusLabel.Position = UDim2.new(1, -105, 0.5, -9)
@@ -212,7 +204,6 @@ end
 local yPos = 0
 local funcoes = {}
 
--- Seção PVP
 local pvpTitle = Instance.new("TextLabel")
 pvpTitle.Size = UDim2.new(1, 0, 0, 30)
 pvpTitle.Position = UDim2.new(0, 0, 0, yPos)
@@ -227,26 +218,19 @@ yPos = yPos + 35
 
 funcoes.auto = criarCard("⚔️", "Auto Attack", "Auto attack enemies", yPos)
 yPos = yPos + 65
-
 funcoes.esp = criarCard("👁️", "ESP", "See enemies through walls", yPos)
 yPos = yPos + 65
-
 funcoes.spin = criarCard("🌀", "Spin Bot", "Auto spin while moving", yPos)
 yPos = yPos + 65
-
 funcoes.reset = criarCard("💀", "Reset Player", "Auto reset when low health", yPos)
 yPos = yPos + 65
-
 funcoes.jump = criarCard("🦘", "Super Jump", "Jump higher than normal", yPos)
 yPos = yPos + 65
-
 funcoes.hit = criarCard("👊", "Auto Hit", "Auto attack nearby", yPos)
 yPos = yPos + 65
-
 funcoes.speed = criarCard("🏃", "Speed", "Increase movement speed", yPos)
 yPos = yPos + 75
 
--- Seção FLY
 local flyTitle = Instance.new("TextLabel")
 flyTitle.Size = UDim2.new(1, 0, 0, 30)
 flyTitle.Position = UDim2.new(0, 0, 0, yPos)
@@ -259,15 +243,11 @@ flyTitle.TextXAlignment = Enum.TextXAlignment.Left
 flyTitle.Parent = scrollFrame
 yPos = yPos + 35
 
--- Card Fly
 local flyCard = criarCard("🕊️", "Fly Mode", "Use joystick to fly", yPos)
 yPos = yPos + 65
-
--- Card NoClip
 local noclipCard = criarCard("🔓", "NoClip", "Walk through walls", yPos)
 yPos = yPos + 75
 
--- Seção SOCIAL
 local socialTitle = Instance.new("TextLabel")
 socialTitle.Size = UDim2.new(1, 0, 0, 30)
 socialTitle.Position = UDim2.new(0, 0, 0, yPos)
@@ -280,7 +260,6 @@ socialTitle.TextXAlignment = Enum.TextXAlignment.Left
 socialTitle.Parent = scrollFrame
 yPos = yPos + 35
 
--- Card Discord
 local discordCard = Instance.new("Frame")
 discordCard.Size = UDim2.new(1, 0, 0, 60)
 discordCard.Position = UDim2.new(0, 0, 0, yPos)
@@ -344,7 +323,6 @@ end)
 
 yPos = yPos + 70
 
--- Versão
 local versionLabel = Instance.new("TextLabel")
 versionLabel.Size = UDim2.new(1, 0, 0, 25)
 versionLabel.Position = UDim2.new(0, 0, 0, yPos)
@@ -376,7 +354,7 @@ local function setNoclip(val)
     end
 end
 
--- Fly
+-- Fly CORRIGIDO
 local function startFly()
     if flyingActive then return end
     local character = player.Character
@@ -409,7 +387,7 @@ local function stopFly()
     end
 end
 
--- Movimento Fly (mais lento)
+-- Movimento Fly CORRIGIDO (direção correta)
 RunService.RenderStepped:Connect(function()
     if not flyingActive then return end
     local character = player.Character
@@ -419,15 +397,21 @@ RunService.RenderStepped:Connect(function()
     if not hrp or not bv then return end
     if humanoid then humanoid.PlatformStand = true end
     
+    -- Pega a direção do movimento do joystick/teclado
     local moveDir = humanoid.MoveDirection
-    local camera = workspace.CurrentCamera
     
     if moveDir.Magnitude > 0 then
-        local forward = camera.CFrame.LookVector
-        local right = camera.CFrame.RightVector
-        -- Velocidade mais lenta e suave
-        local moveVector = (forward * moveDir.Z + right * moveDir.X) * flySpeed
-        bv.Velocity = moveVector
+        -- CORREÇÃO: Inverte a direção Z para frente/trás
+        local correctedDir = Vector3.new(moveDir.X, moveDir.Y, -moveDir.Z)
+        
+        -- Aplica a velocidade
+        bv.Velocity = correctedDir * flySpeed
+        
+        -- Faz o personagem olhar na direção do movimento
+        if correctedDir.Magnitude > 0.1 then
+            local lookPos = hrp.Position + correctedDir
+            hrp.CFrame = CFrame.lookAt(hrp.Position, lookPos)
+        end
     else
         bv.Velocity = Vector3.new(0, 0, 0)
     end
@@ -602,5 +586,4 @@ player.CharacterRemoving:Connect(stopFly)
 
 print("✅ PVP LAB CARREGADO!")
 print("📌 Clique no ícone ZZZZ para abrir o menu")
-print("🕊️ Fly ativado - use o joystick para voar (velocidade 50)")
-print("🔓 NoClip ativado - atravesse paredes")
+print("🕊️ Fly corrigido - agora vai para frente quando você aperta para frente!")
