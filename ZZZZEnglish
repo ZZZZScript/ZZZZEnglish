@@ -21,6 +21,7 @@ local settings = {
 local flying = false
 local flySpeed = 80
 local bodyVelocity = nil
+local bodyGyro = nil
 
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
@@ -70,7 +71,7 @@ local function setNoclip(bool)
     end
 end
 
--- FLY FUNCTION (CORRIGIDO)
+-- FLY FUNCTION (CORRIGIDO COMPLETAMENTE)
 local function startFly()
     if flying then return end
     
@@ -84,7 +85,7 @@ local function startFly()
     
     flying = true
     
-    -- Disable gravity
+    -- Disable gravity and platform stand
     humanoid.PlatformStand = true
     humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     
@@ -95,6 +96,13 @@ local function startFly()
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     bodyVelocity.Parent = hrp
     
+    -- Create BodyGyro for stability
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(100000, 100000, 100000)
+    bodyGyro.P = 10000
+    bodyGyro.CFrame = hrp.CFrame
+    bodyGyro.Parent = hrp
+    
     -- Fly control loop
     spawn(function()
         while flying and player.Character and hrp and hrp.Parent do
@@ -102,40 +110,45 @@ local function startFly()
             
             -- Get camera direction
             local camera = workspace.CurrentCamera
-            local camLook = camera.CFrame.LookVector
-            local camRight = camera.CFrame.RightVector
+            local camCF = camera.CFrame
             
-            -- Movement
+            -- Forward (W)
             if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                moveDirection = moveDirection + Vector3.new(camLook.X, 0, camLook.Z).Unit
+                moveDirection = moveDirection + camCF.LookVector
             end
+            -- Backward (S)
             if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                moveDirection = moveDirection - Vector3.new(camLook.X, 0, camLook.Z).Unit
+                moveDirection = moveDirection - camCF.LookVector
             end
+            -- Right (D)
             if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                moveDirection = moveDirection + Vector3.new(camRight.X, 0, camRight.Z).Unit
+                moveDirection = moveDirection + camCF.RightVector
             end
+            -- Left (A)
             if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                moveDirection = moveDirection - Vector3.new(camRight.X, 0, camRight.Z).Unit
+                moveDirection = moveDirection - camCF.RightVector
             end
+            -- Up (Space)
             if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
                 moveDirection = moveDirection + Vector3.new(0, 1, 0)
             end
+            -- Down (LeftControl)
             if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
                 moveDirection = moveDirection - Vector3.new(0, 1, 0)
             end
             
-            -- Set velocity
+            -- Apply velocity
             if moveDirection.Magnitude > 0 then
-                bodyVelocity.Velocity = moveDirection.Unit * flySpeed
+                local velocity = moveDirection.Unit * flySpeed
+                bodyVelocity.Velocity = velocity
+                
+                -- Update gyro to face direction (optional)
+                if moveDirection.X ~= 0 or moveDirection.Z ~= 0 then
+                    local lookPos = hrp.Position + Vector3.new(velocity.X, 0, velocity.Z)
+                    bodyGyro.CFrame = CFrame.lookAt(hrp.Position, lookPos)
+                end
             else
                 bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            end
-            
-            -- Update CFrame to face movement direction
-            if moveDirection.Magnitude > 0 and moveDirection.Y == 0 then
-                local newCFrame = CFrame.lookAt(hrp.Position, hrp.Position + Vector3.new(moveDirection.X, 0, moveDirection.Z))
-                hrp.CFrame = newCFrame
             end
             
             task.wait()
@@ -158,6 +171,10 @@ local function stopFly()
         if bodyVelocity then 
             bodyVelocity:Destroy() 
             bodyVelocity = nil
+        end
+        if bodyGyro then 
+            bodyGyro:Destroy() 
+            bodyGyro = nil
         end
         
         if humanoid then
@@ -234,8 +251,8 @@ Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,8)
 
 -- MAIN FRAME (SMALLER)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,320,0,380)
-frame.Position = UDim2.new(0.5,-160,0.5,-190)
+frame.Size = UDim2.new(0,320,0,400)
+frame.Position = UDim2.new(0.5,-160,0.5,-200)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -272,7 +289,7 @@ scrollFrame.Size = UDim2.new(1,0,1,-30)
 scrollFrame.Position = UDim2.new(0,0,0,30)
 scrollFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 scrollFrame.BackgroundTransparency = 0
-scrollFrame.CanvasSize = UDim2.new(0,0,0,380)
+scrollFrame.CanvasSize = UDim2.new(0,0,0,420)
 scrollFrame.ScrollBarThickness = 4
 scrollFrame.BorderSizePixel = 0
 
@@ -448,13 +465,12 @@ speedSlider.InputBegan:Connect(function(input)
                         local hrp = character.HumanoidRootPart
                         local moveDirection = Vector3.new(0, 0, 0)
                         local camera = workspace.CurrentCamera
-                        local camLook = camera.CFrame.LookVector
-                        local camRight = camera.CFrame.RightVector
+                        local camCF = camera.CFrame
                         
-                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + Vector3.new(camLook.X, 0, camLook.Z).Unit end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - Vector3.new(camLook.X, 0, camLook.Z).Unit end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + Vector3.new(camRight.X, 0, camRight.Z).Unit end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - Vector3.new(camRight.X, 0, camRight.Z).Unit end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + camCF.LookVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - camCF.LookVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + camCF.RightVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - camCF.RightVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
                         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
                         
@@ -484,16 +500,16 @@ currentY = currentY + 50
 
 -- Controls info
 local controlsInfo = Instance.new("TextLabel", scrollFrame)
-controlsInfo.Size = UDim2.new(0.96,0,0,65)
+controlsInfo.Size = UDim2.new(0.96,0,0,70)
 controlsInfo.Position = UDim2.new(0.02,0,0,currentY)
-controlsInfo.Text = "🎮 FLY CONTROLS:\nW/S = Forward/Back\nA/D = Left/Right\nSPACE = Up\nCTRL = Down"
+controlsInfo.Text = "🎮 FLY CONTROLS:\nW = Forward\nS = Backward\nA = Left\nD = Right\nSPACE = Fly Up\nCTRL = Fly Down"
 controlsInfo.Font = Enum.Font.Gotham
-controlsInfo.TextSize = 8
-controlsInfo.TextColor3 = Color3.fromRGB(120,120,120)
+controlsInfo.TextSize = 9
+controlsInfo.TextColor3 = Color3.fromRGB(150,150,150)
 controlsInfo.BackgroundTransparency = 1
 controlsInfo.TextXAlignment = Enum.TextXAlignment.Left
 controlsInfo.TextWrapped = true
-currentY = currentY + 70
+currentY = currentY + 75
 
 -- Discord button
 local discordBtn = Instance.new("TextButton", scrollFrame)
@@ -571,7 +587,7 @@ end
 
 -- PVP FUNCTIONS
 RunService.RenderStepped:Connect(function()
-    if settings.auto and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+    if settings.auto and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and not settings.fly then
         local hrp = player.Character.HumanoidRootPart
         local closest = nil
         local dist = math.huge
@@ -586,14 +602,14 @@ RunService.RenderStepped:Connect(function()
             end
         end
         
-        if closest and not settings.fly then
+        if closest then
             hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
         end
     end
 end)
 
 RunService.RenderStepped:Connect(function()
-    if settings.hit and player.Character then
+    if settings.hit and player.Character and not settings.fly then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         
@@ -725,4 +741,4 @@ end)
 
 print("✅ Script Loaded!")
 print("📌 Press Z to open menu")
-print("🕊️ Fly + NoClip available in menu!")
+print("🕊️ Fly: W/A/S/D + Space/CTRL to move")
