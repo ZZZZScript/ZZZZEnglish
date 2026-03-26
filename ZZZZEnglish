@@ -64,78 +64,77 @@ openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
--- MAIN FRAME - LANDSCAPE MODE (Wider)
+-- MAIN FRAME - LANDSCAPE MODE
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,600,0,350)
-frame.Position = UDim2.new(0.5,-300,0.5,-175)
+frame.Size = UDim2.new(0,650,0,380)
+frame.Position = UDim2.new(0.5,-325,0.5,-190)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
--- TITLE BAR
-local titleBar = Instance.new("Frame", frame)
-titleBar.Size = UDim2.new(1,0,0,40)
-titleBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
-titleBar.BackgroundTransparency = 0
-Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0,12)
+-- TOP BAR
+local topBar = Instance.new("Frame", frame)
+topBar.Size = UDim2.new(1,0,0,45)
+topBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,12)
 
-local title = Instance.new("TextLabel", titleBar)
-title.Size = UDim2.new(1,-40,1,0)
-title.Position = UDim2.new(0,10,0,0)
+local title = Instance.new("TextLabel", topBar)
+title.Size = UDim2.new(1,-50,1,0)
+title.Position = UDim2.new(0,15,0,0)
 title.Text = "PVP LAB"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 18
+title.TextSize = 20
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.TextXAlignment = Enum.TextXAlignment.Left
 
-local closeBtn = Instance.new("TextButton", titleBar)
-closeBtn.Size = UDim2.new(0,30,0,30)
-closeBtn.Position = UDim2.new(1,-35,0,5)
-closeBtn.Text = "X"
+local closeBtn = Instance.new("TextButton", topBar)
+closeBtn.Size = UDim2.new(0,35,0,35)
+closeBtn.Position = UDim2.new(1,-40,0,5)
+closeBtn.Text = "✕"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextColor3 = Color3.new(1,1,1)
-closeBtn.TextSize = 18
 
 -- LEFT PANEL (CREDITS)
 local leftPanel = Instance.new("Frame", frame)
-leftPanel.Size = UDim2.new(0,180,1,-40)
-leftPanel.Position = UDim2.new(0,0,0,40)
+leftPanel.Size = UDim2.new(0,200,1,-45)
+leftPanel.Position = UDim2.new(0,0,0,45)
 leftPanel.BackgroundColor3 = Color3.fromRGB(25,25,25)
-Instance.new("UICorner", leftPanel).CornerRadius = UDim.new(0,0)
+leftPanel.BorderSizePixel = 0
 
--- Credits content
 local creditsTitle = Instance.new("TextLabel", leftPanel)
-creditsTitle.Size = UDim2.new(1,0,0,35)
-creditsTitle.Position = UDim2.new(0,0,0,10)
-creditsTitle.Text = "👥 DEVELOPERS"
+creditsTitle.Size = UDim2.new(1,0,0,40)
+creditsTitle.Position = UDim2.new(0,0,0,15)
+creditsTitle.Text = "⭐ DEVELOPERS"
 creditsTitle.Font = Enum.Font.GothamBold
-creditsTitle.TextSize = 14
-creditsTitle.TextColor3 = Color3.fromRGB(255,215,0)
+creditsTitle.TextSize = 16
+creditsTitle.TextColor3 = Color3.fromRGB(255,200,0)
 creditsTitle.BackgroundTransparency = 1
 
 local dev1 = Instance.new("TextLabel", leftPanel)
 dev1.Size = UDim2.new(1,0,0,50)
-dev1.Position = UDim2.new(0,0,0,50)
-dev1.Text = "⭐ ZZZ\nLead Developer"
+dev1.Position = UDim2.new(0,0,0,60)
+dev1.Text = "ZZZ\nLead Developer"
 dev1.Font = Enum.Font.GothamBold
-dev1.TextSize = 12
+dev1.TextSize = 13
 dev1.TextColor3 = Color3.new(1,1,1)
 dev1.BackgroundTransparency = 1
 
 local dev2 = Instance.new("TextLabel", leftPanel)
 dev2.Size = UDim2.new(1,0,0,50)
-dev2.Position = UDim2.new(0,0,0,105)
-dev2.Text = "⚡ mathyas\nCo-Developer"
+dev2.Position = UDim2.new(0,0,0,115)
+dev2.Text = "mathyas\nCo-Developer"
 dev2.Font = Enum.Font.GothamBold
-dev2.TextSize = 12
+dev2.TextSize = 13
 dev2.TextColor3 = Color3.new(1,1,1)
 dev2.BackgroundTransparency = 1
 
 local discordBtn = Instance.new("TextButton", leftPanel)
 discordBtn.Size = UDim2.new(0.85,0,0,55)
-discordBtn.Position = UDim2.new(0.075,0,0,165)
+discordBtn.Position = UDim2.new(0.075,0,0,175)
 discordBtn.Text = "💬 JOIN DISCORD\nClick to copy"
 discordBtn.Font = Enum.Font.GothamBold
 discordBtn.TextSize = 11
@@ -148,8 +147,8 @@ discordBtn.MouseButton1Click:Connect(function()
     if setclipboard then setclipboard(link) end
     local notif = Instance.new("TextLabel", frame)
     notif.Size = UDim2.new(0,200,0,30)
-    notif.Position = UDim2.new(0.5,-100,0.5,150)
-    notif.Text = "Link copied!"
+    notif.Position = UDim2.new(0.5,-100,0.5,160)
+    notif.Text = "🔗 Link copied!"
     notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
     notif.TextColor3 = Color3.new(1,1,1)
     notif.Font = Enum.Font.GothamBold
@@ -161,7 +160,7 @@ end)
 
 local version = Instance.new("TextLabel", leftPanel)
 version.Size = UDim2.new(1,0,0,25)
-version.Position = UDim2.new(0,0,0,230)
+version.Position = UDim2.new(0,0,0,240)
 version.Text = "📌 Version 2.0"
 version.Font = Enum.Font.Gotham
 version.TextSize = 10
@@ -170,7 +169,7 @@ version.BackgroundTransparency = 1
 
 local thanks = Instance.new("TextLabel", leftPanel)
 thanks.Size = UDim2.new(1,0,0,25)
-thanks.Position = UDim2.new(0,0,0,255)
+thanks.Position = UDim2.new(0,0,0,265)
 thanks.Text = "❤️ Thanks for using!"
 thanks.Font = Enum.Font.Gotham
 thanks.TextSize = 10
@@ -179,19 +178,18 @@ thanks.BackgroundTransparency = 1
 
 -- RIGHT PANEL (FUNCTIONS)
 local rightPanel = Instance.new("Frame", frame)
-rightPanel.Size = UDim2.new(1,-190,1,-40)
-rightPanel.Position = UDim2.new(0,185,0,40)
+rightPanel.Size = UDim2.new(1,-210,1,-45)
+rightPanel.Position = UDim2.new(0,205,0,45)
 rightPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 rightPanel.BackgroundTransparency = 1
 
--- Functions title
 local functionsTitle = Instance.new("TextLabel", rightPanel)
-functionsTitle.Size = UDim2.new(1,0,0,35)
-functionsTitle.Position = UDim2.new(0,0,0,5)
+functionsTitle.Size = UDim2.new(1,0,0,40)
+functionsTitle.Position = UDim2.new(0,0,0,10)
 functionsTitle.Text = "⚙️ FUNCTIONS"
 functionsTitle.Font = Enum.Font.GothamBold
-functionsTitle.TextSize = 14
-functionsTitle.TextColor3 = Color3.fromRGB(255,215,0)
+functionsTitle.TextSize = 18
+functionsTitle.TextColor3 = Color3.fromRGB(255,200,0)
 functionsTitle.BackgroundTransparency = 1
 
 -- Store buttons
@@ -200,8 +198,8 @@ local buttons = {}
 -- Function to create toggle button
 local function createToggle(text, row, col)
     local btn = Instance.new("TextButton", rightPanel)
-    btn.Size = UDim2.new(0.45,0,0,45)
-    btn.Position = UDim2.new(col == 1 and 0.025 or 0.525, 0, 0, 45 + (row * 55))
+    btn.Size = UDim2.new(0.44,0,0,48)
+    btn.Position = UDim2.new(col == 1 and 0.03 or 0.53, 0, 0, 55 + (row * 58))
     btn.Text = text .. " [OFF]"
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 13
@@ -211,7 +209,7 @@ local function createToggle(text, row, col)
     return btn
 end
 
--- Create buttons in grid layout (no scrolling needed)
+-- Create buttons in grid layout
 local autoBtn = createToggle("Auto Attack", 0, 1)
 local espBtn = createToggle("ESP", 0, 2)
 local spinBtn = createToggle("Spin Bot", 1, 1)
@@ -220,7 +218,7 @@ local jumpBtn = createToggle("Super Jump", 2, 1)
 local hitBtn = createToggle("Auto Hit", 2, 2)
 local speedBtn = createToggle("Speed", 3, 1)
 
--- Store buttons with their keys
+-- Store buttons with keys
 buttons["auto"] = autoBtn
 buttons["esp"] = espBtn
 buttons["spin"] = spinBtn
@@ -229,7 +227,7 @@ buttons["jump"] = jumpBtn
 buttons["hit"] = hitBtn
 buttons["speed"] = speedBtn
 
--- Update button appearance function
+-- Update button appearance
 local function updateButton(btn, key)
     if settings[key] then
         btn.Text = btn.Text:gsub("%[OFF%]", "[ON]")
@@ -460,7 +458,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ Script loaded - Landscape Mode!")
+print("✅ Script Loaded - Landscape Mode!")
 print("💾 Settings auto-save when you click buttons!")
 print("📌 Press Z to open menu")
 print("🎨 Credits on left, Functions on right")
