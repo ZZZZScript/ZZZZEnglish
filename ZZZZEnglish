@@ -318,10 +318,10 @@ end)
 y = y + 40
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 10)
 
--- ========== AUTO COLLECT MONEY (COLETA DINHEIRO DO CHÃO) ==========
+-- ========== AUTO COLLECT MONEY (SEM SOM E SEM PLACA) ==========
 local collectActive = false
 
--- Função para coletar dinheiro do chão
+-- Função para coletar dinheiro sem fazer barulho e sem aparecer na tela
 local function coletarDinheiro()
     if not collectActive then return end
     
@@ -331,7 +331,7 @@ local function coletarDinheiro()
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     
-    -- Procurar por dinheiro/coins no workspace
+    -- Lista de objetos que são dinheiro/coins
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") then
             local nome = obj.Name:lower()
@@ -339,40 +339,92 @@ local function coletarDinheiro()
             if string.find(nome, "coin") or 
                string.find(nome, "money") or 
                string.find(nome, "cash") or 
-               string.find(nome, "drop") or
-               string.find(nome, "brainrot") or
-               obj:FindFirstChild("TouchInterest") then
+               string.find(nome, "drop") then
                 
                 pcall(function()
-                    -- Teleportar o dinheiro para perto do jogador
-                    local distancia = (obj.Position - hrp.Position).Magnitude
-                    if distancia > 5 then
-                        -- Mover o objeto para perto do jogador
-                        obj.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
+                    -- Remover o som do objeto antes de destruir
+                    local sound = obj:FindFirstChildWhichIsA("Sound")
+                    if sound then
+                        sound:Destroy()
                     end
+                    
+                    -- Remover qualquer GUI ou placa associada
+                    local billboard = obj:FindFirstChildWhichIsA("BillboardGui")
+                    if billboard then
+                        billboard:Destroy()
+                    end
+                    
+                    -- Remover qualquer efeito visual
+                    local decal = obj:FindFirstChildWhichIsA("Decal")
+                    if decal then
+                        decal:Destroy()
+                    end
+                    
+                    -- Teleportar para perto do jogador e destruir rapidamente
+                    obj.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
+                    obj.Transparency = 1
+                    obj.CanCollide = false
+                    
+                    -- Destruir o objeto imediatamente
+                    task.wait(0.05)
+                    obj:Destroy()
                 end)
             end
         end
         
-        -- Verificar por modelos que podem ser dinheiro
+        -- Verificar por modelos
         if obj:IsA("Model") then
             local nome = obj.Name:lower()
             if string.find(nome, "coin") or string.find(nome, "money") or string.find(nome, "cash") then
                 pcall(function()
+                    -- Remover sons do modelo
+                    for _, sound in pairs(obj:GetDescendants()) do
+                        if sound:IsA("Sound") then
+                            sound:Destroy()
+                        end
+                        if sound:IsA("BillboardGui") then
+                            sound:Destroy()
+                        end
+                    end
+                    
+                    -- Teleportar o modelo para perto do jogador
                     local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
                     if primary then
                         primary.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
+                        primary.Transparency = 1
+                        primary.CanCollide = false
                     end
+                    
+                    -- Destruir o modelo
+                    task.wait(0.05)
+                    obj:Destroy()
+                end)
+            end
+        end
+        
+        -- Verificar por objetos com ClickDetector
+        if obj:IsA("ClickDetector") then
+            local parent = obj.Parent
+            if parent then
+                pcall(function()
+                    -- Remover sons
+                    local sound = parent:FindFirstChildWhichIsA("Sound")
+                    if sound then
+                        sound:Destroy()
+                    end
+                    
+                    -- Destruir o objeto
+                    parent:Destroy()
                 end)
             end
         end
     end
 end
 
--- Loop de coleta (a cada 0.3 segundos)
+-- Loop de coleta (a cada 0.2 segundos para ser mais rápido)
 spawn(function()
     while true do
-        task.wait(0.3)
+        task.wait(0.2)
         coletarDinheiro()
     end
 end)
@@ -647,5 +699,5 @@ end)
 
 print("✅ Zzz V1 Carregado!")
 print("📌 Menu compacto - 400x300")
-print("💰 Auto Collect Money - Coleta DINHEIRO do chão automaticamente!")
-print("🔘 Ative o toggle para começar a coletar")
+print("💰 Auto Collect Money - Coleta DINHEIRO sem som e sem placas!")
+print("🔘 Ative o toggle e colete dinheiro silenciosamente")
