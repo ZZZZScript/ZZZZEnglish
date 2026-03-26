@@ -22,75 +22,30 @@ local SAVE_KEY = "PvpLab_Saves"
 -- Auto Sell List - All brainrot names
 local autoSellList = {
     -- COMMON
-    "Noobini Pizzanini",
-    "Lirili Larila",
-    "Fluri Flura",
-    "Cacto Hipopotamo",
-    "Pipi Potato",
-    "Tric Trac Barabum",
-    "Burbaloni Loliloli",
+    "Noobini Pizzanini", "Lirili Larila", "Fluri Flura", "Cacto Hipopotamo",
+    "Pipi Potato", "Tric Trac Barabum", "Burbaloni Loliloli",
     -- UNCOMMON
-    "Boneca Ambalabu",
-    "Trippi Troppi",
-    "Svinina Bombardino",
-    "Bambini Crostini",
-    "Avocadini Guffo",
-    "Bandito Bobrito",
-    "Tatatata Sahur",
+    "Boneca Ambalabu", "Trippi Troppi", "Svinina Bombardino", "Bambini Crostini",
+    "Avocadini Guffo", "Bandito Bobrito", "Tatatata Sahur",
     -- RARE
-    "Gangster Footera",
-    "Tung Tung Sahur",
-    "Cappuccino Assasino",
-    "Pipi Kiwi",
-    "Orangutini Ananassini",
-    "Talpa Di Fero",
-    "Espresso Signora",
+    "Gangster Footera", "Tung Tung Sahur", "Cappuccino Assasino", "Pipi Kiwi",
+    "Orangutini Ananassini", "Talpa Di Fero", "Espresso Signora",
     -- EPIC
-    "Brr Brr Patapim",
-    "Rhino Toasterino",
-    "Brr Bicus Dicus",
-    "Strawberelli Flamingelli",
-    "Bananito Delfinito",
-    "Balerina Cappucina",
-    "Glorbo Fruttodrillo",
+    "Brr Brr Patapim", "Rhino Toasterino", "Brr Bicus Dicus", "Strawberelli Flamingelli",
+    "Bananito Delfinito", "Balerina Cappucina", "Glorbo Fruttodrillo",
     -- LEGENDARY
-    "Blueberrinni Octopusini",
-    "Chimpanzini Bananini",
-    "Bombardiro Crocodilo",
-    "Elefanto Cocofanto",
-    "Bombombini Gusini",
-    "Pandaccini Bananini",
-    "Chef Crabracadabra",
+    "Blueberrinni Octopusini", "Chimpanzini Bananini", "Bombardiro Crocodilo",
+    "Elefanto Cocofanto", "Bombombini Gusini", "Pandaccini Bananini", "Chef Crabracadabra",
     -- MYTHIC
-    "Gorillo Watermelondrillo",
-    "Frigo Camelo",
-    "Girafa Celestre",
-    "Ganganzelli Trulala",
-    "Tigroligre Frutonni",
-    "Matteo",
-    "Cavallo Virtuoso",
+    "Gorillo Watermelondrillo", "Frigo Camelo", "Girafa Celestre", "Ganganzelli Trulala",
+    "Tigroligre Frutonni", "Matteo", "Cavallo Virtuoso",
     -- SECRET
-    "La Vacca Saturno Saturnita",
-    "Esok Sekolah",
-    "Tralaledon",
-    "Tralalero Tralala",
-    "Chicleteira Bicicleteira",
-    "Tortugini Dragonfrutini",
-    "Nuclearo Dinossauro",
-    "Quesadilla Crocodila",
-    "Caramelini Brasilini",
-    "Penguino Cocosini",
-    "Cupcake Koala",
-    "Cookie And Milk",
-    "Capitano Mob",
-    "Garama and Madundung",
-    "Lucky Block",
+    "La Vacca Saturno Saturnita", "Esok Sekolah", "Tralaledon", "Tralalero Tralala",
+    "Chicleteira Bicicleteira", "Tortugini Dragonfrutini", "Nuclearo Dinossauro",
+    "Quesadilla Crocodila", "Caramelini Brasilini", "Penguino Cocosini", "Cupcake Koala",
+    "Cookie And Milk", "Capitano Mob", "Garama and Madundung", "Lucky Block",
     -- STELLAR
-    "Elefanto Geladerino",
-    "Meowl",
-    "Smurf Cat",
-    "Capitão Clash Warnini",
-    "Strawberry Elephant"
+    "Elefanto Geladerino", "Meowl", "Smurf Cat", "Capitão Clash Warnini", "Strawberry Elephant"
 }
 
 -- Load settings
@@ -131,20 +86,20 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Z BUTTON
 local openBtn = Instance.new("TextButton", gui)
-openBtn.Size = UDim2.new(0,50,0,50)
-openBtn.Position = UDim2.new(0,15,0.5,0)
+openBtn.Size = UDim2.new(0,45,0,45)
+openBtn.Position = UDim2.new(0,12,0.5,0)
 openBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
 openBtn.Text = "Z"
 openBtn.Font = Enum.Font.GothamBlack
-openBtn.TextSize = 24
+openBtn.TextSize = 22
 openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
--- MAIN FRAME
+-- MAIN FRAME - REDUCED SIZE
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,650,0,400)
-frame.Position = UDim2.new(0.5,-325,0.5,-200)
+frame.Size = UDim2.new(0,580,0,340)
+frame.Position = UDim2.new(0.5,-290,0.5,-170)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -152,118 +107,162 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
 -- TOP BAR
 local topBar = Instance.new("Frame", frame)
-topBar.Size = UDim2.new(1,0,0,40)
+topBar.Size = UDim2.new(1,0,0,35)
 topBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,12)
 
 local title = Instance.new("TextLabel", topBar)
-title.Size = UDim2.new(1,-50,1,0)
-title.Position = UDim2.new(0,15,0,0)
+title.Size = UDim2.new(1,-45,1,0)
+title.Position = UDim2.new(0,12,0,0)
 title.Text = "PVP LAB"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 18
+title.TextSize = 16
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.TextXAlignment = Enum.TextXAlignment.Left
 
 local closeBtn = Instance.new("TextButton", topBar)
-closeBtn.Size = UDim2.new(0,30,0,30)
-closeBtn.Position = UDim2.new(1,-35,0,5)
+closeBtn.Size = UDim2.new(0,28,0,28)
+closeBtn.Position = UDim2.new(1,-32,0,4)
 closeBtn.Text = "✕"
 closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 16
+closeBtn.TextSize = 14
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextColor3 = Color3.new(1,1,1)
 
--- LEFT SIDEBAR
+-- LEFT SIDEBAR (TABS)
 local sidebar = Instance.new("Frame", frame)
-sidebar.Size = UDim2.new(0,90,1,-40)
-sidebar.Position = UDim2.new(0,0,0,40)
+sidebar.Size = UDim2.new(0,80,1,-35)
+sidebar.Position = UDim2.new(0,0,0,35)
 sidebar.BackgroundColor3 = Color3.fromRGB(25,25,25)
 sidebar.BorderSizePixel = 0
 
 -- Tab Buttons
-local functionsTab = Instance.new("TextButton", sidebar)
-functionsTab.Size = UDim2.new(0.85,0,0,40)
-functionsTab.Position = UDim2.new(0.075,0,0,35)
-functionsTab.Text = "PVP"
-functionsTab.Font = Enum.Font.GothamBold
-functionsTab.TextSize = 14
-functionsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
-functionsTab.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", functionsTab).CornerRadius = UDim.new(0,8)
+local pvpTab = Instance.new("TextButton", sidebar)
+pvpTab.Size = UDim2.new(0.85,0,0,35)
+pvpTab.Position = UDim2.new(0.075,0,0,25)
+pvpTab.Text = "PVP"
+pvpTab.Font = Enum.Font.GothamBold
+pvpTab.TextSize = 13
+pvpTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+pvpTab.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", pvpTab).CornerRadius = UDim.new(0,8)
+
+local farmTab = Instance.new("TextButton", sidebar)
+farmTab.Size = UDim2.new(0.85,0,0,35)
+farmTab.Position = UDim2.new(0.075,0,0,70)
+farmTab.Text = "FARM"
+farmTab.Font = Enum.Font.GothamBold
+farmTab.TextSize = 13
+farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+farmTab.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", farmTab).CornerRadius = UDim.new(0,8)
 
 local creditsTab = Instance.new("TextButton", sidebar)
-creditsTab.Size = UDim2.new(0.85,0,0,40)
-creditsTab.Position = UDim2.new(0.075,0,0,85)
+creditsTab.Size = UDim2.new(0.85,0,0,35)
+creditsTab.Position = UDim2.new(0.075,0,0,115)
 creditsTab.Text = "CREDITS"
 creditsTab.Font = Enum.Font.GothamBold
-creditsTab.TextSize = 12
+creditsTab.TextSize = 11
 creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
 creditsTab.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", creditsTab).CornerRadius = UDim.new(0,8)
 
 -- RIGHT PANEL
 local contentPanel = Instance.new("Frame", frame)
-contentPanel.Size = UDim2.new(1,-100,1,-40)
-contentPanel.Position = UDim2.new(0,95,0,40)
+contentPanel.Size = UDim2.new(1,-90,1,-35)
+contentPanel.Position = UDim2.new(0,85,0,35)
 contentPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 contentPanel.BackgroundTransparency = 1
 
--- FUNCTIONS PANEL
-local functionsPanel = Instance.new("ScrollingFrame", contentPanel)
-functionsPanel.Size = UDim2.new(1,0,1,0)
-functionsPanel.BackgroundTransparency = 1
-functionsPanel.CanvasSize = UDim2.new(0,0,0,420)
-functionsPanel.ScrollBarThickness = 5
-functionsPanel.Visible = true
+-- PVP PANEL
+local pvpPanel = Instance.new("ScrollingFrame", contentPanel)
+pvpPanel.Size = UDim2.new(1,0,1,0)
+pvpPanel.BackgroundTransparency = 1
+pvpPanel.CanvasSize = UDim2.new(0,0,0,320)
+pvpPanel.ScrollBarThickness = 4
+pvpPanel.Visible = true
 
-local functionsTitle = Instance.new("TextLabel", functionsPanel)
-functionsTitle.Size = UDim2.new(1,0,0,30)
-functionsTitle.Position = UDim2.new(0,0,0,5)
-functionsTitle.Text = "FUNCTIONS"
-functionsTitle.Font = Enum.Font.GothamBold
-functionsTitle.TextSize = 14
-functionsTitle.TextColor3 = Color3.fromRGB(255,200,0)
-functionsTitle.BackgroundTransparency = 1
+local pvpTitle = Instance.new("TextLabel", pvpPanel)
+pvpTitle.Size = UDim2.new(1,0,0,25)
+pvpTitle.Position = UDim2.new(0,0,0,5)
+pvpTitle.Text = "PVP FUNCTIONS"
+pvpTitle.Font = Enum.Font.GothamBold
+pvpTitle.TextSize = 12
+pvpTitle.TextColor3 = Color3.fromRGB(255,200,0)
+pvpTitle.BackgroundTransparency = 1
+
+-- FARM PANEL
+local farmPanel = Instance.new("ScrollingFrame", contentPanel)
+farmPanel.Size = UDim2.new(1,0,1,0)
+farmPanel.BackgroundTransparency = 1
+farmPanel.CanvasSize = UDim2.new(0,0,0,150)
+farmPanel.ScrollBarThickness = 4
+farmPanel.Visible = false
+
+local farmTitle = Instance.new("TextLabel", farmPanel)
+farmTitle.Size = UDim2.new(1,0,0,25)
+farmTitle.Position = UDim2.new(0,0,0,5)
+farmTitle.Text = "FARM FUNCTIONS"
+farmTitle.Font = Enum.Font.GothamBold
+farmTitle.TextSize = 12
+farmTitle.TextColor3 = Color3.fromRGB(255,200,0)
+farmTitle.BackgroundTransparency = 1
+
+-- CREDITS PANEL
+local creditsPanel = Instance.new("ScrollingFrame", contentPanel)
+creditsPanel.Size = UDim2.new(1,0,1,0)
+creditsPanel.BackgroundTransparency = 1
+creditsPanel.CanvasSize = UDim2.new(0,0,0,280)
+creditsPanel.ScrollBarThickness = 4
+creditsPanel.Visible = false
+
+local creditsTitle = Instance.new("TextLabel", creditsPanel)
+creditsTitle.Size = UDim2.new(1,0,0,25)
+creditsTitle.Position = UDim2.new(0,0,0,5)
+creditsTitle.Text = "CREDITS"
+creditsTitle.Font = Enum.Font.GothamBold
+creditsTitle.TextSize = 12
+creditsTitle.TextColor3 = Color3.fromRGB(255,200,0)
+creditsTitle.BackgroundTransparency = 1
 
 -- Store toggles
 local toggles = {}
 
 -- Function to create a toggle switch
-local function createToggleRow(name, yPos, key)
-    local row = Instance.new("Frame", functionsPanel)
-    row.Size = UDim2.new(0.96,0,0,42)
+local function createToggleRow(panel, name, yPos, key)
+    local row = Instance.new("Frame", panel)
+    row.Size = UDim2.new(0.96,0,0,38)
     row.Position = UDim2.new(0.02,0,0,yPos)
     row.BackgroundColor3 = Color3.fromRGB(35,35,35)
     Instance.new("UICorner", row).CornerRadius = UDim.new(0,6)
     
     local label = Instance.new("TextLabel", row)
     label.Size = UDim2.new(0.65,0,1,0)
-    label.Position = UDim2.new(0,10,0,0)
+    label.Position = UDim2.new(0,8,0,0)
     label.Text = name
     label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
+    label.TextSize = 11
     label.TextColor3 = Color3.new(1,1,1)
     label.BackgroundTransparency = 1
     label.TextXAlignment = Enum.TextXAlignment.Left
     
     local toggleBtn = Instance.new("TextButton", row)
-    toggleBtn.Size = UDim2.new(0,50,0,26)
-    toggleBtn.Position = UDim2.new(1,-65,0.5,-13)
+    toggleBtn.Size = UDim2.new(0,45,0,24)
+    toggleBtn.Position = UDim2.new(1,-58,0.5,-12)
     toggleBtn.Text = ""
     toggleBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
     Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
     
     local circle = Instance.new("Frame", toggleBtn)
-    circle.Size = UDim2.new(0,20,0,20)
-    circle.Position = UDim2.new(0,3,0.5,-10)
+    circle.Size = UDim2.new(0,18,0,18)
+    circle.Position = UDim2.new(0,3,0.5,-9)
     circle.BackgroundColor3 = Color3.new(1,1,1)
     Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
     
     if settings[key] then
         toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-        circle.Position = UDim2.new(1,-23,0.5,-10)
+        circle.Position = UDim2.new(1,-21,0.5,-9)
     end
     
     toggles[key] = {btn = toggleBtn, circle = circle}
@@ -273,10 +272,10 @@ local function createToggleRow(name, yPos, key)
         
         if settings[key] then
             toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-            circle.Position = UDim2.new(1,-23,0.5,-10)
+            circle.Position = UDim2.new(1,-21,0.5,-9)
         else
             toggleBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
-            circle.Position = UDim2.new(0,3,0.5,-10)
+            circle.Position = UDim2.new(0,3,0.5,-9)
         end
         
         saveSettings()
@@ -286,93 +285,98 @@ local function createToggleRow(name, yPos, key)
     return row
 end
 
--- Create all toggle rows
-createToggleRow("Auto Attack", 45, "auto")
-createToggleRow("ESP", 95, "esp")
-createToggleRow("Spin Bot", 145, "spin")
-createToggleRow("Reset Player", 195, "resetP")
-createToggleRow("Super Jump", 245, "jump")
-createToggleRow("Auto Hit", 295, "hit")
-createToggleRow("Speed", 345, "speed")
-createToggleRow("Auto Sell", 395, "autoSell")
+-- Create PVP toggles
+createToggleRow(pvpPanel, "Auto Attack", 40, "auto")
+createToggleRow(pvpPanel, "ESP", 85, "esp")
+createToggleRow(pvpPanel, "Spin Bot", 130, "spin")
+createToggleRow(pvpPanel, "Reset Player", 175, "resetP")
+createToggleRow(pvpPanel, "Super Jump", 220, "jump")
+createToggleRow(pvpPanel, "Auto Hit", 265, "hit")
+createToggleRow(pvpPanel, "Speed", 310, "speed")
 
--- CREDITS PANEL
-local creditsPanel = Instance.new("ScrollingFrame", contentPanel)
-creditsPanel.Size = UDim2.new(1,0,1,0)
-creditsPanel.BackgroundTransparency = 1
-creditsPanel.CanvasSize = UDim2.new(0,0,0,400)
-creditsPanel.ScrollBarThickness = 5
-creditsPanel.Visible = false
+-- Create FARM toggles
+createToggleRow(farmPanel, "Auto Sell", 45, "autoSell")
 
-local creditsTitle2 = Instance.new("TextLabel", creditsPanel)
-creditsTitle2.Size = UDim2.new(1,0,0,30)
-creditsTitle2.Position = UDim2.new(0,0,0,5)
-creditsTitle2.Text = "CREDITS"
-creditsTitle2.Font = Enum.Font.GothamBold
-creditsTitle2.TextSize = 14
-creditsTitle2.TextColor3 = Color3.fromRGB(255,200,0)
-creditsTitle2.BackgroundTransparency = 1
+-- Auto Sell Info Text
+local sellInfo = Instance.new("TextLabel", farmPanel)
+sellInfo.Size = UDim2.new(0.96,0,0,45)
+sellInfo.Position = UDim2.new(0.02,0,0,95)
+sellInfo.Text = "💰 Auto Sell will automatically sell\nall brainrot items when enabled"
+sellInfo.Font = Enum.Font.Gotham
+sellInfo.TextSize = 9
+sellInfo.TextColor3 = Color3.fromRGB(150,150,150)
+sellInfo.BackgroundTransparency = 1
+sellInfo.TextXAlignment = Enum.TextXAlignment.Left
 
--- Developer cards
+local sellCount = Instance.new("TextLabel", farmPanel)
+sellCount.Size = UDim2.new(0.96,0,0,20)
+sellCount.Position = UDim2.new(0.02,0,0,145)
+sellCount.Text = "Items in list: " .. #autoSellList
+sellCount.Font = Enum.Font.Gotham
+sellCount.TextSize = 9
+sellCount.TextColor3 = Color3.fromRGB(100,200,100)
+sellCount.BackgroundTransparency = 1
+sellCount.TextXAlignment = Enum.TextXAlignment.Left
+
+-- CREDITS CONTENT
 local dev1Card = Instance.new("Frame", creditsPanel)
-dev1Card.Size = UDim2.new(0.96,0,0,60)
-dev1Card.Position = UDim2.new(0.02,0,0,45)
+dev1Card.Size = UDim2.new(0.96,0,0,55)
+dev1Card.Position = UDim2.new(0.02,0,0,40)
 dev1Card.BackgroundColor3 = Color3.fromRGB(35,35,35)
 Instance.new("UICorner", dev1Card).CornerRadius = UDim.new(0,8)
 
 local dev1Name = Instance.new("TextLabel", dev1Card)
-dev1Name.Size = UDim2.new(1,0,0,22)
-dev1Name.Position = UDim2.new(0,10,0,8)
+dev1Name.Size = UDim2.new(1,0,0,20)
+dev1Name.Position = UDim2.new(0,8,0,8)
 dev1Name.Text = "ZZZ"
 dev1Name.Font = Enum.Font.GothamBold
-dev1Name.TextSize = 13
+dev1Name.TextSize = 12
 dev1Name.TextColor3 = Color3.new(1,1,1)
 dev1Name.BackgroundTransparency = 1
 dev1Name.TextXAlignment = Enum.TextXAlignment.Left
 
 local dev1Role = Instance.new("TextLabel", dev1Card)
-dev1Role.Size = UDim2.new(1,0,0,20)
-dev1Role.Position = UDim2.new(0,10,0,32)
+dev1Role.Size = UDim2.new(1,0,0,18)
+dev1Role.Position = UDim2.new(0,8,0,30)
 dev1Role.Text = "Lead Developer | Project Creator"
 dev1Role.Font = Enum.Font.Gotham
-dev1Role.TextSize = 10
+dev1Role.TextSize = 9
 dev1Role.TextColor3 = Color3.fromRGB(180,180,180)
 dev1Role.BackgroundTransparency = 1
 dev1Role.TextXAlignment = Enum.TextXAlignment.Left
 
 local dev2Card = Instance.new("Frame", creditsPanel)
-dev2Card.Size = UDim2.new(0.96,0,0,60)
-dev2Card.Position = UDim2.new(0.02,0,0,115)
+dev2Card.Size = UDim2.new(0.96,0,0,55)
+dev2Card.Position = UDim2.new(0.02,0,0,105)
 dev2Card.BackgroundColor3 = Color3.fromRGB(35,35,35)
 Instance.new("UICorner", dev2Card).CornerRadius = UDim.new(0,8)
 
 local dev2Name = Instance.new("TextLabel", dev2Card)
-dev2Name.Size = UDim2.new(1,0,0,22)
-dev2Name.Position = UDim2.new(0,10,0,8)
+dev2Name.Size = UDim2.new(1,0,0,20)
+dev2Name.Position = UDim2.new(0,8,0,8)
 dev2Name.Text = "mathyas"
 dev2Name.Font = Enum.Font.GothamBold
-dev2Name.TextSize = 13
+dev2Name.TextSize = 12
 dev2Name.TextColor3 = Color3.new(1,1,1)
 dev2Name.BackgroundTransparency = 1
 dev2Name.TextXAlignment = Enum.TextXAlignment.Left
 
 local dev2Role = Instance.new("TextLabel", dev2Card)
-dev2Role.Size = UDim2.new(1,0,0,20)
-dev2Role.Position = UDim2.new(0,10,0,32)
+dev2Role.Size = UDim2.new(1,0,0,18)
+dev2Role.Position = UDim2.new(0,8,0,30)
 dev2Role.Text = "Co-Developer | Programmer"
 dev2Role.Font = Enum.Font.Gotham
-dev2Role.TextSize = 10
+dev2Role.TextSize = 9
 dev2Role.TextColor3 = Color3.fromRGB(180,180,180)
 dev2Role.BackgroundTransparency = 1
 dev2Role.TextXAlignment = Enum.TextXAlignment.Left
 
--- Discord button
 local discordBtn = Instance.new("TextButton", creditsPanel)
-discordBtn.Size = UDim2.new(0.96,0,0,45)
-discordBtn.Position = UDim2.new(0.02,0,0,190)
+discordBtn.Size = UDim2.new(0.96,0,0,40)
+discordBtn.Position = UDim2.new(0.02,0,0,170)
 discordBtn.Text = "JOIN DISCORD"
 discordBtn.Font = Enum.Font.GothamBold
-discordBtn.TextSize = 12
+discordBtn.TextSize = 11
 discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
 discordBtn.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
@@ -381,57 +385,61 @@ discordBtn.MouseButton1Click:Connect(function()
     local link = "https://discord.gg/bBWPETWW"
     if setclipboard then setclipboard(link) end
     local notif = Instance.new("TextLabel", frame)
-    notif.Size = UDim2.new(0,200,0,30)
-    notif.Position = UDim2.new(0.5,-100,0.5,150)
+    notif.Size = UDim2.new(0,180,0,25)
+    notif.Position = UDim2.new(0.5,-90,0.5,130)
     notif.Text = "Link copied!"
     notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
     notif.TextColor3 = Color3.new(1,1,1)
     notif.Font = Enum.Font.GothamBold
-    notif.TextSize = 12
+    notif.TextSize = 10
     Instance.new("UICorner", notif).CornerRadius = UDim.new(0,5)
     task.wait(2)
     notif:Destroy()
 end)
 
-local copyText = Instance.new("TextLabel", creditsPanel)
-copyText.Size = UDim2.new(1,0,0,18)
-copyText.Position = UDim2.new(0,0,0,240)
-copyText.Text = "discord.gg/bBWPETWW"
-copyText.Font = Enum.Font.Gotham
-copyText.TextSize = 9
-copyText.TextColor3 = Color3.fromRGB(150,150,150)
-copyText.BackgroundTransparency = 1
-
 local versionLabel = Instance.new("TextLabel", creditsPanel)
-versionLabel.Size = UDim2.new(1,0,0,20)
-versionLabel.Position = UDim2.new(0,0,0,265)
+versionLabel.Size = UDim2.new(1,0,0,18)
+versionLabel.Position = UDim2.new(0,0,0,220)
 versionLabel.Text = "Version 2.0 | Premium Script"
 versionLabel.Font = Enum.Font.Gotham
-versionLabel.TextSize = 9
+versionLabel.TextSize = 8
 versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
 versionLabel.BackgroundTransparency = 1
 
 local thanksLabel = Instance.new("TextLabel", creditsPanel)
-thanksLabel.Size = UDim2.new(1,0,0,20)
-thanksLabel.Position = UDim2.new(0,0,0,288)
+thanksLabel.Size = UDim2.new(1,0,0,18)
+thanksLabel.Position = UDim2.new(0,0,0,240)
 thanksLabel.Text = "Thanks for using our script!"
 thanksLabel.Font = Enum.Font.Gotham
-thanksLabel.TextSize = 9
+thanksLabel.TextSize = 8
 thanksLabel.TextColor3 = Color3.fromRGB(200,200,200)
 thanksLabel.BackgroundTransparency = 1
 
 -- Tab switching
-functionsTab.MouseButton1Click:Connect(function()
-    functionsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+pvpTab.MouseButton1Click:Connect(function()
+    pvpTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
     creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    functionsPanel.Visible = true
+    pvpPanel.Visible = true
+    farmPanel.Visible = false
+    creditsPanel.Visible = false
+end)
+
+farmTab.MouseButton1Click:Connect(function()
+    farmTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    pvpTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    pvpPanel.Visible = false
+    farmPanel.Visible = true
     creditsPanel.Visible = false
 end)
 
 creditsTab.MouseButton1Click:Connect(function()
     creditsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    functionsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    functionsPanel.Visible = false
+    pvpTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    pvpPanel.Visible = false
+    farmPanel.Visible = false
     creditsPanel.Visible = true
 end)
 
@@ -452,10 +460,10 @@ task.wait(0.5)
 for key, toggle in pairs(toggles) do
     if settings[key] then
         toggle.btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-        toggle.circle.Position = UDim2.new(1,-23,0.5,-10)
+        toggle.circle.Position = UDim2.new(1,-21,0.5,-9)
     else
         toggle.btn.BackgroundColor3 = Color3.fromRGB(80,80,80)
-        toggle.circle.Position = UDim2.new(0,3,0.5,-10)
+        toggle.circle.Position = UDim2.new(0,3,0.5,-9)
     end
 end
 
@@ -463,21 +471,15 @@ end
 local function autoSell()
     if not settings.autoSell then return end
     
-    -- Check for any brainrot in the base/area
     for _, item in pairs(workspace:GetDescendants()) do
-        if item:IsA("Model") or item:IsA("Part") then
+        if item:IsA("Model") or item:IsA("Part") or item:IsA("Tool") then
             local itemName = item.Name
-            -- Check if item name matches any in the auto sell list
             for _, sellName in pairs(autoSellList) do
                 if string.find(itemName, sellName) or string.find(sellName, itemName) then
-                    -- Attempt to sell/remove the item
                     pcall(function()
-                        -- Try different methods to sell
                         if item:IsA("Tool") then
                             item:Destroy()
-                        elseif item.Parent and item.Parent:IsA("Model") then
-                            item.Parent:Destroy()
-                        else
+                        elseif item.Parent then
                             item:Destroy()
                         end
                         print("💰 Auto Sold: " .. itemName)
@@ -487,7 +489,6 @@ local function autoSell()
         end
     end
     
-    -- Also check player's backpack and character
     if player.Backpack then
         for _, tool in pairs(player.Backpack:GetChildren()) do
             for _, sellName in pairs(autoSellList) do
@@ -525,7 +526,7 @@ spawn(function()
     end
 end)
 
--- FUNCTIONS
+-- PVP FUNCTIONS
 
 -- Auto Attack
 RunService.RenderStepped:Connect(function()
@@ -675,7 +676,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ Script Loaded - Auto Sell Added!")
-print("💾 Settings auto-save when you toggle!")
+print("✅ Script Loaded!")
+print("📁 Tabs: PVP | FARM | CREDITS")
+print("💰 Auto Sell in FARM tab - sells all brainrot items automatically!")
 print("📌 Press Z to open menu")
-print("💰 Auto Sell will automatically sell all brainrot items when enabled!")
