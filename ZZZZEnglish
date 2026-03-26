@@ -235,7 +235,7 @@ y = y + 60
 local autoHit = criarToggle("👊", "Auto Hit", 0, y)
 y = y + 60
 
--- Auto Collect Money (NOVO)
+-- Auto Collect Money
 local autoCollectMoney = criarToggle("💰", "Auto Collect Money", 0, y)
 y = y + 70
 
@@ -534,92 +534,72 @@ version.Parent = creditsScroll
 
 creditsScroll.CanvasSize = UDim2.new(0, 0, 0, creditsY + 35)
 
--- ========== AUTO COLLECT MONEY (COLETA AUTOMÁTICA REMOTA) ==========
+-- ========== AUTO COLLECT MONEY (COLETA REMOTA SEM MOVER PERSONAGEM) ==========
 local collectActive = false
 
+-- Função para coletar dinheiro remotamente
 local function autoCollectMoneyFunction()
     if not collectActive then return end
     
+    local coletados = 0
+    
     -- Procurar por objetos de dinheiro no workspace
     for _, obj in pairs(workspace:GetDescendants()) do
-        -- Verificar se é um item de dinheiro/coin
         local nome = obj.Name:lower()
-        if obj:IsA("BasePart") and (string.find(nome, "coin") or string.find(nome, "money") or string.find(nome, "cash") or string.find(nome, "drop")) then
-            pcall(function()
-                -- Método 1: Tentar tocar o objeto (simular coleta)
-                if obj:FindFirstChild("TouchInterest") then
-                    local touch = obj.TouchInterest
-                    -- Criar um evento de toque remoto
-                    local fakePart = Instance.new("Part")
-                    fakePart.Size = Vector3.new(1, 1, 1)
-                    fakePart.CFrame = obj.CFrame
-                    fakePart.Anchored = true
-                    fakePart.CanCollide = false
-                    fakePart.Parent = workspace
-                    
-                    -- Forçar o toque
-                    for _, v in pairs(fakePart:GetTouchingParts()) do
-                        if v.Parent == player.Character then
-                            -- Se estiver tocando, o jogo coleta automaticamente
-                            break
-                        end
-                    end
-                    
-                    task.wait(0.1)
-                    fakePart:Destroy()
-                end
-                
-                -- Método 2: Tentar teleportar o dinheiro para o jogador
-                local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    obj.CFrame = hrp.CFrame + Vector3.new(0, 2, 0)
-                end
-                
-                -- Método 3: Tentar disparar evento remoto (se existir)
-                local remote = ReplicatedStorage:FindFirstChild("CollectMoney") or ReplicatedStorage:FindFirstChild("ClaimMoney") or ReplicatedStorage:FindFirstChild("Pickup")
-                if remote then
-                    remote:FireServer(obj)
-                end
-                
-                print("💰 Coletado: " .. obj.Name)
-            end)
+        
+        -- Verificar se é um item de dinheiro
+        local isMoney = false
+        if obj:IsA("BasePart") or obj:IsA("Model") then
+            if string.find(nome, "coin") or 
+               string.find(nome, "money") or 
+               string.find(nome, "cash") or 
+               string.find(nome, "drop") or
+               string.find(nome, "brainrot") then
+                isMoney = true
+            end
         end
         
-        -- Verificar por modelos que contêm dinheiro
-        if obj:IsA("Model") then
-            local nomeModel = obj.Name:lower()
-            if string.find(nomeModel, "coin") or string.find(nomeModel, "money") or string.find(nomeModel, "cash") then
-                pcall(function()
-                    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp then
-                        local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                        if primaryPart then
-                            primaryPart.CFrame = hrp.CFrame + Vector3.new(0, 2, 0)
-                        end
+        if isMoney then
+            pcall(function()
+                -- Método 1: Tentar usar FireServer em remotes
+                local remotes = {
+                    ReplicatedStorage:FindFirstChild("Collect"),
+                    ReplicatedStorage:FindFirstChild("Claim"),
+                    ReplicatedStorage:FindFirstChild("Pickup"),
+                    ReplicatedStorage:FindFirstChild("CollectMoney"),
+                    ReplicatedStorage:FindFirstChild("GrabMoney"),
+                    ReplicatedStorage:FindFirstChild("TakeMoney"),
+                    ReplicatedStorage:FindFirstChild("GetMoney"),
+                }
+                
+                for _, remote in pairs(remotes) do
+                    if remote then
+                        remote:FireServer(obj)
+                        coletados = coletados + 1
                     end
-                    print("💰 Coletado modelo: " .. obj.Name)
-                end)
-            end
+                end
+                
+                -- Método 2: Destruir o objeto diretamente (se for apenas visual)
+                if obj:IsA("BasePart") then
+                    obj:Destroy()
+                    coletados = coletados + 1
+                elseif obj:IsA("Model") then
+                    obj:Destroy()
+                    coletados = coletados + 1
+                end
+            end)
         end
     end
     
-    -- Verificar na área do jogador também
-    if player.Character then
-        for _, part in pairs(player.Character:GetDescendants()) do
-            if part:IsA("BasePart") and part.Name:lower():find("coin") or part.Name:lower():find("money") then
-                pcall(function()
-                    part:Destroy()
-                    print("💰 Coletado dinheiro no personagem")
-                end)
-            end
-        end
+    if coletados > 0 then
+        print("💰 Coletados " .. coletados .. " itens remotamente")
     end
 end
 
--- Loop de coleta automática (a cada 0.5 segundos)
+-- Loop de coleta a cada 0.3 segundos (mais rápido)
 spawn(function()
     while true do
-        task.wait(0.5)
+        task.wait(0.3)
         autoCollectMoneyFunction()
     end
 end)
@@ -779,5 +759,5 @@ end)
 
 print("✅ Zzz V1 Carregado!")
 print("📌 Interface preta - Modo PAISAGEM")
-print("💰 Auto Collect Money - Coleta dinheiro automaticamente de qualquer distância!")
-print("🔘 Ative o toggle 'Auto Collect Money' para começar a coletar")
+print("💰 Auto Collect Money - Coleta DINHEIRO REMOTAMENTE sem mover seu personagem!")
+print("🔘 Ative o toggle 'Auto Collect Money' para coletar dinheiro de qualquer lugar")
