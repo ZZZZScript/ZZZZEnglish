@@ -38,7 +38,6 @@ local function loadSettings()
         settings.speed = string.find(data, '"speed":true') and true or false
         settings.fly = string.find(data, '"fly":true') and true or false
         settings.noclip = string.find(data, '"noclip":true') and true or false
-        print("✅ Loaded")
     end
 end
 
@@ -54,7 +53,6 @@ local function saveSettings()
                  ',"fly":'..tostring(settings.fly)..
                  ',"noclip":'..tostring(settings.noclip)..'}'
     player:SetAttribute(SAVE_KEY, json)
-    print("💾 Saved!")
 end
 
 -- NOCLIP FUNCTION
@@ -69,7 +67,7 @@ local function setNoclip(bool)
     end
 end
 
--- FLY FUNCTION (SIMPLES E FUNCIONAL)
+-- FLY FUNCTION
 local function startFly()
     if flying then return end
     
@@ -82,17 +80,12 @@ local function startFly()
     if not humanoid or not hrp then return end
     
     flying = true
-    
-    -- Disable gravity and platform stand
     humanoid.PlatformStand = true
     
-    -- Create BodyVelocity
     bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     bodyVelocity.Parent = hrp
-    
-    print("🕊️ Fly ON | Speed: " .. flySpeed)
 end
 
 local function stopFly()
@@ -103,59 +96,38 @@ local function stopFly()
     local character = player.Character
     if character then
         local humanoid = character:FindFirstChildOfClass("Humanoid")
-        local hrp = character:FindFirstChild("HumanoidRootPart")
-        
-        if bodyVelocity then 
-            bodyVelocity:Destroy() 
-            bodyVelocity = nil
-        end
-        
-        if humanoid then
-            humanoid.PlatformStand = false
-        end
-        
-        if hrp then
-            hrp.Velocity = Vector3.new(0, 0, 0)
-        end
+        if bodyVelocity then bodyVelocity:Destroy() end
+        if humanoid then humanoid.PlatformStand = false end
+        bodyVelocity = nil
     end
-    
-    print("🕊️ Fly OFF")
 end
 
--- Update fly movement every frame
+-- Fly movement
 RunService.RenderStepped:Connect(function()
-    if not settings.fly then return end
-    if not flying then return end
+    if not settings.fly or not flying then return end
     
     local character = player.Character
     if not character then return end
     
     local hrp = character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    
-    if not bodyVelocity then return end
+    if not hrp or not bodyVelocity then return end
     
     local moveDirection = Vector3.new(0, 0, 0)
-    
-    -- Get camera direction
     local camera = workspace.CurrentCamera
     local camCF = camera.CFrame
     
-    -- Forward/Back (W/S)
     if UserInputService:IsKeyDown(Enum.KeyCode.W) then
         moveDirection = moveDirection - camCF.LookVector
     end
     if UserInputService:IsKeyDown(Enum.KeyCode.S) then
         moveDirection = moveDirection + camCF.LookVector
     end
-    -- Left/Right (A/D)
     if UserInputService:IsKeyDown(Enum.KeyCode.A) then
         moveDirection = moveDirection - camCF.RightVector
     end
     if UserInputService:IsKeyDown(Enum.KeyCode.D) then
         moveDirection = moveDirection + camCF.RightVector
     end
-    -- Up/Down (Space/Ctrl)
     if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
         moveDirection = moveDirection + Vector3.new(0, 1, 0)
     end
@@ -163,7 +135,6 @@ RunService.RenderStepped:Connect(function()
         moveDirection = moveDirection - Vector3.new(0, 1, 0)
     end
     
-    -- Apply velocity
     if moveDirection.Magnitude > 0 then
         bodyVelocity.Velocity = moveDirection.Unit * flySpeed
     else
@@ -171,7 +142,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Toggle fly
+-- Toggles
 local function toggleFly()
     settings.fly = not settings.fly
     if settings.fly then
@@ -182,7 +153,6 @@ local function toggleFly()
     saveSettings()
 end
 
--- Toggle noclip
 local function toggleNoclip()
     settings.noclip = not settings.noclip
     setNoclip(settings.noclip)
@@ -198,7 +168,7 @@ gui.Parent = player:WaitForChild("PlayerGui")
 -- Z BUTTON
 local openBtn = Instance.new("TextButton", gui)
 openBtn.Size = UDim2.new(0,45,0,45)
-openBtn.Position = UDim2.new(0,12,0.5,0)
+openBtn.Position = UDim2.new(0,12,0.5,-22)
 openBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
 openBtn.Text = "Z"
 openBtn.Font = Enum.Font.GothamBlack
@@ -209,8 +179,8 @@ Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
 -- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,500,0,450)
-frame.Position = UDim2.new(0.5,-250,0.5,-225)
+frame.Size = UDim2.new(0,480,0,420)
+frame.Position = UDim2.new(0.5,-240,0.5,-210)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -246,7 +216,6 @@ local sidebar = Instance.new("Frame", frame)
 sidebar.Size = UDim2.new(0,80,1,-35)
 sidebar.Position = UDim2.new(0,0,0,35)
 sidebar.BackgroundColor3 = Color3.fromRGB(25,25,25)
-sidebar.BorderSizePixel = 0
 
 -- Tab Buttons
 local pvpTab = Instance.new("TextButton", sidebar)
@@ -275,7 +244,7 @@ contentPanel.Size = UDim2.new(1,-90,1,-35)
 contentPanel.Position = UDim2.new(0,85,0,35)
 contentPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 contentPanel.BackgroundTransparency = 1
-contentPanel.CanvasSize = UDim2.new(0,0,0,500)
+contentPanel.CanvasSize = UDim2.new(0,0,0,450)
 contentPanel.ScrollBarThickness = 4
 
 -- PVP PANEL
@@ -284,26 +253,16 @@ pvpPanel.Size = UDim2.new(1,0,1,0)
 pvpPanel.BackgroundTransparency = 1
 pvpPanel.Visible = true
 
-local pvpTitle = Instance.new("TextLabel", pvpPanel)
-pvpTitle.Size = UDim2.new(1,0,0,25)
-pvpTitle.Position = UDim2.new(0,0,0,5)
-pvpTitle.Text = "PVP FUNCTIONS"
-pvpTitle.Font = Enum.Font.GothamBold
-pvpTitle.TextSize = 12
-pvpTitle.TextColor3 = Color3.fromRGB(255,200,0)
-pvpTitle.BackgroundTransparency = 1
-
 -- CREDITS PANEL
 local creditsPanel = Instance.new("Frame", contentPanel)
 creditsPanel.Size = UDim2.new(1,0,1,0)
 creditsPanel.BackgroundTransparency = 1
 creditsPanel.Visible = false
 
--- Store toggles
 local toggles = {}
 
--- Function to create a toggle switch
-local function createToggleRow(panel, name, yPos, key)
+-- Create toggle
+local function createToggle(panel, name, yPos, key)
     local row = Instance.new("Frame", panel)
     row.Size = UDim2.new(0.96,0,0,38)
     row.Position = UDim2.new(0.02,0,0,yPos)
@@ -351,57 +310,52 @@ local function createToggleRow(panel, name, yPos, key)
             circle.Position = UDim2.new(0,3,0.5,-9)
         end
         
-        if key == "fly" then
-            toggleFly()
-        end
-        if key == "noclip" then
-            toggleNoclip()
-        end
+        if key == "fly" then toggleFly() end
+        if key == "noclip" then toggleNoclip() end
         
         saveSettings()
-        print(name .. " is now " .. tostring(settings[key]))
     end)
     
     return row
 end
 
 -- Create PVP toggles
-local currentY = 40
-createToggleRow(pvpPanel, "Auto Attack", currentY, "auto")
-currentY = currentY + 43
-createToggleRow(pvpPanel, "ESP", currentY, "esp")
-currentY = currentY + 43
-createToggleRow(pvpPanel, "Spin Bot", currentY, "spin")
-currentY = currentY + 43
-createToggleRow(pvpPanel, "Reset Player", currentY, "resetP")
-currentY = currentY + 43
-createToggleRow(pvpPanel, "Super Jump", currentY, "jump")
-currentY = currentY + 43
-createToggleRow(pvpPanel, "Auto Hit", currentY, "hit")
-currentY = currentY + 43
-createToggleRow(pvpPanel, "Speed", currentY, "speed")
-currentY = currentY + 48
+local y = 40
+createToggle(pvpPanel, "Auto Attack", y, "auto")
+y = y + 43
+createToggle(pvpPanel, "ESP", y, "esp")
+y = y + 43
+createToggle(pvpPanel, "Spin Bot", y, "spin")
+y = y + 43
+createToggle(pvpPanel, "Reset Player", y, "resetP")
+y = y + 43
+createToggle(pvpPanel, "Super Jump", y, "jump")
+y = y + 43
+createToggle(pvpPanel, "Auto Hit", y, "hit")
+y = y + 43
+createToggle(pvpPanel, "Speed", y, "speed")
+y = y + 48
 
--- Fly Section Title
+-- Fly Section
 local flyTitle = Instance.new("TextLabel", pvpPanel)
 flyTitle.Size = UDim2.new(1,0,0,25)
-flyTitle.Position = UDim2.new(0,0,0,currentY)
+flyTitle.Position = UDim2.new(0,0,0,y)
 flyTitle.Text = "🕊️ FLY SYSTEM"
 flyTitle.Font = Enum.Font.GothamBold
 flyTitle.TextSize = 12
 flyTitle.TextColor3 = Color3.fromRGB(100,200,255)
 flyTitle.BackgroundTransparency = 1
-currentY = currentY + 28
+y = y + 28
 
-createToggleRow(pvpPanel, "Enable Fly", currentY, "fly")
-currentY = currentY + 43
-createToggleRow(pvpPanel, "NoClip", currentY, "noclip")
-currentY = currentY + 48
+createToggle(pvpPanel, "Enable Fly", y, "fly")
+y = y + 43
+createToggle(pvpPanel, "NoClip", y, "noclip")
+y = y + 48
 
--- Fly Speed Slider
+-- Speed Slider
 local speedRow = Instance.new("Frame", pvpPanel)
 speedRow.Size = UDim2.new(0.96,0,0,45)
-speedRow.Position = UDim2.new(0.02,0,0,currentY)
+speedRow.Position = UDim2.new(0.02,0,0,y)
 speedRow.BackgroundColor3 = Color3.fromRGB(35,35,35)
 Instance.new("UICorner", speedRow).CornerRadius = UDim.new(0,6)
 
@@ -413,7 +367,6 @@ speedLabel.Font = Enum.Font.GothamBold
 speedLabel.TextSize = 10
 speedLabel.TextColor3 = Color3.new(1,1,1)
 speedLabel.BackgroundTransparency = 1
-speedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 local speedSlider = Instance.new("TextButton", speedRow)
 speedSlider.Size = UDim2.new(0.5,0,0.55,0)
@@ -425,7 +378,6 @@ Instance.new("UICorner", speedSlider).CornerRadius = UDim.new(1,0)
 local speedFill = Instance.new("Frame", speedSlider)
 speedFill.Size = UDim2.new((flySpeed - 20) / 180, 0, 1, 0)
 speedFill.BackgroundColor3 = Color3.fromRGB(0,170,0)
-speedFill.BorderSizePixel = 0
 Instance.new("UICorner", speedFill).CornerRadius = UDim.new(1,0)
 
 local speedValue = Instance.new("TextLabel", speedSlider)
@@ -436,52 +388,39 @@ speedValue.TextSize = 10
 speedValue.TextColor3 = Color3.new(1,1,1)
 speedValue.BackgroundTransparency = 1
 
--- Speed slider dragging
-local dragging = false
-speedSlider.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        local function update(input)
-            if dragging then
-                local x = math.clamp((input.Position.X - speedSlider.AbsolutePosition.X) / speedSlider.AbsoluteSize.X, 0, 1)
-                flySpeed = math.floor(20 + (x * 180))
-                flySpeed = math.clamp(flySpeed, 20, 200)
-                speedFill.Size = UDim2.new(x, 0, 1, 0)
-                speedValue.Text = tostring(flySpeed)
-                speedLabel.Text = "Fly Speed: " .. flySpeed
-            end
+speedSlider.MouseButton1Down:Connect(function()
+    local move
+    move = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            local x = math.clamp((input.Position.X - speedSlider.AbsolutePosition.X) / speedSlider.AbsoluteSize.X, 0, 1)
+            flySpeed = math.floor(20 + (x * 180))
+            flySpeed = math.clamp(flySpeed, 20, 200)
+            speedFill.Size = UDim2.new(x, 0, 1, 0)
+            speedValue.Text = tostring(flySpeed)
+            speedLabel.Text = "Fly Speed: " .. flySpeed
         end
-        local connection
-        connection = UserInputService.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement then
-                update(input)
-            end
-        end)
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-                connection:Disconnect()
-            end
-        end)
-    end
+    end)
+    local release
+    release = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            move:Disconnect()
+            release:Disconnect()
+        end
+    end)
 end)
 
-currentY = currentY + 55
+y = y + 55
 
--- Controls info
 local controlsInfo = Instance.new("TextLabel", pvpPanel)
 controlsInfo.Size = UDim2.new(0.96,0,0,80)
-controlsInfo.Position = UDim2.new(0.02,0,0,currentY)
-controlsInfo.Text = "🎮 FLY CONTROLS:\n\nW = Forward\nS = Backward\nA = Left\nD = Right\nSPACE = Fly Up\nCTRL = Fly Down"
+controlsInfo.Position = UDim2.new(0.02,0,0,y)
+controlsInfo.Text = "🎮 FLY CONTROLS:\n\nW = Forward | S = Backward\nA = Left | D = Right\nSPACE = Up | CTRL = Down"
 controlsInfo.Font = Enum.Font.Gotham
-controlsInfo.TextSize = 10
+controlsInfo.TextSize = 9
 controlsInfo.TextColor3 = Color3.fromRGB(150,150,150)
 controlsInfo.BackgroundTransparency = 1
-controlsInfo.TextXAlignment = Enum.TextXAlignment.Left
-controlsInfo.TextWrapped = true
 
-currentY = currentY + 90
-pvpPanel.CanvasSize = UDim2.new(0,0,0,currentY + 20)
+pvpPanel.CanvasSize = UDim2.new(0,0,0,y + 100)
 
 -- CREDITS PANEL
 local creditsTitle = Instance.new("TextLabel", creditsPanel)
@@ -507,45 +446,22 @@ devName.Font = Enum.Font.GothamBold
 devName.TextSize = 12
 devName.TextColor3 = Color3.new(1,1,1)
 devName.BackgroundTransparency = 1
-devName.TextXAlignment = Enum.TextXAlignment.Left
 
-local devRole = Instance.new("TextLabel", devCard)
-devRole.Size = UDim2.new(1,0,0,18)
-devRole.Position = UDim2.new(0,8,0,32)
-devRole.Text = "Premium Script Developer"
-devRole.Font = Enum.Font.Gotham
-devRole.TextSize = 9
-devRole.TextColor3 = Color3.fromRGB(180,180,180)
-devRole.BackgroundTransparency = 1
-devRole.TextXAlignment = Enum.TextXAlignment.Left
-
-local devDesc = Instance.new("TextLabel", devCard)
-devDesc.Size = UDim2.new(1,0,0,18)
-devDesc.Position = UDim2.new(0,8,0,48)
-devDesc.Text = "PVP + Fly + NoClip System"
-devDesc.Font = Enum.Font.Gotham
-devDesc.TextSize = 9
-devDesc.TextColor3 = Color3.fromRGB(150,150,150)
-devDesc.BackgroundTransparency = 1
-devDesc.TextXAlignment = Enum.TextXAlignment.Left
-
--- Discord Button
 local discordBtn = Instance.new("TextButton", creditsPanel)
-discordBtn.Size = UDim2.new(0.96,0,0,50)
+discordBtn.Size = UDim2.new(0.96,0,0,45)
 discordBtn.Position = UDim2.new(0.02,0,0,125)
-discordBtn.Text = "💬 JOIN OUR DISCORD"
+discordBtn.Text = "💬 JOIN DISCORD"
 discordBtn.Font = Enum.Font.GothamBold
-discordBtn.TextSize = 12
+discordBtn.TextSize = 11
 discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
 discordBtn.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
 
 discordBtn.MouseButton1Click:Connect(function()
-    local link = "https://discord.gg/PDmAh9Ua4"
-    if setclipboard then setclipboard(link) end
+    setclipboard("https://discord.gg/PDmAh9Ua4")
     local notif = Instance.new("TextLabel", frame)
-    notif.Size = UDim2.new(0,200,0,25)
-    notif.Position = UDim2.new(0.5,-100,0.5,130)
+    notif.Size = UDim2.new(0,180,0,25)
+    notif.Position = UDim2.new(0.5,-90,0.5,130)
     notif.Text = "Discord link copied!"
     notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
     notif.TextColor3 = Color3.new(1,1,1)
@@ -558,23 +474,13 @@ end)
 
 local versionLabel = Instance.new("TextLabel", creditsPanel)
 versionLabel.Size = UDim2.new(1,0,0,18)
-versionLabel.Position = UDim2.new(0,0,0,190)
-versionLabel.Text = "Version 3.0 | PVP + Fly + NoClip"
+versionLabel.Position = UDim2.new(0,0,0,185)
+versionLabel.Text = "Version 3.0 | PVP + Fly"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
 versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
-versionLabel.BackgroundTransparency = 1
 
-local thanksLabel = Instance.new("TextLabel", creditsPanel)
-thanksLabel.Size = UDim2.new(1,0,0,18)
-thanksLabel.Position = UDim2.new(0,0,0,210)
-thanksLabel.Text = "Thanks for using our script!"
-thanksLabel.Font = Enum.Font.Gotham
-thanksLabel.TextSize = 8
-thanksLabel.TextColor3 = Color3.fromRGB(200,200,200)
-thanksLabel.BackgroundTransparency = 1
-
-creditsPanel.CanvasSize = UDim2.new(0,0,0,250)
+creditsPanel.CanvasSize = UDim2.new(0,0,0,220)
 
 -- Tab switching
 pvpTab.MouseButton1Click:Connect(function()
@@ -600,11 +506,10 @@ closeBtn.MouseButton1Click:Connect(function()
     frame.Visible = false
 end)
 
--- Load settings
+-- Load settings and update
 loadSettings()
-
--- Update toggles after loading
 task.wait(0.5)
+
 for key, toggle in pairs(toggles) do
     if settings[key] then
         toggle.btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
@@ -612,36 +517,24 @@ for key, toggle in pairs(toggles) do
     end
 end
 
--- Start fly if enabled on load
-if settings.fly then
-    task.wait(1)
-    startFly()
-end
+if settings.fly then startFly() end
+if settings.noclip then setNoclip(true) end
 
--- Start noclip if enabled
-if settings.noclip then
-    setNoclip(true)
-end
-
--- PVP FUNCTIONS
+-- PVP Functions
 RunService.RenderStepped:Connect(function()
-    if settings.auto and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and not settings.fly then
-        local hrp = player.Character.HumanoidRootPart
-        local closest = nil
-        local dist = math.huge
-        
-        for _, v in pairs(Players:GetPlayers()) do
-            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                if d < dist then
-                    dist = d
-                    closest = v
+    if settings.auto and player.Character and not settings.fly then
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local closest, dist = nil, math.huge
+            for _, v in pairs(Players:GetPlayers()) do
+                if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                    if d < dist then dist, closest = d, v end
                 end
             end
-        end
-        
-        if closest then
-            hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
+            if closest then
+                hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
+            end
         end
     end
 end)
@@ -650,21 +543,14 @@ RunService.RenderStepped:Connect(function()
     if settings.hit and player.Character and not settings.fly then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-        
         if hum and hrp then
-            local closest = nil
-            local dist = math.huge
-            
+            local closest, dist = nil, math.huge
             for _, v in pairs(Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                     local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < dist and d < 10 then
-                        dist = d
-                        closest = v
-                    end
+                    if d < dist and d < 10 then dist, closest = d, v end
                 end
             end
-            
             if closest and closest.Character then
                 hum:MoveTo(closest.Character.HumanoidRootPart.Position)
                 local tool = player.Character:FindFirstChildOfClass("Tool")
@@ -676,10 +562,11 @@ end)
 
 local speedActive = false
 local function setSpeed()
-    if not player.Character then return end
-    local hum = player.Character:FindFirstChildOfClass("Humanoid")
-    if hum and not settings.fly then
-        hum.WalkSpeed = speedActive and 50 or 27
+    if player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        if hum and not settings.fly then
+            hum.WalkSpeed = speedActive and 50 or 27
+        end
     end
 end
 
@@ -697,19 +584,14 @@ end)
 player.CharacterAdded:Connect(function()
     task.wait(0.2)
     setSpeed()
-    if settings.fly then
-        task.wait(0.5)
-        startFly()
-    end
-    if settings.noclip then
-        task.wait(0.3)
-        setNoclip(true)
-    end
+    if settings.fly then task.wait(0.5); startFly() end
+    if settings.noclip then task.wait(0.3); setNoclip(true) end
 end)
 
 RunService.RenderStepped:Connect(function()
-    if settings.spin and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and not settings.fly then
-        player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(25), 0)
+    if settings.spin and player.Character and not settings.fly then
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
     end
 end)
 
@@ -717,17 +599,15 @@ local resetCooldown = false
 RunService.RenderStepped:Connect(function()
     if settings.resetP and not resetCooldown then
         resetCooldown = true
-        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-            player.Character:FindFirstChildOfClass("Humanoid").Health = 0
-        end
+        local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.Health = 0 end
         task.wait(1)
         resetCooldown = false
     end
 end)
 
 local jumpTime = 0
-UserInputService.InputBegan:Connect(function(input, processed)
-    if processed then return end
+UserInputService.InputBegan:Connect(function(input)
     if settings.jump and input.KeyCode == Enum.KeyCode.Space and not settings.fly then
         local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
         if hum and tick() - jumpTime > 0.1 then
@@ -741,26 +621,21 @@ end)
 RunService.RenderStepped:Connect(function()
     if player.Character and not settings.fly then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.JumpPower = settings.jump and 120 or 50
-        end
+        if hum then hum.JumpPower = settings.jump and 120 or 50 end
     end
 end)
 
 RunService.RenderStepped:Connect(function()
     if settings.esp then
         for _, v in pairs(Players:GetPlayers()) do
-            if v ~= player and v.Character then
-                if not v.Character:FindFirstChild("ESP_Box") then
-                    local box = Instance.new("BoxHandleAdornment")
-                    box.Name = "ESP_Box"
-                    box.Size = Vector3.new(4, 5, 4)
-                    box.Color3 = Color3.fromRGB(255,0,0)
-                    box.AlwaysOnTop = true
-                    box.ZIndex = 10
-                    box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
-                    box.Parent = v.Character
-                end
+            if v ~= player and v.Character and not v.Character:FindFirstChild("ESP_Box") then
+                local box = Instance.new("BoxHandleAdornment")
+                box.Name = "ESP_Box"
+                box.Size = Vector3.new(4, 5, 4)
+                box.Color3 = Color3.fromRGB(255,0,0)
+                box.AlwaysOnTop = true
+                box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
+                box.Parent = v.Character
             end
         end
     else
@@ -773,11 +648,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-player.CharacterRemoving:Connect(function()
-    stopFly()
-end)
+player.CharacterRemoving:Connect(stopFly)
 
-print("✅ Script Loaded!")
-print("📁 Tabs: PVP | CREDITS")
-print("🕊️ Fly: W/A/S/D + Space/CTRL to move")
-print("📌 Press Z to open menu")
+print("✅ Script Loaded! Press Z to open menu")
