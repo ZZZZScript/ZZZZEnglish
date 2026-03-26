@@ -1,11 +1,10 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 
--- Save System
+-- Simple save data
 local saveData = {
     autoAttack = false,
     esp = false,
@@ -16,96 +15,62 @@ local saveData = {
     speed = false
 }
 
--- Multiple save methods to ensure it works
-local function autoSave()
-    -- Method 1: Save to Player Attributes
-    local success1, err1 = pcall(function()
-        local json = HttpService:JSONEncode(saveData)
-        player:SetAttribute("ZzzUI_SaveData", json)
-        print("✅ Auto-saved to Attributes: " .. json)
-    end)
+-- Store toggle references for updating
+local toggleReferences = {}
+
+-- Simple save function - saves to player
+local function saveNow()
+    local json = '{"autoAttack":'..tostring(saveData.autoAttack)..
+                 ',"esp":'..tostring(saveData.esp)..
+                 ',"spin":'..tostring(saveData.spin)..
+                 ',"reset":'..tostring(saveData.reset)..
+                 ',"jump":'..tostring(saveData.jump)..
+                 ',"autoHit":'..tostring(saveData.autoHit)..
+                 ',"speed":'..tostring(saveData.speed)..'}'
     
-    -- Method 2: Save to _G (global)
-    local success2, err2 = pcall(function()
-        _G["ZzzUI_SavedData"] = {}
-        for k, v in pairs(saveData) do
-            _G["ZzzUI_SavedData"][k] = v
-        end
-        print("✅ Auto-saved to _G")
-    end)
-    
-    -- Method 3: Save using writefile if available
-    local success3, err3 = pcall(function()
-        if writefile then
-            local json = HttpService:JSONEncode(saveData)
-            writefile("ZzzUI_Save.txt", json)
-            print("✅ Auto-saved to file")
-        end
-    end)
-    
-    if not success1 then print("⚠️ Attribute save failed: " .. tostring(err1)) end
-    if not success2 then print("⚠️ _G save failed: " .. tostring(err2)) end
+    player:SetAttribute("ZzzSave", json)
+    print("💾 SAVED: " .. json)
 end
 
--- Load data from all sources
-local function loadData()
-    local loaded = false
-    
-    -- Try to load from Attributes first
-    local saved = player:GetAttribute("ZzzUI_SaveData")
+-- Simple load function
+local function loadNow()
+    local saved = player:GetAttribute("ZzzSave")
     if saved then
-        local success, data = pcall(function()
-            return HttpService:JSONDecode(saved)
-        end)
-        if success and data then
-            for key, value in pairs(data) do
-                if saveData[key] ~= nil then
-                    saveData[key] = value
+        -- Simple parsing without HttpService
+        local autoAttack = string.find(saved, '"autoAttack":true') and true or false
+        local esp = string.find(saved, '"esp":true') and true or false
+        local spin = string.find(saved, '"spin":true') and true or false
+        local reset = string.find(saved, '"reset":true') and true or false
+        local jump = string.find(saved, '"jump":true') and true or false
+        local autoHit = string.find(saved, '"autoHit":true') and true or false
+        local speed = string.find(saved, '"speed":true') and true or false
+        
+        saveData.autoAttack = autoAttack
+        saveData.esp = esp
+        saveData.spin = spin
+        saveData.reset = reset
+        saveData.jump = jump
+        saveData.autoHit = autoHit
+        saveData.speed = speed
+        
+        print("✅ LOADED: Auto="..tostring(autoAttack).." ESP="..tostring(esp).." Spin="..tostring(spin).." Speed="..tostring(speed))
+        
+        -- Update UI after loading
+        task.wait(0.5)
+        for key, ref in pairs(toggleReferences) do
+            if ref and ref.toggle and ref.circle then
+                local state = saveData[key]
+                if state then
+                    ref.toggle.BackgroundColor3 = Color3.fromRGB(0,170,0)
+                    ref.circle.Position = UDim2.new(1,-20,0.5,-9)
+                else
+                    ref.toggle.BackgroundColor3 = Color3.fromRGB(80,80,80)
+                    ref.circle.Position = UDim2.new(0,2,0.5,-9)
                 end
             end
-            print("✅ Data loaded from Attributes!")
-            loaded = true
         end
-    end
-    
-    -- If not found in Attributes, try _G
-    if not loaded and _G["ZzzUI_SavedData"] then
-        for key, value in pairs(_G["ZzzUI_SavedData"]) do
-            if saveData[key] ~= nil then
-                saveData[key] = value
-            end
-        end
-        print("✅ Data loaded from _G!")
-        loaded = true
-    end
-    
-    -- If still not found, try file
-    if not loaded then
-        pcall(function()
-            if readfile then
-                local content = readfile("ZzzUI_Save.txt")
-                if content then
-                    local data = HttpService:JSONDecode(content)
-                    for key, value in pairs(data) do
-                        if saveData[key] ~= nil then
-                            saveData[key] = value
-                        end
-                    end
-                    print("✅ Data loaded from file!")
-                    loaded = true
-                end
-            end
-        end)
-    end
-    
-    if not loaded then
-        print("⚠️ No saved data found, using defaults")
-    end
-    
-    -- Print current settings
-    print("📋 Current settings:")
-    for k, v in pairs(saveData) do
-        print("  " .. k .. ": " .. tostring(v))
+    else
+        print("⚠️ No saves found, using defaults")
     end
 end
 
@@ -150,7 +115,7 @@ stroke.Thickness = 2
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1,-40,0,30)
 title.Position = UDim2.new(0,10,0,0)
-title.Text = "PVP Lab"
+title.Text = "PVP LAB"
 title.Font = Enum.Font.GothamBold
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
@@ -210,28 +175,8 @@ creditsContainer.ScrollBarThickness = 6
 creditsContainer.BorderSizePixel = 0
 creditsContainer.Visible = false
 
--- Store toggle references
-local toggleValues = {}
-local toggleFunctions = {}
-
--- Update toggle visual
-local function updateToggle(saveKey, state)
-    if toggleValues[saveKey] and toggleValues[saveKey].toggle then
-        local toggle = toggleValues[saveKey].toggle
-        local circle = toggleValues[saveKey].circle
-        
-        if state then
-            toggle.BackgroundColor3 = Color3.fromRGB(0,170,0)
-            circle.Position = UDim2.new(1,-20,0.5,-9)
-        else
-            toggle.BackgroundColor3 = Color3.fromRGB(80,80,80)
-            circle.Position = UDim2.new(0,2,0.5,-9)
-        end
-    end
-end
-
--- CREATE TOGGLE WITH AUTO-SAVE
-local function createToggle(name, posY, saveKey)
+-- CREATE TOGGLE
+local function createToggle(name, posY, key)
     local bg = Instance.new("Frame", mainContainer)
     bg.Size = UDim2.new(1,-20,0,35)
     bg.Position = UDim2.new(0,10,0,posY)
@@ -261,51 +206,35 @@ local function createToggle(name, posY, saveKey)
     circle.BackgroundColor3 = Color3.new(1,1,1)
     Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
 
-    -- Store references
-    toggleValues[saveKey] = {
-        toggle = toggle,
-        circle = circle,
-        state = saveData[saveKey]
-    }
+    -- Store reference for later updates
+    toggleReferences[key] = {toggle = toggle, circle = circle}
     
-    -- Apply initial state
-    updateToggle(saveKey, saveData[saveKey])
+    -- Set initial state based on loaded data
+    if saveData[key] then
+        toggle.BackgroundColor3 = Color3.fromRGB(0,170,0)
+        circle.Position = UDim2.new(1,-20,0.5,-9)
+    else
+        toggle.BackgroundColor3 = Color3.fromRGB(80,80,80)
+        circle.Position = UDim2.new(0,2,0.5,-9)
+    end
 
-    -- Create click connection
     toggle.MouseButton1Click:Connect(function()
-        -- Toggle state
-        saveData[saveKey] = not saveData[saveKey]
-        toggleValues[saveKey].state = saveData[saveKey]
-        updateToggle(saveKey, saveData[saveKey])
+        saveData[key] = not saveData[key]
         
-        -- AUTO-SAVE immediately
-        autoSave()
+        if saveData[key] then
+            toggle.BackgroundColor3 = Color3.fromRGB(0,170,0)
+            circle.Position = UDim2.new(1,-20,0.5,-9)
+        else
+            toggle.BackgroundColor3 = Color3.fromRGB(80,80,80)
+            circle.Position = UDim2.new(0,2,0.5,-9)
+        end
         
-        print("🔄 " .. name .. " → " .. tostring(saveData[saveKey]))
-        
-        -- Show visual feedback
-        local feedback = Instance.new("TextLabel", frame)
-        feedback.Size = UDim2.new(0,150,0,25)
-        feedback.Position = UDim2.new(0.5,-75,0.5,150)
-        feedback.Text = name .. ": " .. tostring(saveData[saveKey])
-        feedback.BackgroundColor3 = Color3.fromRGB(0,0,0)
-        feedback.TextColor3 = Color3.new(1,1,1)
-        feedback.Font = Enum.Font.GothamBold
-        feedback.TextSize = 10
-        feedback.BackgroundTransparency = 0.5
-        Instance.new("UICorner", feedback).CornerRadius = UDim.new(0,5)
-        feedback.ZIndex = 10
-        
-        task.wait(1)
-        feedback:Destroy()
+        -- SAVE IMMEDIATELY
+        saveNow()
+        print("🔄 " .. name .. " = " .. tostring(saveData[key]))
     end)
 
-    -- Return getter function
-    local getter = function() 
-        return saveData[saveKey]
-    end
-    toggleFunctions[saveKey] = getter
-    return getter
+    return function() return saveData[key] end
 end
 
 -- Create all toggles
@@ -317,14 +246,11 @@ local getJump = createToggle("Super Jump", 165, "jump")
 local getAutoHit = createToggle("Auto Hit", 205, "autoHit")
 local getSpeed = createToggle("Speed", 245, "speed")
 
--- Open Discord Link
+-- Discord
 local function openDiscord()
     local discordLink = "https://discord.gg/bBWPETWW"
-    
     pcall(function()
-        if setclipboard then
-            setclipboard(discordLink)
-        end
+        if setclipboard then setclipboard(discordLink) end
     end)
     
     local notification = Instance.new("TextLabel", frame)
@@ -338,12 +264,11 @@ local function openDiscord()
     notification.TextWrapped = true
     Instance.new("UICorner", notification).CornerRadius = UDim.new(0,8)
     notification.ZIndex = 10
-    
     task.wait(3)
     notification:Destroy()
 end
 
--- Credits Container
+-- Credits
 local function createCredits()
     local function createCard(name, desc, color, posY)
         local card = Instance.new("Frame", creditsContainer)
@@ -396,11 +321,9 @@ local function createCredits()
     discordCard.MouseEnter:Connect(function()
         discordCard.BackgroundColor3 = Color3.fromRGB(114,137,218)
     end)
-    
     discordCard.MouseLeave:Connect(function()
         discordCard.BackgroundColor3 = Color3.fromRGB(88,101,242)
     end)
-    
     discordCard.MouseButton1Click:Connect(function()
         openDiscord()
     end)
@@ -498,8 +421,8 @@ close.MouseButton1Click:Connect(function()
     frame.Visible = false
 end)
 
--- Load data on start
-loadData()
+-- LOAD SAVES (this will also update UI colors)
+loadNow()
 
 -- AUTO ATTACK
 RunService.RenderStepped:Connect(function()
@@ -565,12 +488,9 @@ local speedEnabled = false
 
 local function applySpeed()
     if not player.Character then return end
-    
     local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
     if not humanoid then return end
-    
     local targetSpeed = speedEnabled and 50 or 27
-    
     if humanoid.WalkSpeed ~= targetSpeed then
         humanoid.WalkSpeed = targetSpeed
     end
@@ -591,12 +511,9 @@ end)
 player.CharacterAdded:Connect(function(character)
     task.wait(0.1)
     applySpeed()
-    
     local humanoid = character:WaitForChild("Humanoid", 5)
     if humanoid then
-        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-            applySpeed()
-        end)
+        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(applySpeed)
     end
 end)
 
@@ -608,17 +525,14 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- RESET PLAYER
+-- RESET
 local lastReset = false
-
 RunService.RenderStepped:Connect(function()
     if getReset() and not lastReset then
         lastReset = true
-
         if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
             player.Character:FindFirstChildOfClass("Humanoid").Health = 0
         end
-
         task.wait(1)
         lastReset = false
     end
@@ -626,10 +540,8 @@ end)
 
 -- SUPER JUMP
 local lastJumpTime = 0
-
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    
     if getJump() and input.KeyCode == Enum.KeyCode.Space then
         local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
@@ -669,12 +581,11 @@ player.CharacterAdded:Connect(function(character)
     end
 end)
 
--- ESP with Red Aura
+-- ESP
 RunService.RenderStepped:Connect(function()
     if getEsp() then
         for _,plr in pairs(Players:GetPlayers()) do
             if plr ~= player and plr.Character and plr.Character:FindFirstChild("Head") then
-
                 local head = plr.Character.Head
                 local esp = head:FindFirstChild("ESP")
                 local aura = plr.Character:FindFirstChild("Aura")
@@ -684,7 +595,6 @@ RunService.RenderStepped:Connect(function()
                     esp.Name = "ESP"
                     esp.Size = UDim2.new(0,80,0,30)
                     esp.AlwaysOnTop = true
-
                     local txt = Instance.new("TextLabel", esp)
                     txt.Size = UDim2.new(1,0,1,0)
                     txt.BackgroundTransparency = 1
@@ -724,7 +634,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ Script loaded with AUTO-SAVE system!")
-print("💾 Settings are saved automatically when you click any toggle!")
-print("📌 Press Z button to open menu")
-print("🔍 Check F9 console to see save confirmations")
+print("✅ SCRIPT READY!")
+print("💾 Settings AUTO-SAVE when you click ANY toggle!")
+print("📌 Press Z to open menu")
+print("🎨 UI colors will show saved settings correctly!")
