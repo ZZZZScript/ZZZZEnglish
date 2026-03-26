@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local VirtualUser = game:GetService("VirtualUser")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
@@ -22,6 +22,7 @@ local flying = false
 local flySpeed = 80
 local bodyVelocity = nil
 local bodyGyro = nil
+local noclip = true
 
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
@@ -56,7 +57,22 @@ local function saveSettings()
     print("💾 Saved!")
 end
 
--- FLY FUNCTION (with no hit taken)
+-- NOCLIP FUNCTION (no collision)
+local function setNoclip(bool)
+    noclip = bool
+    if bool then
+        local character = player.Character
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end
+
+-- FLY FUNCTION (CORRIGIDO)
 local function startFly()
     if flying then return end
     
@@ -70,14 +86,15 @@ local function startFly()
     
     flying = true
     
-    -- Remove collision with other players (no hit)
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-    
     -- Make character immune to damage
     humanoid.BreakJointsOnDeath = false
+    
+    -- Noclip
+    setNoclip(true)
+    
+    -- Disable gravity and platform stand
+    humanoid.PlatformStand = true
+    hrp.Anchored = false
     
     -- BodyVelocity for movement
     bodyVelocity = Instance.new("BodyVelocity")
@@ -93,28 +110,32 @@ local function startFly()
     bodyGyro.CFrame = hrp.CFrame
     bodyGyro.Parent = hrp
     
-    -- Disable gravity
-    humanoid.PlatformStand = true
-    hrp.Anchored = false
-    
     -- Fly control loop
     spawn(function()
-        while flying and player.Character and hrp do
+        while flying and player.Character and hrp and hrp.Parent do
             local moveDirection = Vector3.new(0, 0, 0)
             
-            -- WASD / Arrow keys movement
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) or UserInputService:IsKeyDown(Enum.KeyCode.Up) then
-                moveDirection = moveDirection + hrp.CFrame.LookVector
+            -- Get camera direction
+            local camera = workspace.CurrentCamera
+            local cameraCFrame = camera.CFrame
+            
+            -- Forward/Backward (based on camera)
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                moveDirection = moveDirection + cameraCFrame.LookVector
             end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) or UserInputService:IsKeyDown(Enum.KeyCode.Down) then
-                moveDirection = moveDirection - hrp.CFrame.LookVector
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                moveDirection = moveDirection - cameraCFrame.LookVector
             end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) or UserInputService:IsKeyDown(Enum.KeyCode.Left) then
-                moveDirection = moveDirection - hrp.CFrame.RightVector
+            
+            -- Right/Left (based on camera)
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                moveDirection = moveDirection + cameraCFrame.RightVector
             end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) or UserInputService:IsKeyDown(Enum.KeyCode.Right) then
-                moveDirection = moveDirection + hrp.CFrame.RightVector
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                moveDirection = moveDirection - cameraCFrame.RightVector
             end
+            
+            -- Up/Down
             if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
                 moveDirection = moveDirection + Vector3.new(0, 1, 0)
             end
@@ -125,11 +146,12 @@ local function startFly()
             -- Normalize and set velocity
             if moveDirection.Magnitude > 0 then
                 moveDirection = moveDirection.Unit
+                bodyVelocity.Velocity = moveDirection * flySpeed
+            else
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
             end
             
-            bodyVelocity.Velocity = moveDirection * flySpeed
-            
-            -- Update gyro to look in movement direction
+            -- Update gyro to face movement direction
             if moveDirection.Magnitude > 0 then
                 local lookCFrame = CFrame.lookAt(hrp.Position, hrp.Position + moveDirection)
                 bodyGyro.CFrame = lookCFrame
@@ -138,6 +160,22 @@ local function startFly()
             task.wait()
         end
     end)
+    
+    -- Keep noclip active
+    spawn(function()
+        while flying do
+            task.wait(0.1)
+            if noclip and player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+    end)
+    
+    print("🕊️ Fly activated! Speed: " .. flySpeed)
 end
 
 local function stopFly()
@@ -146,29 +184,40 @@ local function stopFly()
     flying = false
     
     local character = player.Character
-    if not character then return end
-    
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    
-    if bodyVelocity then bodyVelocity:Destroy() end
-    if bodyGyro then bodyGyro:Destroy() end
-    
-    if humanoid then
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, true)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        humanoid.PlatformStand = false
-        humanoid.BreakJointsOnDeath = true
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        
+        if bodyVelocity then 
+            bodyVelocity:Destroy() 
+            bodyVelocity = nil
+        end
+        if bodyGyro then 
+            bodyGyro:Destroy() 
+            bodyGyro = nil
+        end
+        
+        if humanoid then
+            humanoid.PlatformStand = false
+            humanoid.BreakJointsOnDeath = true
+        end
+        
+        if hrp then
+            hrp.Velocity = Vector3.new(0, 0, 0)
+        end
+        
+        -- Reset collision
+        setNoclip(false)
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
     end
     
-    if hrp then
-        hrp.Velocity = Vector3.new(0, 0, 0)
-    end
-    
-    bodyVelocity = nil
-    bodyGyro = nil
+    print("🕊️ Fly deactivated!")
 end
 
 -- Toggle fly on/off
@@ -180,7 +229,6 @@ local function toggleFly()
         stopFly()
     end
     saveSettings()
-    print("Fly is now " .. tostring(settings.fly))
 end
 
 -- Create GUI
@@ -203,8 +251,8 @@ Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
 -- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,500,0,420)
-frame.Position = UDim2.new(0.5,-250,0.5,-210)
+frame.Size = UDim2.new(0,500,0,450)
+frame.Position = UDim2.new(0.5,-250,0.5,-225)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -400,9 +448,9 @@ createToggleRow(flyPanel, "Enable Fly", 40, "fly")
 
 -- Fly info
 local flyInfo = Instance.new("TextLabel", flyPanel)
-flyInfo.Size = UDim2.new(0.96,0,0,80)
+flyInfo.Size = UDim2.new(0.96,0,0,100)
 flyInfo.Position = UDim2.new(0.02,0,0,90)
-flyInfo.Text = "🕊️ FLY CONTROLS:\n\nW / ↑ = Forward\nS / ↓ = Backward\nA / ← = Left\nD / → = Right\nSPACE = Up\nCTRL = Down\n\n✨ No damage while flying!"
+flyInfo.Text = "🕊️ FLY CONTROLS:\n\nW = Forward\nS = Backward\nA = Left\nD = Right\nSPACE = Fly Up\nCTRL = Fly Down\n\n✨ No collision while flying!\n✨ No damage taken!"
 flyInfo.Font = Enum.Font.Gotham
 flyInfo.TextSize = 10
 flyInfo.TextColor3 = Color3.fromRGB(150,150,150)
@@ -412,7 +460,7 @@ flyInfo.TextWrapped = true
 
 local flySpeedSlider = Instance.new("Frame", flyPanel)
 flySpeedSlider.Size = UDim2.new(0.96,0,0,40)
-flySpeedSlider.Position = UDim2.new(0.02,0,0,180)
+flySpeedSlider.Position = UDim2.new(0.02,0,0,200)
 flySpeedSlider.BackgroundColor3 = Color3.fromRGB(35,35,35)
 Instance.new("UICorner", flySpeedSlider).CornerRadius = UDim.new(0,6)
 
@@ -467,17 +515,22 @@ speedSlider.InputBegan:Connect(function(input)
                     if character and character:FindFirstChild("HumanoidRootPart") then
                         local hrp = character.HumanoidRootPart
                         local moveDirection = Vector3.new(0, 0, 0)
-                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + hrp.CFrame.LookVector end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - hrp.CFrame.LookVector end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - hrp.CFrame.RightVector end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + hrp.CFrame.RightVector end
+                        local camera = workspace.CurrentCamera
+                        local cameraCFrame = camera.CFrame
+                        
+                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + cameraCFrame.LookVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - cameraCFrame.LookVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + cameraCFrame.RightVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - cameraCFrame.RightVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
                         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
                         
                         if moveDirection.Magnitude > 0 then
                             moveDirection = moveDirection.Unit
+                            bodyVelocity.Velocity = moveDirection * flySpeed
+                        else
+                            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
                         end
-                        bodyVelocity.Velocity = moveDirection * flySpeed
                     end
                 end
             end
@@ -523,9 +576,43 @@ devName.TextColor3 = Color3.new(1,1,1)
 devName.BackgroundTransparency = 1
 devName.TextXAlignment = Enum.TextXAlignment.Left
 
+-- DISCORD BUTTON
+local discordBtn = Instance.new("TextButton", creditsPanel)
+discordBtn.Size = UDim2.new(0.96,0,0,45)
+discordBtn.Position = UDim2.new(0.02,0,0,110)
+discordBtn.Text = "JOIN OUR DISCORD"
+discordBtn.Font = Enum.Font.GothamBold
+discordBtn.TextSize = 11
+discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
+discordBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
+
+discordBtn.MouseButton1Click:Connect(function()
+    local link = "https://discord.gg/PDmAh9Ua4"
+    if setclipboard then setclipboard(link) end
+    -- Open link in browser
+    if syn and syn.request then
+        syn.request({
+            Url = link,
+            Method = "GET"
+        })
+    end
+    local notif = Instance.new("TextLabel", frame)
+    notif.Size = UDim2.new(0,180,0,25)
+    notif.Position = UDim2.new(0.5,-90,0.5,130)
+    notif.Text = "Discord link copied!"
+    notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
+    notif.TextColor3 = Color3.new(1,1,1)
+    notif.Font = Enum.Font.GothamBold
+    notif.TextSize = 10
+    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,5)
+    task.wait(2)
+    notif:Destroy()
+end)
+
 local versionLabel = Instance.new("TextLabel", creditsPanel)
 versionLabel.Size = UDim2.new(1,0,0,18)
-versionLabel.Position = UDim2.new(0,0,0,110)
+versionLabel.Position = UDim2.new(0,0,0,170)
 versionLabel.Text = "Version 3.0 | PVP + Fly System"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
@@ -534,7 +621,7 @@ versionLabel.BackgroundTransparency = 1
 
 local thanksLabel = Instance.new("TextLabel", creditsPanel)
 thanksLabel.Size = UDim2.new(1,0,0,18)
-thanksLabel.Position = UDim2.new(0,0,0,130)
+thanksLabel.Position = UDim2.new(0,0,0,190)
 thanksLabel.Text = "Thanks for using our script!"
 thanksLabel.Font = Enum.Font.Gotham
 thanksLabel.TextSize = 8
@@ -599,7 +686,7 @@ if settings.fly then
     startFly()
 end
 
--- PVP FUNCTIONS
+-- PVP FUNCTIONS (mantidas)
 
 -- Auto Attack
 RunService.RenderStepped:Connect(function()
@@ -760,6 +847,6 @@ end)
 
 print("✅ Script Loaded!")
 print("📁 Tabs: PVP | FLY | INFO")
-print("🕊️ FLY: Enable fly mode with no damage taken!")
-print("🎮 Controls: WASD / Arrow Keys + Space (Up) + CTRL (Down)")
+print("🕊️ FLY: Fly mode with no collision and no damage!")
+print("🎮 Controls: W/A/S/D + SPACE/CTRL")
 print("📌 Press Z to open menu")
