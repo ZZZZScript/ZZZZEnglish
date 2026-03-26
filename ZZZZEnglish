@@ -5,16 +5,13 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
--- Verificar se é mobile
-local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-
 -- Variáveis do Fly
 local flying = false
 local flySpeed = 80
 
 -- Remover GUIs antigas
 for _, gui in pairs(player.PlayerGui:GetChildren()) do
-    if gui.Name == "PvpLab" then
+    if gui.Name == "PvpLab" or gui.Name == "FunHub" then
         gui:Destroy()
     end
 end
@@ -26,13 +23,42 @@ gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- CORES (IGUAL A IMAGEM)
-local corFundo = Color3.fromRGB(10, 10, 20)
-local corCard = Color3.fromRGB(20, 25, 40)
-local corBorda = Color3.fromRGB(0, 150, 255)
-local corTextoBranco = Color3.fromRGB(255, 255, 255)
-local corTextoAzul = Color3.fromRGB(0, 150, 255)
-local corCinza = Color3.fromRGB(150, 150, 170)
+-- CORES (estilo FUNHUB)
+local corFundo = Color3.fromRGB(18, 20, 28)
+local corCard = Color3.fromRGB(28, 30, 38)
+local corAzul = Color3.fromRGB(66, 133, 244)
+local corAzulEscuro = Color3.fromRGB(52, 106, 195)
+local corTexto = Color3.fromRGB(255, 255, 255)
+local corCinza = Color3.fromRGB(150, 155, 170)
+
+-- ========== ÍCONE FLUTUANTE ZZZZ ==========
+local iconButton = Instance.new("ImageButton")
+iconButton.Size = UDim2.new(0, 55, 0, 55)
+iconButton.Position = UDim2.new(0, 15, 0.5, -27)
+iconButton.BackgroundColor3 = corAzul
+iconButton.BackgroundTransparency = 0
+iconButton.Image = "rbxassetid://0"
+iconButton.Parent = gui
+Instance.new("UICorner", iconButton).CornerRadius = UDim.new(0, 15)
+
+-- Texto do ícone
+local iconText = Instance.new("TextLabel")
+iconText.Size = UDim2.new(1, 0, 1, 0)
+iconText.Text = "ZZZZ"
+iconText.Font = Enum.Font.GothamBlack
+iconText.TextSize = 18
+iconText.TextColor3 = corTexto
+iconText.BackgroundTransparency = 1
+iconText.Parent = iconButton
+
+-- Efeito de brilho no ícone
+local glow = Instance.new("ImageLabel")
+glow.Size = UDim2.new(1.3, 0, 1.3, 0)
+glow.Position = UDim2.new(-0.15, 0, -0.15, 0)
+glow.Image = "rbxassetid://0"
+glow.BackgroundTransparency = 1
+glow.ImageTransparency = 0.5
+glow.Parent = iconButton
 
 -- ========== MENU PRINCIPAL ==========
 local mainFrame = Instance.new("Frame")
@@ -40,56 +66,54 @@ mainFrame.Size = UDim2.new(0, 380, 0, 550)
 mainFrame.Position = UDim2.new(0.5, -190, 0.5, -275)
 mainFrame.BackgroundColor3 = corFundo
 mainFrame.BackgroundTransparency = 0
-mainFrame.Visible = true
+mainFrame.Visible = false
 mainFrame.Parent = gui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 20)
-Instance.new("UIStroke", mainFrame).Color = corBorda
-Instance.new("UIStroke", mainFrame).Thickness = 1
 
--- ========== TOPO COM GRADIENTE ==========
+-- ========== TOPO ==========
 local topFrame = Instance.new("Frame")
-topFrame.Size = UDim2.new(1, 0, 0, 100)
+topFrame.Size = UDim2.new(1, 0, 0, 80)
 topFrame.Position = UDim2.new(0, 0, 0, 0)
-topFrame.BackgroundColor3 = corBorda
-topFrame.BackgroundTransparency = 0.15
+topFrame.BackgroundColor3 = corAzul
+topFrame.BackgroundTransparency = 0
 topFrame.Parent = mainFrame
 Instance.new("UICorner", topFrame).CornerRadius = UDim.new(0, 20)
 
--- TÍTULO
+-- Título
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 50)
-titleLabel.Position = UDim2.new(0, 0, 0, 25)
+titleLabel.Size = UDim2.new(1, 0, 0, 45)
+titleLabel.Position = UDim2.new(0, 0, 0, 20)
 titleLabel.Text = "PVP LAB"
 titleLabel.Font = Enum.Font.GothamBlack
-titleLabel.TextSize = 32
-titleLabel.TextColor3 = corTextoBranco
+titleLabel.TextSize = 28
+titleLabel.TextColor3 = corTexto
 titleLabel.BackgroundTransparency = 1
 titleLabel.Parent = topFrame
 
--- SUBTÍTULO
+-- Subtítulo
 local subLabel = Instance.new("TextLabel")
 subLabel.Size = UDim2.new(1, 0, 0, 20)
-subLabel.Position = UDim2.new(0, 0, 0, 70)
+subLabel.Position = UDim2.new(0, 0, 0, 58)
 subLabel.Text = "PREMIUM SCRIPT"
 subLabel.Font = Enum.Font.Gotham
 subLabel.TextSize = 10
-subLabel.TextColor3 = corTextoBranco
-subLabel.TextTransparency = 0.5
+subLabel.TextColor3 = corTexto
+subLabel.TextTransparency = 0.4
 subLabel.BackgroundTransparency = 1
 subLabel.Parent = topFrame
 
--- ========== CONTEÚDO SCROLL ==========
+-- ========== CONTEÚDO ==========
 local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, -20, 1, -120)
-scrollFrame.Position = UDim2.new(0, 10, 0, 110)
+scrollFrame.Size = UDim2.new(1, -20, 1, -100)
+scrollFrame.Position = UDim2.new(0, 10, 0, 90)
 scrollFrame.BackgroundTransparency = 1
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
 scrollFrame.ScrollBarThickness = 3
-scrollFrame.ScrollBarImageColor3 = corBorda
+scrollFrame.ScrollBarImageColor3 = corAzul
 scrollFrame.Parent = mainFrame
 
 -- ========== FUNÇÃO CRIAR CARD ==========
-local function criarCard(icone, titulo, subtitulo, yPos, corIcone)
+local function criarCard(icone, titulo, desc, yPos, corIcone)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 65)
     card.Position = UDim2.new(0, 0, 0, yPos)
@@ -97,13 +121,6 @@ local function criarCard(icone, titulo, subtitulo, yPos, corIcone)
     card.BackgroundTransparency = 0
     card.Parent = scrollFrame
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 12)
-    Instance.new("UIStroke", card).Color = corBorda
-    Instance.new("UIStroke", card).Thickness = 0.5
-    Instance.new("UIStroke", card).Transparency = 0.8
-    
-    -- Efeito hover
-    local hoverTween = TweenService:Create(card, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 35, 55)})
-    local leaveTween = TweenService:Create(card, TweenInfo.new(0.2), {BackgroundColor3 = corCard})
     
     -- Ícone
     local iconLabel = Instance.new("TextLabel")
@@ -112,55 +129,55 @@ local function criarCard(icone, titulo, subtitulo, yPos, corIcone)
     iconLabel.Text = icone
     iconLabel.Font = Enum.Font.Gotham
     iconLabel.TextSize = 28
-    iconLabel.TextColor3 = corIcone or corTextoAzul
+    iconLabel.TextColor3 = corIcone or corAzul
     iconLabel.BackgroundTransparency = 1
     iconLabel.Parent = card
     
     -- Título
     local titleCard = Instance.new("TextLabel")
-    titleCard.Size = UDim2.new(0, 180, 0, 25)
+    titleCard.Size = UDim2.new(0, 180, 0, 22)
     titleCard.Position = UDim2.new(0, 65, 0, 12)
     titleCard.Text = titulo
     titleCard.Font = Enum.Font.GothamBold
     titleCard.TextSize = 14
-    titleCard.TextColor3 = corTextoBranco
+    titleCard.TextColor3 = corTexto
     titleCard.BackgroundTransparency = 1
     titleCard.TextXAlignment = Enum.TextXAlignment.Left
     titleCard.Parent = card
     
-    -- Subtítulo
-    local subCard = Instance.new("TextLabel")
-    subCard.Size = UDim2.new(0, 180, 0, 18)
-    subCard.Position = UDim2.new(0, 65, 0, 35)
-    subCard.Text = subtitulo
-    subCard.Font = Enum.Font.Gotham
-    subCard.TextSize = 9
-    subCard.TextColor3 = corCinza
-    subCard.BackgroundTransparency = 1
-    subCard.TextXAlignment = Enum.TextXAlignment.Left
-    subCard.Parent = card
+    -- Descrição
+    local descCard = Instance.new("TextLabel")
+    descCard.Size = UDim2.new(0, 200, 0, 18)
+    descCard.Position = UDim2.new(0, 65, 0, 35)
+    descCard.Text = desc
+    descCard.Font = Enum.Font.Gotham
+    descCard.TextSize = 9
+    descCard.TextColor3 = corCinza
+    descCard.BackgroundTransparency = 1
+    descCard.TextXAlignment = Enum.TextXAlignment.Left
+    descCard.Parent = card
     
     -- Botão toggle
     local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Size = UDim2.new(0, 55, 0, 30)
-    toggleBtn.Position = UDim2.new(1, -70, 0.5, -15)
+    toggleBtn.Size = UDim2.new(0, 52, 0, 28)
+    toggleBtn.Position = UDim2.new(1, -65, 0.5, -14)
     toggleBtn.Text = ""
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
     toggleBtn.Parent = card
     Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1, 0)
     
-    -- Círculo do toggle
+    -- Círculo
     local circle = Instance.new("Frame")
-    circle.Size = UDim2.new(0, 24, 0, 24)
-    circle.Position = UDim2.new(0, 4, 0.5, -12)
-    circle.BackgroundColor3 = corTextoBranco
+    circle.Size = UDim2.new(0, 22, 0, 22)
+    circle.Position = UDim2.new(0, 4, 0.5, -11)
+    circle.BackgroundColor3 = corTexto
     circle.Parent = toggleBtn
     Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
     
     -- Status
     local statusLabel = Instance.new("TextLabel")
     statusLabel.Size = UDim2.new(0, 40, 0, 20)
-    statusLabel.Position = UDim2.new(1, -130, 0.5, -10)
+    statusLabel.Position = UDim2.new(1, -120, 0.5, -10)
     statusLabel.Text = "OFF"
     statusLabel.Font = Enum.Font.GothamBold
     statusLabel.TextSize = 10
@@ -168,37 +185,34 @@ local function criarCard(icone, titulo, subtitulo, yPos, corIcone)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Parent = card
     
-    card.MouseEnter:Connect(function() hoverTween:Play() end)
-    card.MouseLeave:Connect(function() leaveTween:Play() end)
-    
     local ativo = false
     
-    local function setAtivo(valor)
-        ativo = valor
+    local function setAtivo(val)
+        ativo = val
         if ativo then
-            toggleBtn.BackgroundColor3 = corBorda
-            circle.Position = UDim2.new(1, -28, 0.5, -12)
+            toggleBtn.BackgroundColor3 = corAzul
+            circle.Position = UDim2.new(1, -26, 0.5, -11)
             statusLabel.Text = "ON"
             statusLabel.TextColor3 = Color3.fromRGB(80, 255, 80)
         else
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
-            circle.Position = UDim2.new(0, 4, 0.5, -12)
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
+            circle.Position = UDim2.new(0, 4, 0.5, -11)
             statusLabel.Text = "OFF"
             statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
         end
+        if callback then callback(ativo) end
     end
+    
+    local callback = nil
     
     toggleBtn.MouseButton1Click:Connect(function()
         setAtivo(not ativo)
-        if onToggle then onToggle(ativo) end
     end)
-    
-    local onToggle = nil
     
     return {
         setAtivo = setAtivo,
         getAtivo = function() return ativo end,
-        onToggle = function(callback) onToggle = callback end
+        onToggle = function(cb) callback = cb end
     }
 end
 
@@ -206,69 +220,60 @@ end
 local yPos = 0
 local funcoes = {}
 
--- Título PVP
-local pvpTitle = Instance.new("TextLabel")
-pvpTitle.Size = UDim2.new(1, 0, 0, 30)
-pvpTitle.Position = UDim2.new(0, 0, 0, yPos)
-pvpTitle.Text = "⚔️ PVP FUNCTIONS"
-pvpTitle.Font = Enum.Font.GothamBold
-pvpTitle.TextSize = 14
-pvpTitle.TextColor3 = corTextoAzul
-pvpTitle.BackgroundTransparency = 1
-pvpTitle.TextXAlignment = Enum.TextXAlignment.Left
-pvpTitle.Parent = scrollFrame
-yPos = yPos + 35
+-- Seção PVP
+local pvpSection = Instance.new("TextLabel")
+pvpSection.Size = UDim2.new(1, 0, 0, 32)
+pvpSection.Position = UDim2.new(0, 0, 0, yPos)
+pvpSection.Text = "⚔️ PVP FUNCTIONS"
+pvpSection.Font = Enum.Font.GothamBold
+pvpSection.TextSize = 14
+pvpSection.TextColor3 = corAzul
+pvpSection.BackgroundTransparency = 1
+pvpSection.TextXAlignment = Enum.TextXAlignment.Left
+pvpSection.Parent = scrollFrame
+yPos = yPos + 38
 
--- Auto Attack
-funcoes.auto = criarCard("⚔️", "Auto Attack", "Automatically attack enemies", yPos, corTextoAzul)
+funcoes.auto = criarCard("⚔️", "Auto Attack", "Automatically attack enemies", yPos, corAzul)
 yPos = yPos + 70
 
--- ESP
-funcoes.esp = criarCard("👁️", "ESP", "See enemies through walls", yPos, corTextoAzul)
+funcoes.esp = criarCard("👁️", "ESP", "See enemies through walls", yPos, corAzul)
 yPos = yPos + 70
 
--- Spin Bot
-funcoes.spin = criarCard("🌀", "Spin Bot", "Auto spin while moving", yPos, corTextoAzul)
+funcoes.spin = criarCard("🌀", "Spin Bot", "Auto spin while moving", yPos, corAzul)
 yPos = yPos + 70
 
--- Reset Player
-funcoes.reset = criarCard("💀", "Reset Player", "Auto reset when low health", yPos, corTextoAzul)
+funcoes.reset = criarCard("💀", "Reset Player", "Auto reset when low health", yPos, corAzul)
 yPos = yPos + 70
 
--- Super Jump
-funcoes.jump = criarCard("🦘", "Super Jump", "Jump higher than normal", yPos, corTextoAzul)
+funcoes.jump = criarCard("🦘", "Super Jump", "Jump higher than normal", yPos, corAzul)
 yPos = yPos + 70
 
--- Auto Hit
-funcoes.hit = criarCard("👊", "Auto Hit", "Auto attack nearby enemies", yPos, corTextoAzul)
+funcoes.hit = criarCard("👊", "Auto Hit", "Auto attack nearby enemies", yPos, corAzul)
 yPos = yPos + 70
 
--- Speed
-funcoes.speed = criarCard("🏃", "Speed", "Increase movement speed", yPos, corTextoAzul)
+funcoes.speed = criarCard("🏃", "Speed", "Increase movement speed", yPos, corAzul)
 yPos = yPos + 80
 
--- Título FLY
-local flyTitle = Instance.new("TextLabel")
-flyTitle.Size = UDim2.new(1, 0, 0, 30)
-flyTitle.Position = UDim2.new(0, 0, 0, yPos)
-flyTitle.Text = "🕊️ FLY SYSTEM"
-flyTitle.Font = Enum.Font.GothamBold
-flyTitle.TextSize = 14
-flyTitle.TextColor3 = corTextoAzul
-flyTitle.BackgroundTransparency = 1
-flyTitle.TextXAlignment = Enum.TextXAlignment.Left
-flyTitle.Parent = scrollFrame
-yPos = yPos + 35
+-- Seção FLY
+local flySection = Instance.new("TextLabel")
+flySection.Size = UDim2.new(1, 0, 0, 32)
+flySection.Position = UDim2.new(0, 0, 0, yPos)
+flySection.Text = "🕊️ FLY SYSTEM"
+flySection.Font = Enum.Font.GothamBold
+flySection.TextSize = 14
+flySection.TextColor3 = corAzul
+flySection.BackgroundTransparency = 1
+flySection.TextXAlignment = Enum.TextXAlignment.Left
+flySection.Parent = scrollFrame
+yPos = yPos + 38
 
--- Card do Fly
+-- Card Fly
 local flyCard = Instance.new("Frame")
 flyCard.Size = UDim2.new(1, 0, 0, 85)
 flyCard.Position = UDim2.new(0, 0, 0, yPos)
 flyCard.BackgroundColor3 = corCard
 flyCard.Parent = scrollFrame
 Instance.new("UICorner", flyCard).CornerRadius = UDim.new(0, 12)
-Instance.new("UIStroke", flyCard).Color = corBorda
-Instance.new("UIStroke", flyCard).Thickness = 0.5
 
 -- Ícone Fly
 local flyIcon = Instance.new("TextLabel")
@@ -277,7 +282,7 @@ flyIcon.Position = UDim2.new(0, 15, 0.5, -25)
 flyIcon.Text = "🕊️"
 flyIcon.Font = Enum.Font.Gotham
 flyIcon.TextSize = 32
-flyIcon.TextColor3 = corTextoAzul
+flyIcon.TextColor3 = corAzul
 flyIcon.BackgroundTransparency = 1
 flyIcon.Parent = flyCard
 
@@ -288,43 +293,43 @@ flyTitleCard.Position = UDim2.new(0, 75, 0, 15)
 flyTitleCard.Text = "FLY MODE"
 flyTitleCard.Font = Enum.Font.GothamBold
 flyTitleCard.TextSize = 15
-flyTitleCard.TextColor3 = corTextoBranco
+flyTitleCard.TextColor3 = corTexto
 flyTitleCard.BackgroundTransparency = 1
 flyTitleCard.TextXAlignment = Enum.TextXAlignment.Left
 flyTitleCard.Parent = flyCard
 
--- Subtítulo Fly
-local flySubCard = Instance.new("TextLabel")
-flySubCard.Size = UDim2.new(0, 150, 0, 18)
-flySubCard.Position = UDim2.new(0, 75, 0, 38)
-flySubCard.Text = "Use the joystick to fly"
-flySubCard.Font = Enum.Font.Gotham
-flySubCard.TextSize = 9
-flySubCard.TextColor3 = corCinza
-flySubCard.BackgroundTransparency = 1
-flySubCard.TextXAlignment = Enum.TextXAlignment.Left
-flySubCard.Parent = flyCard
+-- Descrição Fly
+local flyDesc = Instance.new("TextLabel")
+flyDesc.Size = UDim2.new(0, 200, 0, 18)
+flyDesc.Position = UDim2.new(0, 75, 0, 38)
+flyDesc.Text = "Use the joystick to fly"
+flyDesc.Font = Enum.Font.Gotham
+flyDesc.TextSize = 9
+flyDesc.TextColor3 = corCinza
+flyDesc.BackgroundTransparency = 1
+flyDesc.TextXAlignment = Enum.TextXAlignment.Left
+flyDesc.Parent = flyCard
 
 -- Botão Fly Toggle
 local flyToggle = Instance.new("TextButton")
-flyToggle.Size = UDim2.new(0, 60, 0, 34)
-flyToggle.Position = UDim2.new(1, -80, 0.5, -17)
+flyToggle.Size = UDim2.new(0, 58, 0, 32)
+flyToggle.Position = UDim2.new(1, -75, 0.5, -16)
 flyToggle.Text = ""
-flyToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+flyToggle.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
 flyToggle.Parent = flyCard
 Instance.new("UICorner", flyToggle).CornerRadius = UDim.new(1, 0)
 
 local flyCircle = Instance.new("Frame")
-flyCircle.Size = UDim2.new(0, 28, 0, 28)
-flyCircle.Position = UDim2.new(0, 4, 0.5, -14)
-flyCircle.BackgroundColor3 = corTextoBranco
+flyCircle.Size = UDim2.new(0, 26, 0, 26)
+flyCircle.Position = UDim2.new(0, 4, 0.5, -13)
+flyCircle.BackgroundColor3 = corTexto
 flyCircle.Parent = flyToggle
 Instance.new("UICorner", flyCircle).CornerRadius = UDim.new(1, 0)
 
 -- Status Fly
 local flyStatus = Instance.new("TextLabel")
 flyStatus.Size = UDim2.new(0, 45, 0, 22)
-flyStatus.Position = UDim2.new(1, -150, 0.5, -11)
+flyStatus.Position = UDim2.new(1, -145, 0.5, -11)
 flyStatus.Text = "OFF"
 flyStatus.Font = Enum.Font.GothamBold
 flyStatus.TextSize = 11
@@ -334,70 +339,70 @@ flyStatus.Parent = flyCard
 
 -- Botão Velocidade
 local speedBtn = Instance.new("TextButton")
-speedBtn.Size = UDim2.new(0, 65, 0, 34)
-speedBtn.Position = UDim2.new(1, -230, 0.5, -17)
+speedBtn.Size = UDim2.new(0, 65, 0, 32)
+speedBtn.Position = UDim2.new(1, -225, 0.5, -16)
 speedBtn.Text = tostring(flySpeed)
 speedBtn.Font = Enum.Font.GothamBold
 speedBtn.TextSize = 14
-speedBtn.TextColor3 = corTextoBranco
-speedBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
+speedBtn.TextColor3 = corTexto
+speedBtn.BackgroundColor3 = Color3.fromRGB(45, 48, 60)
 speedBtn.Parent = flyCard
 Instance.new("UICorner", speedBtn).CornerRadius = UDim.new(0, 8)
 
 yPos = yPos + 95
 
--- Título SOCIAL
-local socialTitle = Instance.new("TextLabel")
-socialTitle.Size = UDim2.new(1, 0, 0, 30)
-socialTitle.Position = UDim2.new(0, 0, 0, yPos)
-socialTitle.Text = "💬 SOCIAL"
-socialTitle.Font = Enum.Font.GothamBold
-socialTitle.TextSize = 14
-socialTitle.TextColor3 = corTextoAzul
-socialTitle.BackgroundTransparency = 1
-socialTitle.TextXAlignment = Enum.TextXAlignment.Left
-socialTitle.Parent = scrollFrame
-yPos = yPos + 35
+-- Seção SOCIAL
+local socialSection = Instance.new("TextLabel")
+socialSection.Size = UDim2.new(1, 0, 0, 32)
+socialSection.Position = UDim2.new(0, 0, 0, yPos)
+socialSection.Text = "💬 SOCIAL"
+socialSection.Font = Enum.Font.GothamBold
+socialSection.TextSize = 14
+socialSection.TextColor3 = corAzul
+socialSection.BackgroundTransparency = 1
+socialSection.TextXAlignment = Enum.TextXAlignment.Left
+socialSection.Parent = scrollFrame
+yPos = yPos + 38
 
--- Botão Discord
+-- Card Discord
 local discordCard = Instance.new("Frame")
-discordCard.Size = UDim2.new(1, 0, 0, 55)
+discordCard.Size = UDim2.new(1, 0, 0, 60)
 discordCard.Position = UDim2.new(0, 0, 0, yPos)
-discordCard.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
+discordCard.BackgroundColor3 = corCard
 discordCard.Parent = scrollFrame
 Instance.new("UICorner", discordCard).CornerRadius = UDim.new(0, 12)
 
-local discordIcon = Instance.new("TextLabel")
-discordIcon.Size = UDim2.new(0, 40, 0, 40)
-discordIcon.Position = UDim2.new(0, 12, 0.5, -20)
-discordIcon.Text = "💬"
-discordIcon.Font = Enum.Font.Gotham
-discordIcon.TextSize = 28
-discordIcon.TextColor3 = Color3.fromRGB(88, 101, 242)
-discordIcon.BackgroundTransparency = 1
-discordIcon.Parent = discordCard
+local discordIconLabel = Instance.new("TextLabel")
+discordIconLabel.Size = UDim2.new(0, 45, 0, 45)
+discordIconLabel.Position = UDim2.new(0, 12, 0.5, -22.5)
+discordIconLabel.Text = "💬"
+discordIconLabel.Font = Enum.Font.Gotham
+discordIconLabel.TextSize = 28
+discordIconLabel.TextColor3 = Color3.fromRGB(88, 101, 242)
+discordIconLabel.BackgroundTransparency = 1
+discordIconLabel.Parent = discordCard
 
-local discordLabel = Instance.new("TextLabel")
-discordLabel.Size = UDim2.new(0, 150, 0, 25)
-discordLabel.Position = UDim2.new(0, 60, 0, 15)
-discordLabel.Text = "JOIN DISCORD"
-discordLabel.Font = Enum.Font.GothamBold
-discordLabel.TextSize = 13
-discordLabel.TextColor3 = corTextoBranco
-discordLabel.BackgroundTransparency = 1
-discordLabel.TextXAlignment = Enum.TextXAlignment.Left
-discordLabel.Parent = discordCard
+local discordTitle = Instance.new("TextLabel")
+discordTitle.Size = UDim2.new(0, 150, 0, 22)
+discordTitle.Position = UDim2.new(0, 65, 0, 12)
+discordTitle.Text = "JOIN DISCORD"
+discordTitle.Font = Enum.Font.GothamBold
+discordTitle.TextSize = 14
+discordTitle.TextColor3 = corTexto
+discordTitle.BackgroundTransparency = 1
+discordTitle.TextXAlignment = Enum.TextXAlignment.Left
+discordTitle.Parent = discordCard
 
-local discordSub = Instance.new("TextLabel")
-discordSub.Size = UDim2.new(0, 200, 0, 18)
-discordSub.Position = UDim2.new(0, 60, 0, 35)
-discordSub.Text = "Click to copy link"
-discordSub.Font = Enum.Font.Gotham
-discordSub.TextSize = 9
-discordSub.TextColor3 = corCinza
-discordSub.BackgroundTransparency = 1
-discordSub.TextXAlignment = Enum.TextXAlignment.Left
-discordSub.Parent = discordCard
+local discordDesc = Instance.new("TextLabel")
+discordDesc.Size = UDim2.new(0, 200, 0, 18)
+discordDesc.Position = UDim2.new(0, 65, 0, 35)
+discordDesc.Text = "Click to copy Discord link"
+discordDesc.Font = Enum.Font.Gotham
+discordDesc.TextSize = 9
+discordDesc.TextColor3 = corCinza
+discordDesc.BackgroundTransparency = 1
+discordDesc.TextXAlignment = Enum.TextXAlignment.Left
+discordDesc.Parent = discordCard
 
 local discordBtn = Instance.new("TextButton")
 discordBtn.Size = UDim2.new(1, 0, 1, 0)
@@ -408,11 +413,11 @@ discordBtn.Parent = discordCard
 discordBtn.MouseButton1Click:Connect(function()
     setclipboard("https://discord.gg/PDmAh9Ua4")
     local notif = Instance.new("TextLabel")
-    notif.Size = UDim2.new(0, 200, 0, 30)
-    notif.Position = UDim2.new(0.5, -100, 0.5, 180)
+    notif.Size = UDim2.new(0, 220, 0, 32)
+    notif.Position = UDim2.new(0.5, -110, 0.5, 200)
     notif.Text = "✓ Discord link copied!"
     notif.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-    notif.TextColor3 = corTextoBranco
+    notif.TextColor3 = corTexto
     notif.Font = Enum.Font.GothamBold
     notif.TextSize = 12
     notif.Parent = mainFrame
@@ -421,7 +426,7 @@ discordBtn.MouseButton1Click:Connect(function()
     notif:Destroy()
 end)
 
-yPos = yPos + 65
+yPos = yPos + 70
 
 -- Versão
 local versionLabel = Instance.new("TextLabel")
@@ -430,7 +435,7 @@ versionLabel.Position = UDim2.new(0, 0, 0, yPos)
 versionLabel.Text = "VERSION 3.0 | POWERED BY PVP LAB"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
-versionLabel.TextColor3 = Color3.fromRGB(80, 80, 100)
+versionLabel.TextColor3 = Color3.fromRGB(80, 85, 100)
 versionLabel.BackgroundTransparency = 1
 versionLabel.Parent = scrollFrame
 
@@ -450,8 +455,8 @@ local function startFly()
     if not humanoid or not hrp then return end
     
     flyingActive = true
-    flyToggle.BackgroundColor3 = corBorda
-    flyCircle.Position = UDim2.new(1, -32, 0.5, -14)
+    flyToggle.BackgroundColor3 = corAzul
+    flyCircle.Position = UDim2.new(1, -28, 0.5, -13)
     flyStatus.Text = "ON"
     flyStatus.TextColor3 = Color3.fromRGB(80, 255, 80)
     
@@ -465,8 +470,8 @@ end
 local function stopFly()
     if not flyingActive then return end
     flyingActive = false
-    flyToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
-    flyCircle.Position = UDim2.new(0, 4, 0.5, -14)
+    flyToggle.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
+    flyCircle.Position = UDim2.new(0, 4, 0.5, -13)
     flyStatus.Text = "OFF"
     flyStatus.TextColor3 = Color3.fromRGB(255, 80, 80)
     
@@ -523,7 +528,6 @@ local activeFunctions = {
     speed = false
 }
 
--- Conectar funções
 funcoes.auto.onToggle(function(v) activeFunctions.auto = v end)
 funcoes.esp.onToggle(function(v) activeFunctions.esp = v end)
 funcoes.spin.onToggle(function(v) activeFunctions.spin = v end)
@@ -648,7 +652,7 @@ RunService.RenderStepped:Connect(function()
                 local box = Instance.new("BoxHandleAdornment")
                 box.Name = "ESP_Box"
                 box.Size = Vector3.new(4, 5, 4)
-                box.Color3 = corBorda
+                box.Color3 = corAzul
                 box.AlwaysOnTop = true
                 box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
                 box.Parent = v.Character
@@ -664,9 +668,37 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- ========== ABRIR/FECHAR MENU ==========
+local menuAberto = false
+
+iconButton.MouseButton1Click:Connect(function()
+    menuAberto = not menuAberto
+    mainFrame.Visible = menuAberto
+    
+    -- Animação
+    if menuAberto then
+        mainFrame:TweenPosition(UDim2.new(0.5, -190, 0.5, -275), "Out", "Quad", 0.3, true)
+    end
+end)
+
+closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0, 10)
+closeBtn.Text = "✕"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+closeBtn.TextColor3 = corTexto
+closeBtn.BackgroundTransparency = 1
+closeBtn.Parent = mainFrame
+
+closeBtn.MouseButton1Click:Connect(function()
+    menuAberto = false
+    mainFrame.Visible = false
+end)
+
 -- Limpeza
 player.CharacterRemoving:Connect(stopFly)
 
 print("✅ PVP LAB CARREGADO!")
-print("🎨 Interface estilo FUNHUB com tema azul!")
+print("📌 Ícone ZZZZ no canto esquerdo da tela")
 print("🕊️ Ative o FLY e use o joystick para voar!")
