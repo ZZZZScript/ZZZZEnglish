@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
@@ -19,132 +20,143 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 -- CORES
-local azul = Color3.fromRGB(66, 133, 244)
-local roxoEscuro = Color3.fromRGB(106, 27, 154)
-local roxo = Color3.fromRGB(156, 39, 176)
-local fundo = Color3.fromRGB(18, 20, 28)
-local cardBg = Color3.fromRGB(28, 30, 40)
-local textoBranco = Color3.fromRGB(255, 255, 255)
-local textoClaro = Color3.fromRGB(180, 185, 200)
+local corFundo = Color3.fromRGB(20, 22, 30)
+local corCard = Color3.fromRGB(30, 32, 42)
+local corAzul = Color3.fromRGB(66, 133, 244)
+local corRoxo = Color3.fromRGB(156, 39, 176)
+local corTextoBranco = Color3.fromRGB(255, 255, 255)
+local corTextoClaro = Color3.fromRGB(180, 185, 200)
+local corPreto = Color3.fromRGB(25, 25, 35)
 
--- ========== ÍCONE "Z" PRETO ==========
+-- ========== ÍCONE FLUTUANTE (canto esquerdo) ==========
 local iconButton = Instance.new("TextButton")
-iconButton.Size = UDim2.new(0, 60, 0, 60)
-iconButton.Position = UDim2.new(0, 12, 0.5, -30)
-iconButton.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+iconButton.Size = UDim2.new(0, 55, 0, 55)
+iconButton.Position = UDim2.new(0, 12, 0.5, -27)
+iconButton.BackgroundColor3 = corPreto
 iconButton.Text = "Z"
-iconButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+iconButton.TextColor3 = corTextoBranco
 iconButton.TextScaled = true
 iconButton.Font = Enum.Font.GothamBlack
 iconButton.Parent = gui
-Instance.new("UICorner", iconButton).CornerRadius = UDim.new(0, 18)
+Instance.new("UICorner", iconButton).CornerRadius = UDim.new(0, 15)
 
 -- ========== MENU PRINCIPAL ==========
 local menu = Instance.new("Frame")
-menu.Size = UDim2.new(0, 380, 0, 520)
-menu.Position = UDim2.new(0.5, -190, 0.5, -260)
-menu.BackgroundColor3 = fundo
+menu.Size = UDim2.new(0, 420, 0, 550)
+menu.Position = UDim2.new(0.5, -210, 0.5, -275)
+menu.BackgroundColor3 = corFundo
 menu.BackgroundTransparency = 0
 menu.Visible = false
 menu.Parent = gui
 Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 20)
 
--- Borda gradiente (azul/roxo)
-local border = Instance.new("UIStroke")
-border.Color = azul
-border.Thickness = 2
-border.Transparency = 0.3
-border.Parent = menu
+-- ========== TOPO PRETO (retângulo) ==========
+local topoPreto = Instance.new("Frame")
+topoPreto.Size = UDim2.new(1, 0, 0, 85)
+topoPreto.Position = UDim2.new(0, 0, 0, 0)
+topoPreto.BackgroundColor3 = corPreto
+topoPreto.BackgroundTransparency = 0
+topoPreto.Parent = menu
+Instance.new("UICorner", topoPreto).CornerRadius = UDim.new(0, 20)
 
--- ========== TOPO ==========
-local topo = Instance.new("Frame")
-topo.Size = UDim2.new(1, 0, 0, 70)
-topo.Position = UDim2.new(0, 0, 0, 0)
-topo.BackgroundColor3 = roxoEscuro
-topo.BackgroundTransparency = 0
-topo.Parent = menu
-Instance.new("UICorner", topo).CornerRadius = UDim.new(0, 20)
+-- Título Zzz V1
+local tituloZ = Instance.new("TextLabel")
+tituloZ.Size = UDim2.new(1, 0, 0, 40)
+tituloZ.Position = UDim2.new(0, 0, 0, 12)
+tituloZ.Text = "Zzz V1"
+tituloZ.Font = Enum.Font.GothamBlack
+tituloZ.TextSize = 32
+tituloZ.TextColor3 = corTextoBranco
+tituloZ.BackgroundTransparency = 1
+tituloZ.Parent = topoPreto
 
--- Título
-local titulo = Instance.new("TextLabel")
-titulo.Size = UDim2.new(1, 0, 1, 0)
-titulo.Text = "Z SCRIPT"
-titulo.Font = Enum.Font.GothamBlack
-titulo.TextSize = 26
-titulo.TextColor3 = textoBranco
-titulo.BackgroundTransparency = 1
-titulo.Parent = topo
+-- Developer text
+local devText = Instance.new("TextLabel")
+devText.Size = UDim2.new(1, 0, 0, 22)
+devText.Position = UDim2.new(0, 0, 0, 52)
+devText.Text = "developer Mathyas and Zzz"
+devText.Font = Enum.Font.Gotham
+devText.TextSize = 11
+devText.TextColor3 = corTextoClaro
+devText.BackgroundTransparency = 1
+devText.Parent = topoPreto
 
 -- Botão fechar
 local fechar = Instance.new("TextButton")
 fechar.Size = UDim2.new(0, 32, 0, 32)
-fechar.Position = UDim2.new(1, -42, 0, 10)
+fechar.Position = UDim2.new(1, -42, 0, 12)
 fechar.Text = "✕"
 fechar.Font = Enum.Font.GothamBold
 fechar.TextSize = 18
-fechar.TextColor3 = textoBranco
+fechar.TextColor3 = corTextoBranco
 fechar.BackgroundTransparency = 1
-fechar.Parent = topo
+fechar.Parent = topoPreto
 
--- ========== ABAS ==========
-local tabBar = Instance.new("Frame")
-tabBar.Size = UDim2.new(1, 0, 0, 48)
-tabBar.Position = UDim2.new(0, 0, 0, 70)
-tabBar.BackgroundColor3 = cardBg
-tabBar.BackgroundTransparency = 0
-tabBar.Parent = menu
+-- ========== ABAS LADO ESQUERDO ==========
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 100, 1, -85)
+sidebar.Position = UDim2.new(0, 0, 0, 85)
+sidebar.BackgroundColor3 = corCard
+sidebar.BackgroundTransparency = 0
+sidebar.Parent = menu
 
--- Criar abas
-local abas = {"Main", "Buy ALL", "Farm", "Config", "Credits"}
-local botoesAbas = {}
-local conteudos = {}
+-- Aba Main
+local abaMain = Instance.new("TextButton")
+abaMain.Size = UDim2.new(0.85, 0, 0, 45)
+abaMain.Position = UDim2.new(0.075, 0, 0, 15)
+abaMain.Text = "Main"
+abaMain.Font = Enum.Font.GothamBold
+abaMain.TextSize = 14
+abaMain.TextColor3 = corTextoBranco
+abaMain.BackgroundColor3 = corAzul
+abaMain.Parent = sidebar
+Instance.new("UICorner", abaMain).CornerRadius = UDim.new(0, 8)
 
-for i, nome in ipairs(abas) do
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.2, 0, 1, 0)
-    btn.Position = UDim2.new((i-1) * 0.2, 0, 0, 0)
-    btn.Text = nome
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 12
-    btn.TextColor3 = textoClaro
-    btn.BackgroundColor3 = cardBg
-    btn.Parent = tabBar
-    botoesAbas[nome] = btn
-end
+-- Aba Credits
+local abaCredits = Instance.new("TextButton")
+abaCredits.Size = UDim2.new(0.85, 0, 0, 45)
+abaCredits.Position = UDim2.new(0.075, 0, 0, 70)
+abaCredits.Text = "Credits"
+abaCredits.Font = Enum.Font.GothamBold
+abaCredits.TextSize = 14
+abaCredits.TextColor3 = corTextoClaro
+abaCredits.BackgroundColor3 = corCard
+abaCredits.Parent = sidebar
+Instance.new("UICorner", abaCredits).CornerRadius = UDim.new(0, 8)
 
--- Ativar primeira aba
-botoesAbas["Main"].BackgroundColor3 = azul
-botoesAbas["Main"].TextColor3 = textoBranco
+-- ========== CONTEÚDO PRINCIPAL ==========
+local contentArea = Instance.new("Frame")
+contentArea.Size = UDim2.new(1, -110, 1, -95)
+contentArea.Position = UDim2.new(0, 110, 0, 95)
+contentArea.BackgroundTransparency = 1
+contentArea.Parent = menu
 
--- ========== CONTEÚDO DAS ABAS ==========
-local contentContainer = Instance.new("ScrollingFrame")
-contentContainer.Size = UDim2.new(1, -20, 1, -135)
-contentContainer.Position = UDim2.new(0, 10, 0, 128)
-contentContainer.BackgroundTransparency = 1
-contentContainer.CanvasSize = UDim2.new(0, 0, 0, 500)
-contentContainer.ScrollBarThickness = 3
-contentContainer.ScrollBarImageColor3 = azul
-contentContainer.Parent = menu
+-- Scroll para Main
+local scrollMain = Instance.new("ScrollingFrame")
+scrollMain.Size = UDim2.new(1, 0, 1, 0)
+scrollMain.BackgroundTransparency = 1
+scrollMain.CanvasSize = UDim2.new(0, 0, 0, 550)
+scrollMain.ScrollBarThickness = 4
+scrollMain.ScrollBarImageColor3 = corAzul
+scrollMain.Parent = contentArea
+scrollMain.Visible = true
 
--- Armazenar conteúdos das abas
-for _, nome in ipairs(abas) do
-    local scroll = Instance.new("ScrollingFrame")
-    scroll.Size = UDim2.new(1, 0, 1, 0)
-    scroll.BackgroundTransparency = 1
-    scroll.CanvasSize = UDim2.new(0, 0, 0, 500)
-    scroll.ScrollBarThickness = 3
-    scroll.ScrollBarImageColor3 = azul
-    scroll.Visible = (nome == "Main")
-    scroll.Parent = contentContainer
-    conteudos[nome] = scroll
-end
+-- Scroll para Credits
+local scrollCredits = Instance.new("ScrollingFrame")
+scrollCredits.Size = UDim2.new(1, 0, 1, 0)
+scrollCredits.BackgroundTransparency = 1
+scrollCredits.CanvasSize = UDim2.new(0, 0, 0, 400)
+scrollCredits.ScrollBarThickness = 4
+scrollCredits.ScrollBarImageColor3 = corAzul
+scrollCredits.Parent = contentArea
+scrollCredits.Visible = false
 
 -- ========== FUNÇÃO CRIAR CARD ==========
 local function criarCard(icone, texto, desc, parent, y)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 65)
     card.Position = UDim2.new(0, 0, 0, y)
-    card.BackgroundColor3 = cardBg
+    card.BackgroundColor3 = corCard
     card.Parent = parent
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 12)
     
@@ -154,28 +166,28 @@ local function criarCard(icone, texto, desc, parent, y)
     iconeLab.Text = icone
     iconeLab.Font = Enum.Font.Gotham
     iconeLab.TextSize = 26
-    iconeLab.TextColor3 = azul
+    iconeLab.TextColor3 = corAzul
     iconeLab.BackgroundTransparency = 1
     iconeLab.Parent = card
     
     local tituloCard = Instance.new("TextLabel")
-    tituloCard.Size = UDim2.new(0, 160, 0, 22)
+    tituloCard.Size = UDim2.new(0, 150, 0, 22)
     tituloCard.Position = UDim2.new(0, 65, 0, 10)
     tituloCard.Text = texto
     tituloCard.Font = Enum.Font.GothamBold
     tituloCard.TextSize = 14
-    tituloCard.TextColor3 = textoBranco
+    tituloCard.TextColor3 = corTextoBranco
     tituloCard.BackgroundTransparency = 1
     tituloCard.TextXAlignment = Enum.TextXAlignment.Left
     tituloCard.Parent = card
     
     local descCard = Instance.new("TextLabel")
-    descCard.Size = UDim2.new(0, 200, 0, 18)
+    descCard.Size = UDim2.new(0, 180, 0, 18)
     descCard.Position = UDim2.new(0, 65, 0, 34)
     descCard.Text = desc
     descCard.Font = Enum.Font.Gotham
     descCard.TextSize = 9
-    descCard.TextColor3 = textoClaro
+    descCard.TextColor3 = corTextoClaro
     descCard.BackgroundTransparency = 1
     descCard.TextXAlignment = Enum.TextXAlignment.Left
     descCard.Parent = card
@@ -191,7 +203,7 @@ local function criarCard(icone, texto, desc, parent, y)
     local bola = Instance.new("Frame")
     bola.Size = UDim2.new(0, 22, 0, 22)
     bola.Position = UDim2.new(0, 4, 0.5, -11)
-    bola.BackgroundColor3 = textoBranco
+    bola.BackgroundColor3 = corTextoBranco
     bola.Parent = toggle
     Instance.new("UICorner", bola).CornerRadius = UDim.new(1, 0)
     
@@ -211,7 +223,7 @@ local function criarCard(icone, texto, desc, parent, y)
     toggle.MouseButton1Click:Connect(function()
         ativo = not ativo
         if ativo then
-            toggle.BackgroundColor3 = azul
+            toggle.BackgroundColor3 = corAzul
             bola.Position = UDim2.new(1, -26, 0.5, -11)
             status.Text = "ON"
             status.TextColor3 = Color3.fromRGB(80, 255, 80)
@@ -229,179 +241,81 @@ local function criarCard(icone, texto, desc, parent, y)
     }
 end
 
-local function criarBotao(icone, texto, desc, parent, y, onClick)
-    local card = Instance.new("TextButton")
-    card.Size = UDim2.new(1, 0, 0, 65)
-    card.Position = UDim2.new(0, 0, 0, y)
-    card.BackgroundColor3 = cardBg
-    card.Parent = parent
-    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 12)
-    card.AutoButtonColor = true
-    
-    local iconeLab = Instance.new("TextLabel")
-    iconeLab.Size = UDim2.new(0, 45, 0, 45)
-    iconeLab.Position = UDim2.new(0, 12, 0.5, -22.5)
-    iconeLab.Text = icone
-    iconeLab.Font = Enum.Font.Gotham
-    iconeLab.TextSize = 26
-    iconeLab.TextColor3 = azul
-    iconeLab.BackgroundTransparency = 1
-    iconeLab.Parent = card
-    
-    local tituloCard = Instance.new("TextLabel")
-    tituloCard.Size = UDim2.new(0, 160, 0, 22)
-    tituloCard.Position = UDim2.new(0, 65, 0, 10)
-    tituloCard.Text = texto
-    tituloCard.Font = Enum.Font.GothamBold
-    tituloCard.TextSize = 14
-    tituloCard.TextColor3 = textoBranco
-    tituloCard.BackgroundTransparency = 1
-    tituloCard.TextXAlignment = Enum.TextXAlignment.Left
-    tituloCard.Parent = card
-    
-    local descCard = Instance.new("TextLabel")
-    descCard.Size = UDim2.new(0, 200, 0, 18)
-    descCard.Position = UDim2.new(0, 65, 0, 34)
-    descCard.Text = desc
-    descCard.Font = Enum.Font.Gotham
-    descCard.TextSize = 9
-    descCard.TextColor3 = textoClaro
-    descCard.BackgroundTransparency = 1
-    descCard.TextXAlignment = Enum.TextXAlignment.Left
-    descCard.Parent = card
-    
-    local seta = Instance.new("TextLabel")
-    seta.Size = UDim2.new(0, 30, 0, 30)
-    seta.Position = UDim2.new(1, -48, 0.5, -15)
-    seta.Text = "→"
-    seta.Font = Enum.Font.GothamBold
-    seta.TextSize = 20
-    seta.TextColor3 = azul
-    seta.BackgroundTransparency = 1
-    seta.Parent = card
-    
-    card.MouseButton1Click:Connect(onClick)
-    
-    card.MouseEnter:Connect(function()
-        card.BackgroundColor3 = Color3.fromRGB(40, 42, 52)
-    end)
-    card.MouseLeave:Connect(function()
-        card.BackgroundColor3 = cardBg
-    end)
-end
-
 -- ========== ABA MAIN ==========
 local mainY = 10
-local mainScroll = conteudos["Main"]
 
--- Auto Rebirth
-local autoRebirth = criarCard("🔄", "Auto Rebirth", "Auto rebirth when available", mainScroll, mainY)
+-- Título PVP Laboratório
+local pvpTitle = Instance.new("TextLabel")
+pvpTitle.Size = UDim2.new(1, 0, 0, 35)
+pvpTitle.Position = UDim2.new(0, 0, 0, mainY)
+pvpTitle.Text = "⚔️ PVP LABORATÓRIO"
+pvpTitle.Font = Enum.Font.GothamBold
+pvpTitle.TextSize = 14
+pvpTitle.TextColor3 = corAzul
+pvpTitle.BackgroundTransparency = 1
+pvpTitle.TextXAlignment = Enum.TextXAlignment.Left
+pvpTitle.Parent = scrollMain
+mainY = mainY + 42
+
+-- Auto Attack
+local autoAttack = criarCard("⚔️", "Auto Attack", "Auto attack enemies", scrollMain, mainY)
 mainY = mainY + 72
 
--- Auto Buy Brainrots
-local autoBuyBrainrots = criarCard("🧠", "Auto Buy Brainrots", "Auto purchase brainrot items", mainScroll, mainY)
+-- ESP
+local esp = criarCard("👁️", "ESP", "See enemies through walls", scrollMain, mainY)
 mainY = mainY + 72
 
--- Auto Collect Money
-local autoCollectMoney = criarCard("💰", "Auto Collect Money", "Auto collect dropped money", mainScroll, mainY)
+-- Spin Bot
+local spinBot = criarCard("🌀", "Spin Bot", "Auto spin while moving", scrollMain, mainY)
 mainY = mainY + 72
 
--- Player ESP (Red Arrow)
-local playerESP = criarCard("🔴", "Player ESP (Red Arrow)", "Show red arrow above players", mainScroll, mainY)
+-- Super Jump
+local superJump = criarCard("🦘", "Super Jump", "Jump much higher", scrollMain, mainY)
+mainY = mainY + 72
+
+-- Auto Hit
+local autoHit = criarCard("👊", "Auto Hit", "Auto attack nearby", scrollMain, mainY)
+mainY = mainY + 72
+
+-- Speed
+local speed = criarCard("🏃", "Speed", "Increase movement speed", scrollMain, mainY)
 mainY = mainY + 80
 
-mainScroll.CanvasSize = UDim2.new(0, 0, 0, mainY + 20)
+-- Título Utility
+local utilTitle = Instance.new("TextLabel")
+utilTitle.Size = UDim2.new(1, 0, 0, 35)
+utilTitle.Position = UDim2.new(0, 0, 0, mainY)
+utilTitle.Text = "🔧 UTILITY"
+utilTitle.Font = Enum.Font.GothamBold
+utilTitle.TextSize = 14
+utilTitle.TextColor3 = corAzul
+utilTitle.BackgroundTransparency = 1
+utilTitle.TextXAlignment = Enum.TextXAlignment.Left
+utilTitle.Parent = scrollMain
+mainY = mainY + 42
 
--- ========== ABA BUY ALL ==========
-local buyY = 10
-local buyScroll = conteudos["Buy ALL"]
+-- Auto Rejoin
+local autoRejoinBtn = Instance.new("TextButton")
+autoRejoinBtn.Size = UDim2.new(1, 0, 0, 55)
+autoRejoinBtn.Position = UDim2.new(0, 0, 0, mainY)
+autoRejoinBtn.Text = "🔄 Auto Rejoin"
+autoRejoinBtn.Font = Enum.Font.GothamBold
+autoRejoinBtn.TextSize = 13
+autoRejoinBtn.TextColor3 = corTextoBranco
+autoRejoinBtn.BackgroundColor3 = corCard
+autoRejoinBtn.Parent = scrollMain
+Instance.new("UICorner", autoRejoinBtn).CornerRadius = UDim.new(0, 12)
 
-local buyAllTitle = Instance.new("TextLabel")
-buyAllTitle.Size = UDim2.new(1, 0, 0, 35)
-buyAllTitle.Position = UDim2.new(0, 0, 0, buyY)
-buyAllTitle.Text = "🛒 BUY ALL ITEMS"
-buyAllTitle.Font = Enum.Font.GothamBold
-buyAllTitle.TextSize = 14
-buyAllTitle.TextColor3 = azul
-buyAllTitle.BackgroundTransparency = 1
-buyAllTitle.TextXAlignment = Enum.TextXAlignment.Left
-buyAllTitle.Parent = buyScroll
-buyY = buyY + 42
-
-criarBotao("🛒", "Buy All Brainrots", "Purchase all available brainrots", buyScroll, buyY, function()
-    print("Buying all brainrots...")
+autoRejoinBtn.MouseButton1Click:Connect(function()
+    TeleportService:Teleport(game.PlaceId, player)
 end)
-buyY = buyY + 72
 
-criarBotao("⭐", "Buy All Upgrades", "Purchase all upgrades", buyScroll, buyY, function()
-    print("Buying all upgrades...")
-end)
-buyY = buyY + 72
+mainY = mainY + 65
 
-criarBotao("🎁", "Buy All Chests", "Open all available chests", buyScroll, buyY, function()
-    print("Opening all chests...")
-end)
-buyY = buyY + 80
-
-buyScroll.CanvasSize = UDim2.new(0, 0, 0, buyY + 20)
-
--- ========== ABA FARM ==========
-local farmY = 10
-local farmScroll = conteudos["Farm"]
-
-local farmTitle = Instance.new("TextLabel")
-farmTitle.Size = UDim2.new(1, 0, 0, 35)
-farmTitle.Position = UDim2.new(0, 0, 0, farmY)
-farmTitle.Text = "🌾 FARM SETTINGS"
-farmTitle.Font = Enum.Font.GothamBold
-farmTitle.TextSize = 14
-farmTitle.TextColor3 = azul
-farmTitle.BackgroundTransparency = 1
-farmTitle.TextXAlignment = Enum.TextXAlignment.Left
-farmTitle.Parent = farmScroll
-farmY = farmY + 42
-
-local autoFarm = criarCard("⚔️", "Auto Farm", "Auto farm enemies", farmScroll, farmY)
-farmY = farmY + 72
-
-local autoCollect = criarCard("💰", "Auto Collect", "Auto collect drops", farmScroll, farmY)
-farmY = farmY + 72
-
-local farmRadius = criarCard("📏", "Farm Radius", "Increase farm range", farmScroll, farmY)
-farmY = farmY + 80
-
-farmScroll.CanvasSize = UDim2.new(0, 0, 0, farmY + 20)
-
--- ========== ABA CONFIG ==========
-local configY = 10
-local configScroll = conteudos["Config"]
-
-local configTitle = Instance.new("TextLabel")
-configTitle.Size = UDim2.new(1, 0, 0, 35)
-configTitle.Position = UDim2.new(0, 0, 0, configY)
-configTitle.Text = "⚙️ CONFIGURATIONS"
-configTitle.Font = Enum.Font.GothamBold
-configTitle.TextSize = 14
-configTitle.TextColor3 = azul
-configTitle.BackgroundTransparency = 1
-configTitle.TextXAlignment = Enum.TextXAlignment.Left
-configTitle.Parent = configScroll
-configY = configY + 42
-
-local speedConfig = criarCard("🏃", "Speed", "Increase movement speed", configScroll, configY)
-configY = configY + 72
-
-local jumpConfig = criarCard("🦘", "Super Jump", "Jump higher", configScroll, configY)
-configY = configY + 72
-
-local espConfig = criarCard("👁️", "ESP", "See enemies through walls", configScroll, configY)
-configY = configY + 80
-
-configScroll.CanvasSize = UDim2.new(0, 0, 0, configY + 20)
+scrollMain.CanvasSize = UDim2.new(0, 0, 0, mainY + 20)
 
 -- ========== ABA CREDITS ==========
 local creditsY = 10
-local creditsScroll = conteudos["Credits"]
 
 local creditsTitle = Instance.new("TextLabel")
 creditsTitle.Size = UDim2.new(1, 0, 0, 35)
@@ -409,61 +323,116 @@ creditsTitle.Position = UDim2.new(0, 0, 0, creditsY)
 creditsTitle.Text = "👥 CREDITS"
 creditsTitle.Font = Enum.Font.GothamBold
 creditsTitle.TextSize = 14
-creditsTitle.TextColor3 = azul
+creditsTitle.TextColor3 = corAzul
 creditsTitle.BackgroundTransparency = 1
 creditsTitle.TextXAlignment = Enum.TextXAlignment.Left
-creditsTitle.Parent = creditsScroll
+creditsTitle.Parent = scrollCredits
 creditsY = creditsY + 42
 
-local devCard = Instance.new("Frame")
-devCard.Size = UDim2.new(1, 0, 0, 80)
-devCard.Position = UDim2.new(0, 0, 0, creditsY)
-devCard.BackgroundColor3 = cardBg
-devCard.Parent = creditsScroll
-Instance.new("UICorner", devCard).CornerRadius = UDim.new(0, 12)
+-- Card Developer 1
+local dev1Card = Instance.new("Frame")
+dev1Card.Size = UDim2.new(1, 0, 0, 75)
+dev1Card.Position = UDim2.new(0, 0, 0, creditsY)
+dev1Card.BackgroundColor3 = corCard
+dev1Card.Parent = scrollCredits
+Instance.new("UICorner", dev1Card).CornerRadius = UDim.new(0, 12)
 
-local devIcon = Instance.new("TextLabel")
-devIcon.Size = UDim2.new(0, 50, 0, 50)
-devIcon.Position = UDim2.new(0, 15, 0.5, -25)
-devIcon.Text = "👑"
-devIcon.Font = Enum.Font.Gotham
-devIcon.TextSize = 32
-devIcon.TextColor3 = azul
-devIcon.BackgroundTransparency = 1
-devIcon.Parent = devCard
+local dev1Icon = Instance.new("TextLabel")
+dev1Icon.Size = UDim2.new(0, 50, 0, 50)
+dev1Icon.Position = UDim2.new(0, 12, 0.5, -25)
+dev1Icon.Text = "👨‍💻"
+dev1Icon.Font = Enum.Font.Gotham
+dev1Icon.TextSize = 32
+dev1Icon.TextColor3 = corAzul
+dev1Icon.BackgroundTransparency = 1
+dev1Icon.Parent = dev1Card
 
-local devName = Instance.new("TextLabel")
-devName.Size = UDim2.new(0, 200, 0, 25)
-devName.Position = UDim2.new(0, 75, 0, 12)
-devName.Text = "Z Script Developer"
-devName.Font = Enum.Font.GothamBold
-devName.TextSize = 14
-devName.TextColor3 = textoBranco
-devName.BackgroundTransparency = 1
-devName.TextXAlignment = Enum.TextXAlignment.Left
-devName.Parent = devCard
+local dev1Name = Instance.new("TextLabel")
+dev1Name.Size = UDim2.new(0, 200, 0, 22)
+dev1Name.Position = UDim2.new(0, 72, 0, 12)
+dev1Name.Text = "Mathyas"
+dev1Name.Font = Enum.Font.GothamBold
+dev1Name.TextSize = 16
+dev1Name.TextColor3 = corTextoBranco
+dev1Name.BackgroundTransparency = 1
+dev1Name.TextXAlignment = Enum.TextXAlignment.Left
+dev1Name.Parent = dev1Card
 
-local devDesc = Instance.new("TextLabel")
-devDesc.Size = UDim2.new(0, 200, 0, 18)
-devDesc.Position = UDim2.new(0, 75, 0, 42)
-devDesc.Text = "Premium PVP Script"
-devDesc.Font = Enum.Font.Gotham
-devDesc.TextSize = 10
-devDesc.TextColor3 = textoClaro
-devDesc.BackgroundTransparency = 1
-devDesc.TextXAlignment = Enum.TextXAlignment.Left
-devDesc.Parent = devCard
+local dev1Role = Instance.new("TextLabel")
+dev1Role.Size = UDim2.new(0, 200, 0, 18)
+dev1Role.Position = UDim2.new(0, 72, 0, 38)
+dev1Role.Text = "Lead Developer & Creator"
+dev1Role.Font = Enum.Font.Gotham
+dev1Role.TextSize = 10
+dev1Role.TextColor3 = corTextoClaro
+dev1Role.BackgroundTransparency = 1
+dev1Role.TextXAlignment = Enum.TextXAlignment.Left
+dev1Role.Parent = dev1Card
 
-creditsY = creditsY + 92
+creditsY = creditsY + 82
 
-local discordBtn = criarBotao("💬", "Join Discord", "Click to copy Discord link", creditsScroll, creditsY, function()
+-- Card Developer 2
+local dev2Card = Instance.new("Frame")
+dev2Card.Size = UDim2.new(1, 0, 0, 75)
+dev2Card.Position = UDim2.new(0, 0, 0, creditsY)
+dev2Card.BackgroundColor3 = corCard
+dev2Card.Parent = scrollCredits
+Instance.new("UICorner", dev2Card).CornerRadius = UDim.new(0, 12)
+
+local dev2Icon = Instance.new("TextLabel")
+dev2Icon.Size = UDim2.new(0, 50, 0, 50)
+dev2Icon.Position = UDim2.new(0, 12, 0.5, -25)
+dev2Icon.Text = "👨‍💻"
+dev2Icon.Font = Enum.Font.Gotham
+dev2Icon.TextSize = 32
+dev2Icon.TextColor3 = corAzul
+dev2Icon.BackgroundTransparency = 1
+dev2Icon.Parent = dev2Card
+
+local dev2Name = Instance.new("TextLabel")
+dev2Name.Size = UDim2.new(0, 200, 0, 22)
+dev2Name.Position = UDim2.new(0, 72, 0, 12)
+dev2Name.Text = "Zzz"
+dev2Name.Font = Enum.Font.GothamBold
+dev2Name.TextSize = 16
+dev2Name.TextColor3 = corTextoBranco
+dev2Name.BackgroundTransparency = 1
+dev2Name.TextXAlignment = Enum.TextXAlignment.Left
+dev2Name.Parent = dev2Card
+
+local dev2Role = Instance.new("TextLabel")
+dev2Role.Size = UDim2.new(0, 200, 0, 18)
+dev2Role.Position = UDim2.new(0, 72, 0, 38)
+dev2Role.Text = "Co-Developer & Programmer"
+dev2Role.Font = Enum.Font.Gotham
+dev2Role.TextSize = 10
+dev2Role.TextColor3 = corTextoClaro
+dev2Role.BackgroundTransparency = 1
+dev2Role.TextXAlignment = Enum.TextXAlignment.Left
+dev2Role.Parent = dev2Card
+
+creditsY = creditsY + 82
+
+-- Discord Button
+local discordBtn = Instance.new("TextButton")
+discordBtn.Size = UDim2.new(1, 0, 0, 55)
+discordBtn.Position = UDim2.new(0, 0, 0, creditsY)
+discordBtn.Text = "💬 JOIN OUR DISCORD"
+discordBtn.Font = Enum.Font.GothamBold
+discordBtn.TextSize = 13
+discordBtn.TextColor3 = corTextoBranco
+discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+discordBtn.Parent = scrollCredits
+Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0, 12)
+
+discordBtn.MouseButton1Click:Connect(function()
     setclipboard("https://discord.gg/PDmAh9Ua4")
     local notif = Instance.new("TextLabel")
     notif.Size = UDim2.new(0, 200, 0, 28)
     notif.Position = UDim2.new(0.5, -100, 0.5, 150)
     notif.Text = "✓ Discord link copied!"
-    notif.BackgroundColor3 = azul
-    notif.TextColor3 = textoBranco
+    notif.BackgroundColor3 = corAzul
+    notif.TextColor3 = corTextoBranco
     notif.Font = Enum.Font.GothamBold
     notif.TextSize = 11
     notif.Parent = menu
@@ -472,113 +441,181 @@ local discordBtn = criarBotao("💬", "Join Discord", "Click to copy Discord lin
     notif:Destroy()
 end)
 
-creditsY = creditsY + 72
+creditsY = creditsY + 65
 
+-- Version
 local versionLabel = Instance.new("TextLabel")
 versionLabel.Size = UDim2.new(1, 0, 0, 25)
 versionLabel.Position = UDim2.new(0, 0, 0, creditsY)
-versionLabel.Text = "Z Script V1 | Premium"
+versionLabel.Text = "Zzz V1 | Premium Script"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
 versionLabel.TextColor3 = Color3.fromRGB(100, 105, 120)
 versionLabel.BackgroundTransparency = 1
-versionLabel.Parent = creditsScroll
+versionLabel.Parent = scrollCredits
 
 creditsY = creditsY + 35
-creditsScroll.CanvasSize = UDim2.new(0, 0, 0, creditsY + 20)
+scrollCredits.CanvasSize = UDim2.new(0, 0, 0, creditsY + 20)
 
 -- ========== TROCAR ABA ==========
-local function trocarAba(nome)
-    for _, scroll in pairs(conteudos) do
-        scroll.Visible = false
+local function trocarAba(aba)
+    if aba == "Main" then
+        abaMain.BackgroundColor3 = corAzul
+        abaMain.TextColor3 = corTextoBranco
+        abaCredits.BackgroundColor3 = corCard
+        abaCredits.TextColor3 = corTextoClaro
+        scrollMain.Visible = true
+        scrollCredits.Visible = false
+    else
+        abaCredits.BackgroundColor3 = corAzul
+        abaCredits.TextColor3 = corTextoBranco
+        abaMain.BackgroundColor3 = corCard
+        abaMain.TextColor3 = corTextoClaro
+        scrollMain.Visible = false
+        scrollCredits.Visible = true
     end
-    conteudos[nome].Visible = true
-    
-    for nomeAba, btn in pairs(botoesAbas) do
-        btn.BackgroundColor3 = cardBg
-        btn.TextColor3 = textoClaro
-    end
-    botoesAbas[nome].BackgroundColor3 = azul
-    botoesAbas[nome].TextColor3 = textoBranco
 end
 
-for nome, btn in pairs(botoesAbas) do
-    btn.MouseButton1Click:Connect(function()
-        trocarAba(nome)
-    end)
-end
+abaMain.MouseButton1Click:Connect(function()
+    trocarAba("Main")
+end)
+
+abaCredits.MouseButton1Click:Connect(function()
+    trocarAba("Credits")
+end)
 
 -- ========== FUNÇÕES ==========
 local active = {
-    autoRebirth = false,
-    autoBuyBrainrots = false,
-    autoCollectMoney = false,
-    playerESP = false
+    auto = false,
+    esp = false,
+    spin = false,
+    superJump = false,
+    hit = false,
+    speed = false
 }
 
-autoRebirth.onToggle(function(v) active.autoRebirth = v end)
-autoBuyBrainrots.onToggle(function(v) active.autoBuyBrainrots = v end)
-autoCollectMoney.onToggle(function(v) active.autoCollectMoney = v end)
-playerESP.onToggle(function(v) active.playerESP = v end)
+autoAttack.onToggle(function(v) active.auto = v end)
+esp.onToggle(function(v) active.esp = v end)
+spinBot.onToggle(function(v) active.spin = v end)
+superJump.onToggle(function(v) active.superJump = v end)
+autoHit.onToggle(function(v) active.hit = v end)
+speed.onToggle(function(v) active.speed = v end)
 
--- ESP com seta vermelha
+-- Super Jump
+local function setSuperJump()
+    if player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.JumpPower = active.superJump and 120 or 50
+        end
+    end
+end
+
+player.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    setSuperJump()
+    setSpeed()
+end)
+
+RunService.RenderStepped:Connect(setSuperJump)
+
+-- Auto Attack
+local jumpCD = false
 RunService.RenderStepped:Connect(function()
-    if active.playerESP then
-        for _, v in pairs(Players:GetPlayers()) do
-            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                if not v.Character:FindFirstChild("ESP_Arrow") then
-                    local arrow = Instance.new("BillboardGui")
-                    arrow.Name = "ESP_Arrow"
-                    arrow.Size = UDim2.new(0, 40, 0, 40)
-                    arrow.AlwaysOnTop = true
-                    arrow.StudsOffset = Vector3.new(0, 3, 0)
-                    
-                    local frame = Instance.new("Frame")
-                    frame.Size = UDim2.new(1, 0, 1, 0)
-                    frame.BackgroundTransparency = 1
-                    frame.Parent = arrow
-                    
-                    local text = Instance.new("TextLabel")
-                    text.Size = UDim2.new(1, 0, 1, 0)
-                    text.Text = "🔴"
-                    text.Font = Enum.Font.Gotham
-                    text.TextSize = 32
-                    text.TextColor3 = Color3.fromRGB(255, 0, 0)
-                    text.BackgroundTransparency = 1
-                    text.Parent = frame
-                    
-                    arrow.Parent = v.Character:FindFirstChild("HumanoidRootPart")
+    if active.auto and player.Character then
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local closest, dist = nil, math.huge
+            for _, v in pairs(Players:GetPlayers()) do
+                if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                    if d < dist then dist, closest = d, v end
                 end
             end
-        end
-    else
-        for _, v in pairs(Players:GetPlayers()) do
-            if v.Character then
-                local arrow = v.Character:FindFirstChild("ESP_Arrow")
-                if arrow then arrow:Destroy() end
+            if closest and dist < 20 then
+                hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
+                if dist < 8 then
+                    local tool = player.Character:FindFirstChildOfClass("Tool")
+                    if tool then tool:Activate() end
+                end
             end
         end
     end
 end)
 
--- Auto Collect Money
+-- Auto Hit
+RunService.RenderStepped:Connect(function()
+    if active.hit and player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        if hum and hrp then
+            local closest, dist = nil, math.huge
+            for _, v in pairs(Players:GetPlayers()) do
+                if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                    if d < dist and d < 10 then dist, closest = d, v end
+                end
+            end
+            if closest then
+                hum:MoveTo(closest.Character.HumanoidRootPart.Position)
+                local tool = player.Character:FindFirstChildOfClass("Tool")
+                if tool then tool:Activate() end
+            end
+        end
+    end
+end)
+
+-- Speed
+local speedActive = false
+local function setSpeed()
+    if player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = speedActive and 50 or 27
+        end
+    end
+end
+
 spawn(function()
     while true do
-        task.wait(1)
-        if active.autoCollectMoney then
-            local character = player.Character
-            if character then
-                local hrp = character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    for _, obj in pairs(workspace:GetDescendants()) do
-                        if obj:IsA("BasePart") and obj.Name:lower():find("coin") or obj.Name:lower():find("money") then
-                            local dist = (obj.Position - hrp.Position).Magnitude
-                            if dist < 15 then
-                                hrp.CFrame = CFrame.new(obj.Position.X, hrp.Position.Y, obj.Position.Z)
-                            end
-                        end
-                    end
-                end
+        task.wait(0.1)
+        if speedActive ~= active.speed then
+            speedActive = active.speed
+            setSpeed()
+        end
+        setSpeed()
+    end
+end)
+
+-- Spin Bot
+RunService.RenderStepped:Connect(function()
+    if active.spin and player.Character then
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0)
+        end
+    end
+end)
+
+-- ESP
+RunService.RenderStepped:Connect(function()
+    if active.esp then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and not v.Character:FindFirstChild("ESP_Box") then
+                local box = Instance.new("BoxHandleAdornment")
+                box.Name = "ESP_Box"
+                box.Size = Vector3.new(4, 5, 4)
+                box.Color3 = corAzul
+                box.AlwaysOnTop = true
+                box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
+                box.Parent = v.Character
+            end
+        end
+    else
+        for _, v in pairs(Players:GetPlayers()) do
+            if v.Character then
+                local box = v.Character:FindFirstChild("ESP_Box")
+                if box then box:Destroy() end
             end
         end
     end
@@ -593,5 +630,6 @@ fechar.MouseButton1Click:Connect(function()
     menu.Visible = false
 end)
 
-print("✅ Z Script Carregado!")
-print("📌 Abas: Main, Buy ALL, Farm, Config, Credits")
+print("✅ Zzz V1 Carregado!")
+print("📌 Abas: Main | Credits")
+print("👨‍💻 Developers: Mathyas and Zzz")
