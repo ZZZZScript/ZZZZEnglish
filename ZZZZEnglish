@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
@@ -14,15 +13,14 @@ local settings = {
     jump = false,
     hit = false,
     speed = false,
-    fly = false
+    fly = false,
+    noclip = false
 }
 
 -- Fly variables
 local flying = false
 local flySpeed = 80
 local bodyVelocity = nil
-local bodyGyro = nil
-local noclip = true
 
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
@@ -39,6 +37,7 @@ local function loadSettings()
         settings.hit = string.find(data, '"hit":true') and true or false
         settings.speed = string.find(data, '"speed":true') and true or false
         settings.fly = string.find(data, '"fly":true') and true or false
+        settings.noclip = string.find(data, '"noclip":true') and true or false
         print("✅ Loaded")
     end
 end
@@ -52,21 +51,20 @@ local function saveSettings()
                  ',"jump":'..tostring(settings.jump)..
                  ',"hit":'..tostring(settings.hit)..
                  ',"speed":'..tostring(settings.speed)..
-                 ',"fly":'..tostring(settings.fly)..'}'
+                 ',"fly":'..tostring(settings.fly)..
+                 ',"noclip":'..tostring(settings.noclip)..'}'
     player:SetAttribute(SAVE_KEY, json)
     print("💾 Saved!")
 end
 
--- NOCLIP FUNCTION (no collision)
+-- NOCLIP FUNCTION
 local function setNoclip(bool)
-    noclip = bool
-    if bool then
-        local character = player.Character
-        if character then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
+    if not bool then return end
+    local character = player.Character
+    if character then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
             end
         end
     end
@@ -86,29 +84,16 @@ local function startFly()
     
     flying = true
     
-    -- Make character immune to damage
-    humanoid.BreakJointsOnDeath = false
-    
-    -- Noclip
-    setNoclip(true)
-    
-    -- Disable gravity and platform stand
+    -- Disable gravity
     humanoid.PlatformStand = true
-    hrp.Anchored = false
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
     
-    -- BodyVelocity for movement
+    -- Create BodyVelocity
     bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
     bodyVelocity.P = 10000
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     bodyVelocity.Parent = hrp
-    
-    -- BodyGyro for rotation control
-    bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.MaxTorque = Vector3.new(100000, 100000, 100000)
-    bodyGyro.P = 10000
-    bodyGyro.CFrame = hrp.CFrame
-    bodyGyro.Parent = hrp
     
     -- Fly control loop
     spawn(function()
@@ -117,25 +102,22 @@ local function startFly()
             
             -- Get camera direction
             local camera = workspace.CurrentCamera
-            local cameraCFrame = camera.CFrame
+            local camLook = camera.CFrame.LookVector
+            local camRight = camera.CFrame.RightVector
             
-            -- Forward/Backward (based on camera)
+            -- Movement
             if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                moveDirection = moveDirection + cameraCFrame.LookVector
+                moveDirection = moveDirection + Vector3.new(camLook.X, 0, camLook.Z).Unit
             end
             if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                moveDirection = moveDirection - cameraCFrame.LookVector
+                moveDirection = moveDirection - Vector3.new(camLook.X, 0, camLook.Z).Unit
             end
-            
-            -- Right/Left (based on camera)
             if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                moveDirection = moveDirection + cameraCFrame.RightVector
+                moveDirection = moveDirection + Vector3.new(camRight.X, 0, camRight.Z).Unit
             end
             if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                moveDirection = moveDirection - cameraCFrame.RightVector
+                moveDirection = moveDirection - Vector3.new(camRight.X, 0, camRight.Z).Unit
             end
-            
-            -- Up/Down
             if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
                 moveDirection = moveDirection + Vector3.new(0, 1, 0)
             end
@@ -143,39 +125,24 @@ local function startFly()
                 moveDirection = moveDirection - Vector3.new(0, 1, 0)
             end
             
-            -- Normalize and set velocity
+            -- Set velocity
             if moveDirection.Magnitude > 0 then
-                moveDirection = moveDirection.Unit
-                bodyVelocity.Velocity = moveDirection * flySpeed
+                bodyVelocity.Velocity = moveDirection.Unit * flySpeed
             else
                 bodyVelocity.Velocity = Vector3.new(0, 0, 0)
             end
             
-            -- Update gyro to face movement direction
-            if moveDirection.Magnitude > 0 then
-                local lookCFrame = CFrame.lookAt(hrp.Position, hrp.Position + moveDirection)
-                bodyGyro.CFrame = lookCFrame
+            -- Update CFrame to face movement direction
+            if moveDirection.Magnitude > 0 and moveDirection.Y == 0 then
+                local newCFrame = CFrame.lookAt(hrp.Position, hrp.Position + Vector3.new(moveDirection.X, 0, moveDirection.Z))
+                hrp.CFrame = newCFrame
             end
             
             task.wait()
         end
     end)
     
-    -- Keep noclip active
-    spawn(function()
-        while flying do
-            task.wait(0.1)
-            if noclip and player.Character then
-                for _, part in pairs(player.Character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
-            end
-        end
-    end)
-    
-    print("🕊️ Fly activated! Speed: " .. flySpeed)
+    print("🕊️ Fly ON | Speed: " .. flySpeed)
 end
 
 local function stopFly()
@@ -192,35 +159,21 @@ local function stopFly()
             bodyVelocity:Destroy() 
             bodyVelocity = nil
         end
-        if bodyGyro then 
-            bodyGyro:Destroy() 
-            bodyGyro = nil
-        end
         
         if humanoid then
             humanoid.PlatformStand = false
-            humanoid.BreakJointsOnDeath = true
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
         end
         
         if hrp then
             hrp.Velocity = Vector3.new(0, 0, 0)
         end
-        
-        -- Reset collision
-        setNoclip(false)
-        if character then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
-        end
     end
     
-    print("🕊️ Fly deactivated!")
+    print("🕊️ Fly OFF")
 end
 
--- Toggle fly on/off
+-- Toggle fly
 local function toggleFly()
     settings.fly = not settings.fly
     if settings.fly then
@@ -231,7 +184,37 @@ local function toggleFly()
     saveSettings()
 end
 
--- Create GUI
+-- Toggle noclip
+local function toggleNoclip()
+    settings.noclip = not settings.noclip
+    if settings.noclip then
+        setNoclip(true)
+        -- Keep noclip active
+        spawn(function()
+            while settings.noclip do
+                task.wait(0.2)
+                if player.Character then
+                    for _, part in pairs(player.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end
+        end)
+    else
+        if player.Character then
+            for _, part in pairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+    saveSettings()
+end
+
+-- Create GUI (REDUCED SIZE)
 local gui = Instance.new("ScreenGui")
 gui.Name = "PvpLab"
 gui.ResetOnSpawn = false
@@ -239,170 +222,97 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Z BUTTON
 local openBtn = Instance.new("TextButton", gui)
-openBtn.Size = UDim2.new(0,45,0,45)
-openBtn.Position = UDim2.new(0,12,0.5,0)
+openBtn.Size = UDim2.new(0,40,0,40)
+openBtn.Position = UDim2.new(0,10,0.5,-20)
 openBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
 openBtn.Text = "Z"
 openBtn.Font = Enum.Font.GothamBlack
-openBtn.TextSize = 22
+openBtn.TextSize = 20
 openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
-Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
+Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,8)
 
--- MAIN FRAME
+-- MAIN FRAME (SMALLER)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,500,0,450)
-frame.Position = UDim2.new(0.5,-250,0.5,-225)
+frame.Size = UDim2.new(0,320,0,380)
+frame.Position = UDim2.new(0.5,-160,0.5,-190)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
 
 -- TOP BAR
 local topBar = Instance.new("Frame", frame)
-topBar.Size = UDim2.new(1,0,0,35)
+topBar.Size = UDim2.new(1,0,0,30)
 topBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,12)
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,10)
 
 local title = Instance.new("TextLabel", topBar)
-title.Size = UDim2.new(1,-45,1,0)
-title.Position = UDim2.new(0,12,0,0)
+title.Size = UDim2.new(1,-35,1,0)
+title.Position = UDim2.new(0,10,0,0)
 title.Text = "PVP LAB"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+title.TextSize = 14
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.TextXAlignment = Enum.TextXAlignment.Left
 
 local closeBtn = Instance.new("TextButton", topBar)
-closeBtn.Size = UDim2.new(0,28,0,28)
-closeBtn.Position = UDim2.new(1,-32,0,4)
+closeBtn.Size = UDim2.new(0,24,0,24)
+closeBtn.Position = UDim2.new(1,-28,0,3)
 closeBtn.Text = "✕"
 closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 14
+closeBtn.TextSize = 12
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextColor3 = Color3.new(1,1,1)
 
--- LEFT SIDEBAR (TABS)
-local sidebar = Instance.new("Frame", frame)
-sidebar.Size = UDim2.new(0,70,1,-35)
-sidebar.Position = UDim2.new(0,0,0,35)
-sidebar.BackgroundColor3 = Color3.fromRGB(25,25,25)
-sidebar.BorderSizePixel = 0
-
--- Tab Buttons
-local pvpTab = Instance.new("TextButton", sidebar)
-pvpTab.Size = UDim2.new(0.85,0,0,35)
-pvpTab.Position = UDim2.new(0.075,0,0,25)
-pvpTab.Text = "PVP"
-pvpTab.Font = Enum.Font.GothamBold
-pvpTab.TextSize = 12
-pvpTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
-pvpTab.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", pvpTab).CornerRadius = UDim.new(0,8)
-
-local flyTab = Instance.new("TextButton", sidebar)
-flyTab.Size = UDim2.new(0.85,0,0,35)
-flyTab.Position = UDim2.new(0.075,0,0,70)
-flyTab.Text = "FLY"
-flyTab.Font = Enum.Font.GothamBold
-flyTab.TextSize = 12
-flyTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-flyTab.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", flyTab).CornerRadius = UDim.new(0,8)
-
-local creditsTab = Instance.new("TextButton", sidebar)
-creditsTab.Size = UDim2.new(0.85,0,0,35)
-creditsTab.Position = UDim2.new(0.075,0,0,115)
-creditsTab.Text = "INFO"
-creditsTab.Font = Enum.Font.GothamBold
-creditsTab.TextSize = 11
-creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-creditsTab.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", creditsTab).CornerRadius = UDim.new(0,8)
-
--- RIGHT PANEL
-local contentPanel = Instance.new("ScrollingFrame", frame)
-contentPanel.Size = UDim2.new(1,-80,1,-35)
-contentPanel.Position = UDim2.new(0,75,0,35)
-contentPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
-contentPanel.BackgroundTransparency = 1
-contentPanel.CanvasSize = UDim2.new(0,0,0,400)
-contentPanel.ScrollBarThickness = 4
-
--- PVP PANEL
-local pvpPanel = Instance.new("Frame", contentPanel)
-pvpPanel.Size = UDim2.new(1,0,1,0)
-pvpPanel.BackgroundTransparency = 1
-pvpPanel.Visible = true
-
-local pvpTitle = Instance.new("TextLabel", pvpPanel)
-pvpTitle.Size = UDim2.new(1,0,0,25)
-pvpTitle.Position = UDim2.new(0,0,0,5)
-pvpTitle.Text = "PVP FUNCTIONS"
-pvpTitle.Font = Enum.Font.GothamBold
-pvpTitle.TextSize = 12
-pvpTitle.TextColor3 = Color3.fromRGB(255,200,0)
-pvpTitle.BackgroundTransparency = 1
-
--- FLY PANEL
-local flyPanel = Instance.new("Frame", contentPanel)
-flyPanel.Size = UDim2.new(1,0,1,0)
-flyPanel.BackgroundTransparency = 1
-flyPanel.Visible = false
-
-local flyTitle = Instance.new("TextLabel", flyPanel)
-flyTitle.Size = UDim2.new(1,0,0,25)
-flyTitle.Position = UDim2.new(0,0,0,5)
-flyTitle.Text = "FLY SYSTEM"
-flyTitle.Font = Enum.Font.GothamBold
-flyTitle.TextSize = 12
-flyTitle.TextColor3 = Color3.fromRGB(255,200,0)
-flyTitle.BackgroundTransparency = 1
-
--- CREDITS PANEL
-local creditsPanel = Instance.new("Frame", contentPanel)
-creditsPanel.Size = UDim2.new(1,0,1,0)
-creditsPanel.BackgroundTransparency = 1
-creditsPanel.Visible = false
+-- SCROLLING FRAME
+local scrollFrame = Instance.new("ScrollingFrame", frame)
+scrollFrame.Size = UDim2.new(1,0,1,-30)
+scrollFrame.Position = UDim2.new(0,0,0,30)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+scrollFrame.BackgroundTransparency = 0
+scrollFrame.CanvasSize = UDim2.new(0,0,0,380)
+scrollFrame.ScrollBarThickness = 4
+scrollFrame.BorderSizePixel = 0
 
 -- Store toggles
 local toggles = {}
 
--- Function to create a toggle switch
+-- Function to create a toggle switch (COMPACT)
 local function createToggleRow(panel, name, yPos, key)
     local row = Instance.new("Frame", panel)
-    row.Size = UDim2.new(0.96,0,0,38)
+    row.Size = UDim2.new(0.96,0,0,32)
     row.Position = UDim2.new(0.02,0,0,yPos)
     row.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0,6)
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0,5)
     
     local label = Instance.new("TextLabel", row)
     label.Size = UDim2.new(0.65,0,1,0)
     label.Position = UDim2.new(0,8,0,0)
     label.Text = name
     label.Font = Enum.Font.GothamBold
-    label.TextSize = 11
+    label.TextSize = 10
     label.TextColor3 = Color3.new(1,1,1)
     label.BackgroundTransparency = 1
     label.TextXAlignment = Enum.TextXAlignment.Left
     
     local toggleBtn = Instance.new("TextButton", row)
-    toggleBtn.Size = UDim2.new(0,45,0,24)
-    toggleBtn.Position = UDim2.new(1,-58,0.5,-12)
+    toggleBtn.Size = UDim2.new(0,40,0,22)
+    toggleBtn.Position = UDim2.new(1,-48,0.5,-11)
     toggleBtn.Text = ""
     toggleBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
     Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
     
     local circle = Instance.new("Frame", toggleBtn)
-    circle.Size = UDim2.new(0,18,0,18)
-    circle.Position = UDim2.new(0,3,0.5,-9)
+    circle.Size = UDim2.new(0,16,0,16)
+    circle.Position = UDim2.new(0,3,0.5,-8)
     circle.BackgroundColor3 = Color3.new(1,1,1)
     Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
     
     if settings[key] then
         toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-        circle.Position = UDim2.new(1,-21,0.5,-9)
+        circle.Position = UDim2.new(1,-19,0.5,-8)
     end
     
     toggles[key] = {btn = toggleBtn, circle = circle}
@@ -412,71 +322,93 @@ local function createToggleRow(panel, name, yPos, key)
         
         if settings[key] then
             toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-            circle.Position = UDim2.new(1,-21,0.5,-9)
+            circle.Position = UDim2.new(1,-19,0.5,-8)
         else
             toggleBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
-            circle.Position = UDim2.new(0,3,0.5,-9)
+            circle.Position = UDim2.new(0,3,0.5,-8)
         end
         
-        -- Special handling for fly toggle
+        -- Special handling
         if key == "fly" then
-            if settings.fly then
-                startFly()
-            else
-                stopFly()
-            end
+            toggleFly()
+        end
+        if key == "noclip" then
+            toggleNoclip()
         end
         
         saveSettings()
-        print(name .. " is now " .. tostring(settings[key]))
     end)
     
     return row
 end
 
--- Create PVP toggles
-createToggleRow(pvpPanel, "Auto Attack", 40, "auto")
-createToggleRow(pvpPanel, "ESP", 85, "esp")
-createToggleRow(pvpPanel, "Spin Bot", 130, "spin")
-createToggleRow(pvpPanel, "Reset Player", 175, "resetP")
-createToggleRow(pvpPanel, "Super Jump", 220, "jump")
-createToggleRow(pvpPanel, "Auto Hit", 265, "hit")
-createToggleRow(pvpPanel, "Speed", 310, "speed")
+-- Create all toggles in one panel
+local currentY = 10
 
--- Create FLY toggle and info
-createToggleRow(flyPanel, "Enable Fly", 40, "fly")
+-- Title
+local pvpTitle = Instance.new("TextLabel", scrollFrame)
+pvpTitle.Size = UDim2.new(0.96,0,0,20)
+pvpTitle.Position = UDim2.new(0.02,0,0,currentY)
+pvpTitle.Text = "⚔️ PVP FUNCTIONS"
+pvpTitle.Font = Enum.Font.GothamBold
+pvpTitle.TextSize = 11
+pvpTitle.TextColor3 = Color3.fromRGB(255,200,0)
+pvpTitle.BackgroundTransparency = 1
+pvpTitle.TextXAlignment = Enum.TextXAlignment.Left
+currentY = currentY + 25
 
--- Fly info
-local flyInfo = Instance.new("TextLabel", flyPanel)
-flyInfo.Size = UDim2.new(0.96,0,0,100)
-flyInfo.Position = UDim2.new(0.02,0,0,90)
-flyInfo.Text = "🕊️ FLY CONTROLS:\n\nW = Forward\nS = Backward\nA = Left\nD = Right\nSPACE = Fly Up\nCTRL = Fly Down\n\n✨ No collision while flying!\n✨ No damage taken!"
-flyInfo.Font = Enum.Font.Gotham
-flyInfo.TextSize = 10
-flyInfo.TextColor3 = Color3.fromRGB(150,150,150)
-flyInfo.BackgroundTransparency = 1
-flyInfo.TextXAlignment = Enum.TextXAlignment.Left
-flyInfo.TextWrapped = true
+createToggleRow(scrollFrame, "Auto Attack", currentY, "auto")
+currentY = currentY + 37
+createToggleRow(scrollFrame, "ESP", currentY, "esp")
+currentY = currentY + 37
+createToggleRow(scrollFrame, "Spin Bot", currentY, "spin")
+currentY = currentY + 37
+createToggleRow(scrollFrame, "Reset Player", currentY, "resetP")
+currentY = currentY + 37
+createToggleRow(scrollFrame, "Super Jump", currentY, "jump")
+currentY = currentY + 37
+createToggleRow(scrollFrame, "Auto Hit", currentY, "hit")
+currentY = currentY + 37
+createToggleRow(scrollFrame, "Speed", currentY, "speed")
+currentY = currentY + 42
 
-local flySpeedSlider = Instance.new("Frame", flyPanel)
-flySpeedSlider.Size = UDim2.new(0.96,0,0,40)
-flySpeedSlider.Position = UDim2.new(0.02,0,0,200)
-flySpeedSlider.BackgroundColor3 = Color3.fromRGB(35,35,35)
-Instance.new("UICorner", flySpeedSlider).CornerRadius = UDim.new(0,6)
+-- Fly section
+local flyTitle = Instance.new("TextLabel", scrollFrame)
+flyTitle.Size = UDim2.new(0.96,0,0,20)
+flyTitle.Position = UDim2.new(0.02,0,0,currentY)
+flyTitle.Text = "🕊️ FLY SYSTEM"
+flyTitle.Font = Enum.Font.GothamBold
+flyTitle.TextSize = 11
+flyTitle.TextColor3 = Color3.fromRGB(100,200,255)
+flyTitle.BackgroundTransparency = 1
+flyTitle.TextXAlignment = Enum.TextXAlignment.Left
+currentY = currentY + 25
 
-local speedLabel = Instance.new("TextLabel", flySpeedSlider)
+createToggleRow(scrollFrame, "Enable Fly", currentY, "fly")
+currentY = currentY + 37
+createToggleRow(scrollFrame, "NoClip (No Collision)", currentY, "noclip")
+currentY = currentY + 42
+
+-- Fly Speed Slider
+local speedRow = Instance.new("Frame", scrollFrame)
+speedRow.Size = UDim2.new(0.96,0,0,40)
+speedRow.Position = UDim2.new(0.02,0,0,currentY)
+speedRow.BackgroundColor3 = Color3.fromRGB(35,35,35)
+Instance.new("UICorner", speedRow).CornerRadius = UDim.new(0,5)
+
+local speedLabel = Instance.new("TextLabel", speedRow)
 speedLabel.Size = UDim2.new(0.4,0,1,0)
 speedLabel.Position = UDim2.new(0,8,0,0)
 speedLabel.Text = "Fly Speed: " .. flySpeed
 speedLabel.Font = Enum.Font.GothamBold
-speedLabel.TextSize = 10
+speedLabel.TextSize = 9
 speedLabel.TextColor3 = Color3.new(1,1,1)
 speedLabel.BackgroundTransparency = 1
 speedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-local speedSlider = Instance.new("TextButton", flySpeedSlider)
-speedSlider.Size = UDim2.new(0.5,0,0.6,0)
-speedSlider.Position = UDim2.new(0.48,0,0.2,0)
+local speedSlider = Instance.new("TextButton", speedRow)
+speedSlider.Size = UDim2.new(0.5,0,0.5,0)
+speedSlider.Position = UDim2.new(0.48,0,0.25,0)
 speedSlider.Text = ""
 speedSlider.BackgroundColor3 = Color3.fromRGB(80,80,80)
 Instance.new("UICorner", speedSlider).CornerRadius = UDim.new(1,0)
@@ -491,7 +423,7 @@ local speedValue = Instance.new("TextLabel", speedSlider)
 speedValue.Size = UDim2.new(1,0,1,0)
 speedValue.Text = tostring(flySpeed)
 speedValue.Font = Enum.Font.GothamBold
-speedValue.TextSize = 10
+speedValue.TextSize = 9
 speedValue.TextColor3 = Color3.new(1,1,1)
 speedValue.BackgroundTransparency = 1
 
@@ -516,20 +448,18 @@ speedSlider.InputBegan:Connect(function(input)
                         local hrp = character.HumanoidRootPart
                         local moveDirection = Vector3.new(0, 0, 0)
                         local camera = workspace.CurrentCamera
-                        local cameraCFrame = camera.CFrame
+                        local camLook = camera.CFrame.LookVector
+                        local camRight = camera.CFrame.RightVector
                         
-                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + cameraCFrame.LookVector end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - cameraCFrame.LookVector end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + cameraCFrame.RightVector end
-                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - cameraCFrame.RightVector end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + Vector3.new(camLook.X, 0, camLook.Z).Unit end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - Vector3.new(camLook.X, 0, camLook.Z).Unit end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + Vector3.new(camRight.X, 0, camRight.Z).Unit end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - Vector3.new(camRight.X, 0, camRight.Z).Unit end
                         if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
                         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
                         
                         if moveDirection.Magnitude > 0 then
-                            moveDirection = moveDirection.Unit
-                            bodyVelocity.Velocity = moveDirection * flySpeed
-                        else
-                            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                            bodyVelocity.Velocity = moveDirection.Unit * flySpeed
                         end
                     end
                 end
@@ -550,111 +480,62 @@ speedSlider.InputBegan:Connect(function(input)
     end
 end)
 
--- CREDITS PANEL
-local creditsTitle = Instance.new("TextLabel", creditsPanel)
-creditsTitle.Size = UDim2.new(1,0,0,25)
-creditsTitle.Position = UDim2.new(0,0,0,5)
-creditsTitle.Text = "CREDITS"
-creditsTitle.Font = Enum.Font.GothamBold
-creditsTitle.TextSize = 12
-creditsTitle.TextColor3 = Color3.fromRGB(255,200,0)
-creditsTitle.BackgroundTransparency = 1
+currentY = currentY + 50
 
-local devCard = Instance.new("Frame", creditsPanel)
-devCard.Size = UDim2.new(0.96,0,0,55)
-devCard.Position = UDim2.new(0.02,0,0,40)
-devCard.BackgroundColor3 = Color3.fromRGB(35,35,35)
-Instance.new("UICorner", devCard).CornerRadius = UDim.new(0,8)
+-- Controls info
+local controlsInfo = Instance.new("TextLabel", scrollFrame)
+controlsInfo.Size = UDim2.new(0.96,0,0,65)
+controlsInfo.Position = UDim2.new(0.02,0,0,currentY)
+controlsInfo.Text = "🎮 FLY CONTROLS:\nW/S = Forward/Back\nA/D = Left/Right\nSPACE = Up\nCTRL = Down"
+controlsInfo.Font = Enum.Font.Gotham
+controlsInfo.TextSize = 8
+controlsInfo.TextColor3 = Color3.fromRGB(120,120,120)
+controlsInfo.BackgroundTransparency = 1
+controlsInfo.TextXAlignment = Enum.TextXAlignment.Left
+controlsInfo.TextWrapped = true
+currentY = currentY + 70
 
-local devName = Instance.new("TextLabel", devCard)
-devName.Size = UDim2.new(1,0,0,20)
-devName.Position = UDim2.new(0,8,0,8)
-devName.Text = "PVP LAB TEAM"
-devName.Font = Enum.Font.GothamBold
-devName.TextSize = 11
-devName.TextColor3 = Color3.new(1,1,1)
-devName.BackgroundTransparency = 1
-devName.TextXAlignment = Enum.TextXAlignment.Left
-
--- DISCORD BUTTON
-local discordBtn = Instance.new("TextButton", creditsPanel)
-discordBtn.Size = UDim2.new(0.96,0,0,45)
-discordBtn.Position = UDim2.new(0.02,0,0,110)
-discordBtn.Text = "JOIN OUR DISCORD"
+-- Discord button
+local discordBtn = Instance.new("TextButton", scrollFrame)
+discordBtn.Size = UDim2.new(0.96,0,0,32)
+discordBtn.Position = UDim2.new(0.02,0,0,currentY)
+discordBtn.Text = "💬 JOIN DISCORD"
 discordBtn.Font = Enum.Font.GothamBold
-discordBtn.TextSize = 11
+discordBtn.TextSize = 10
 discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
 discordBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,5)
 
 discordBtn.MouseButton1Click:Connect(function()
     local link = "https://discord.gg/PDmAh9Ua4"
     if setclipboard then setclipboard(link) end
-    -- Open link in browser
-    if syn and syn.request then
-        syn.request({
-            Url = link,
-            Method = "GET"
-        })
-    end
     local notif = Instance.new("TextLabel", frame)
-    notif.Size = UDim2.new(0,180,0,25)
-    notif.Position = UDim2.new(0.5,-90,0.5,130)
+    notif.Size = UDim2.new(0,150,0,22)
+    notif.Position = UDim2.new(0.5,-75,0.5,120)
     notif.Text = "Discord link copied!"
     notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
     notif.TextColor3 = Color3.new(1,1,1)
     notif.Font = Enum.Font.GothamBold
-    notif.TextSize = 10
-    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,5)
+    notif.TextSize = 9
+    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,4)
     task.wait(2)
     notif:Destroy()
 end)
 
-local versionLabel = Instance.new("TextLabel", creditsPanel)
-versionLabel.Size = UDim2.new(1,0,0,18)
-versionLabel.Position = UDim2.new(0,0,0,170)
-versionLabel.Text = "Version 3.0 | PVP + Fly System"
+currentY = currentY + 42
+
+-- Version
+local versionLabel = Instance.new("TextLabel", scrollFrame)
+versionLabel.Size = UDim2.new(1,0,0,15)
+versionLabel.Position = UDim2.new(0,0,0,currentY)
+versionLabel.Text = "Version 3.0 | PVP + Fly + NoClip"
 versionLabel.Font = Enum.Font.Gotham
-versionLabel.TextSize = 8
-versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
+versionLabel.TextSize = 7
+versionLabel.TextColor3 = Color3.fromRGB(100,100,100)
 versionLabel.BackgroundTransparency = 1
 
-local thanksLabel = Instance.new("TextLabel", creditsPanel)
-thanksLabel.Size = UDim2.new(1,0,0,18)
-thanksLabel.Position = UDim2.new(0,0,0,190)
-thanksLabel.Text = "Thanks for using our script!"
-thanksLabel.Font = Enum.Font.Gotham
-thanksLabel.TextSize = 8
-thanksLabel.TextColor3 = Color3.fromRGB(200,200,200)
-thanksLabel.BackgroundTransparency = 1
-
--- Tab switching
-pvpTab.MouseButton1Click:Connect(function()
-    pvpTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    flyTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    pvpPanel.Visible = true
-    flyPanel.Visible = false
-    creditsPanel.Visible = false
-end)
-
-flyTab.MouseButton1Click:Connect(function()
-    flyTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    pvpTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    pvpPanel.Visible = false
-    flyPanel.Visible = true
-    creditsPanel.Visible = false
-end)
-
-creditsTab.MouseButton1Click:Connect(function()
-    creditsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    pvpTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    flyTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    pvpPanel.Visible = false
-    flyPanel.Visible = false
-    creditsPanel.Visible = true
-end)
+currentY = currentY + 20
+scrollFrame.CanvasSize = UDim2.new(0,0,0,currentY + 10)
 
 -- Open/Close
 openBtn.MouseButton1Click:Connect(function()
@@ -673,10 +554,7 @@ task.wait(0.5)
 for key, toggle in pairs(toggles) do
     if settings[key] then
         toggle.btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-        toggle.circle.Position = UDim2.new(1,-21,0.5,-9)
-    else
-        toggle.btn.BackgroundColor3 = Color3.fromRGB(80,80,80)
-        toggle.circle.Position = UDim2.new(0,3,0.5,-9)
+        toggle.circle.Position = UDim2.new(1,-19,0.5,-8)
     end
 end
 
@@ -686,9 +564,12 @@ if settings.fly then
     startFly()
 end
 
--- PVP FUNCTIONS (mantidas)
+-- Start noclip if enabled
+if settings.noclip then
+    toggleNoclip()
+end
 
--- Auto Attack
+-- PVP FUNCTIONS
 RunService.RenderStepped:Connect(function()
     if settings.auto and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
@@ -705,13 +586,12 @@ RunService.RenderStepped:Connect(function()
             end
         end
         
-        if closest then
+        if closest and not settings.fly then
             hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
         end
     end
 end)
 
--- Auto Hit
 RunService.RenderStepped:Connect(function()
     if settings.hit and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -740,7 +620,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Speed
 local speedActive = false
 local function setSpeed()
     if not player.Character then return end
@@ -768,16 +647,18 @@ player.CharacterAdded:Connect(function()
         task.wait(0.5)
         startFly()
     end
+    if settings.noclip then
+        task.wait(0.3)
+        setNoclip(true)
+    end
 end)
 
--- Spin Bot
 RunService.RenderStepped:Connect(function()
-    if settings.spin and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+    if settings.spin and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and not settings.fly then
         player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(25), 0)
     end
 end)
 
--- Reset Player
 local resetCooldown = false
 RunService.RenderStepped:Connect(function()
     if settings.resetP and not resetCooldown then
@@ -790,7 +671,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Super Jump
 local jumpTime = 0
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
@@ -813,7 +693,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ESP
 RunService.RenderStepped:Connect(function()
     if settings.esp then
         for _, v in pairs(Players:GetPlayers()) do
@@ -840,13 +719,10 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Clean up fly when player dies or leaves
 player.CharacterRemoving:Connect(function()
     stopFly()
 end)
 
 print("✅ Script Loaded!")
-print("📁 Tabs: PVP | FLY | INFO")
-print("🕊️ FLY: Fly mode with no collision and no damage!")
-print("🎮 Controls: W/A/S/D + SPACE/CTRL")
 print("📌 Press Z to open menu")
+print("🕊️ Fly + NoClip available in menu!")
