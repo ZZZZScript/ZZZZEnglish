@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 
@@ -13,13 +14,14 @@ local settings = {
     jump = false,
     hit = false,
     speed = false,
-    autoSell = false
+    autoSell = false,
+    autoCollect = false
 }
 
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
 
--- Auto Sell List - All brainrot names (organizados por categoria)
+-- Auto Sell List - All brainrot names (English categories)
 local autoSellCategories = {
     COMMON = {
         "Noobini Pizzanini", "Lirili Larila", "Fluri Flura", "Cacto Hipopotamo",
@@ -79,15 +81,14 @@ local function loadSettings()
         settings.hit = string.find(data, '"hit":true') and true or false
         settings.speed = string.find(data, '"speed":true') and true or false
         settings.autoSell = string.find(data, '"autoSell":true') and true or false
+        settings.autoCollect = string.find(data, '"autoCollect":true') and true or false
         
         -- Load selected items
         local selectedData = string.match(data, '"selectedItems":"(.-)"')
         if selectedData then
-            -- Reset all selections first
             for item, _ in pairs(selectedItems) do
                 selectedItems[item] = false
             end
-            -- Load saved selections
             for item in string.gmatch(selectedData, "([^,]+)") do
                 if selectedItems[item] ~= nil then
                     selectedItems[item] = true
@@ -106,7 +107,6 @@ local function saveSettings()
             selectedStr = selectedStr .. item .. ","
         end
     end
-    -- Remove trailing comma
     if selectedStr ~= "" then
         selectedStr = selectedStr:sub(1, -2)
     end
@@ -119,6 +119,7 @@ local function saveSettings()
                  ',"hit":'..tostring(settings.hit)..
                  ',"speed":'..tostring(settings.speed)..
                  ',"autoSell":'..tostring(settings.autoSell)..
+                 ',"autoCollect":'..tostring(settings.autoCollect)..
                  ',"selectedItems":"'..selectedStr..'"}'
     player:SetAttribute(SAVE_KEY, json)
     print("💾 Saved!")
@@ -144,8 +145,8 @@ Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
 -- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,680,0,520)
-frame.Position = UDim2.new(0.5,-340,0.5,-260)
+frame.Size = UDim2.new(0,680,0,580)
+frame.Position = UDim2.new(0.5,-340,0.5,-290)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -242,7 +243,7 @@ pvpTitle.BackgroundTransparency = 1
 local farmPanel = Instance.new("ScrollingFrame", contentPanel)
 farmPanel.Size = UDim2.new(1,0,1,0)
 farmPanel.BackgroundTransparency = 1
-farmPanel.CanvasSize = UDim2.new(0,0,0,800)
+farmPanel.CanvasSize = UDim2.new(0,0,0,900)
 farmPanel.ScrollBarThickness = 4
 farmPanel.Visible = false
 
@@ -390,11 +391,24 @@ createToggleRow(pvpPanel, "Super Jump", 220, "jump")
 createToggleRow(pvpPanel, "Auto Hit", 265, "hit")
 createToggleRow(pvpPanel, "Speed", 310, "speed")
 
--- Create FARM toggle
+-- Create FARM toggles
 createToggleRow(farmPanel, "Auto Sell (Enable)", 45, "autoSell")
+createToggleRow(farmPanel, "Auto Collect Money", 90, "autoCollect")
+
+-- Add info text
+local infoText = Instance.new("TextLabel", farmPanel)
+infoText.Size = UDim2.new(0.96,0,0,40)
+infoText.Position = UDim2.new(0.02,0,0,135)
+infoText.Text = "💰 Auto Collect Money: Automatically collects money from dropped brainrot items\n🛒 Auto Sell: Sells selected brainrot items from inventory"
+infoText.Font = Enum.Font.Gotham
+infoText.TextSize = 9
+infoText.TextColor3 = Color3.fromRGB(150,150,150)
+infoText.BackgroundTransparency = 1
+infoText.TextXAlignment = Enum.TextXAlignment.Left
+infoText.TextWrapped = true
 
 -- Create item selection list
-local currentY = 95
+local currentY = 185
 for category, items in pairs(autoSellCategories) do
     currentY = currentY + 5
     createCategoryHeader(farmPanel, category, currentY)
@@ -549,7 +563,7 @@ end)
 local versionLabel = Instance.new("TextLabel", creditsPanel)
 versionLabel.Size = UDim2.new(1,0,0,18)
 versionLabel.Position = UDim2.new(0,0,0,220)
-versionLabel.Text = "Version 2.1 | Premium Script"
+versionLabel.Text = "Version 2.2 | Premium Script"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
 versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
@@ -631,37 +645,56 @@ for item, selected in pairs(selectedItems) do
     end
 end
 
--- AUTO SELL FUNCTION (only sells selected items)
-local function autoSell()
-    if not settings.autoSell then return end
+-- AUTO COLLECT MONEY FUNCTION
+local function autoCollectMoney()
+    if not settings.autoCollect then return end
     
-    -- Check workspace
-    for _, item in pairs(workspace:GetDescendants()) do
-        if item:IsA("Model") or item:IsA("Part") or item:IsA("Tool") then
-            local itemName = item.Name
-            for sellName, selected in pairs(selectedItems) do
-                if selected and (string.find(itemName, sellName) or string.find(sellName, itemName)) then
-                    pcall(function()
-                        if item:IsA("Tool") then
-                            item:Destroy()
-                        elseif item.Parent then
-                            item:Destroy()
+    local character = player.Character
+    if not character then return end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    -- Find all money drops/coins in workspace
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        -- Check for common money drop names
+        local name = obj.Name:lower()
+        if obj:IsA("Part") or obj:IsA("MeshPart") or obj:IsA("Model") then
+            if string.find(name, "coin") or 
+               string.find(name, "money") or 
+               string.find(name, "cash") or
+               string.find(name, "drop") or
+               string.find(name, "brainrot") and string.find(name, "coin") then
+                
+                pcall(function()
+                    -- Try to collect by moving to it
+                    if obj:IsA("BasePart") and obj.Parent then
+                        local distance = (obj.Position - hrp.Position).Magnitude
+                        if distance < 15 then
+                            -- Move character towards money
+                            hrp.Velocity = (obj.Position - hrp.Position).Unit * 40
                         end
-                        print("💰 Auto Sold: " .. itemName)
-                    end)
-                    break
-                end
+                    end
+                end)
             end
         end
     end
+end
+
+-- AUTO SELL FUNCTION (only sells selected items from inventory)
+local function autoSell()
+    if not settings.autoSell then return end
+    
+    local soldCount = 0
     
     -- Check Backpack
     if player.Backpack then
         for _, tool in pairs(player.Backpack:GetChildren()) do
             for sellName, selected in pairs(selectedItems) do
-                if selected and (string.find(tool.Name, sellName) or string.find(sellName, tool.Name)) then
+                if selected and (tool.Name == sellName or string.find(tool.Name, sellName) or string.find(sellName, tool.Name)) then
                     pcall(function()
                         tool:Destroy()
+                        soldCount = soldCount + 1
                         print("💰 Auto Sold from Backpack: " .. tool.Name)
                     end)
                     break
@@ -675,9 +708,10 @@ local function autoSell()
         for _, tool in pairs(player.Character:GetChildren()) do
             if tool:IsA("Tool") then
                 for sellName, selected in pairs(selectedItems) do
-                    if selected and (string.find(tool.Name, sellName) or string.find(sellName, tool.Name)) then
+                    if selected and (tool.Name == sellName or string.find(tool.Name, sellName) or string.find(sellName, tool.Name)) then
                         pcall(function()
                             tool:Destroy()
+                            soldCount = soldCount + 1
                             print("💰 Auto Sold from Character: " .. tool.Name)
                         end)
                         break
@@ -686,13 +720,50 @@ local function autoSell()
             end
         end
     end
+    
+    if soldCount > 0 then
+        print("💰 Total sold: " .. soldCount .. " items")
+    end
 end
 
--- Run Auto Sell every second
+-- Run Auto Sell and Auto Collect every second
 spawn(function()
     while true do
         task.wait(1)
         autoSell()
+        autoCollectMoney()
+    end
+end)
+
+-- Auto Collect movement loop
+spawn(function()
+    while true do
+        task.wait(0.1)
+        if settings.autoCollect then
+            local character = player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                local hrp = character.HumanoidRootPart
+                local closestMoney = nil
+                local closestDist = math.huge
+                
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    local name = obj.Name:lower()
+                    if obj:IsA("BasePart") and obj.Parent then
+                        if string.find(name, "coin") or string.find(name, "money") or string.find(name, "cash") then
+                            local dist = (obj.Position - hrp.Position).Magnitude
+                            if dist < closestDist and dist < 20 then
+                                closestDist = dist
+                                closestMoney = obj
+                            end
+                        end
+                    end
+                end
+                
+                if closestMoney then
+                    hrp.Velocity = (closestMoney.Position - hrp.Position).Unit * 50
+                end
+            end
+        end
     end
 end)
 
@@ -848,5 +919,6 @@ end)
 
 print("✅ Script Loaded!")
 print("📁 Tabs: PVP | FARM | CREDITS")
-print("💰 Auto Sell agora tem lista selecionável!")
-print("📌 Pressione Z para abrir o menu")
+print("💰 Auto Sell: Sells selected brainrot items from inventory")
+print("💰 Auto Collect Money: Automatically collects dropped money")
+print("📌 Press Z to open menu")
