@@ -98,92 +98,48 @@ closeBtn.TextSize = 18
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextColor3 = Color3.new(1,1,1)
 
--- LEFT PANEL (CREDITS)
-local leftPanel = Instance.new("Frame", frame)
-leftPanel.Size = UDim2.new(0,200,1,-45)
-leftPanel.Position = UDim2.new(0,0,0,45)
-leftPanel.BackgroundColor3 = Color3.fromRGB(25,25,25)
-leftPanel.BorderSizePixel = 0
+-- LEFT SIDEBAR (TABS)
+local sidebar = Instance.new("Frame", frame)
+sidebar.Size = UDim2.new(0,140,1,-45)
+sidebar.Position = UDim2.new(0,0,0,45)
+sidebar.BackgroundColor3 = Color3.fromRGB(25,25,25)
+sidebar.BorderSizePixel = 0
 
-local creditsTitle = Instance.new("TextLabel", leftPanel)
-creditsTitle.Size = UDim2.new(1,0,0,40)
-creditsTitle.Position = UDim2.new(0,0,0,15)
-creditsTitle.Text = "⭐ DEVELOPERS"
-creditsTitle.Font = Enum.Font.GothamBold
-creditsTitle.TextSize = 16
-creditsTitle.TextColor3 = Color3.fromRGB(255,200,0)
-creditsTitle.BackgroundTransparency = 1
+-- Tab Buttons
+local functionsTab = Instance.new("TextButton", sidebar)
+functionsTab.Size = UDim2.new(0.85,0,0,45)
+functionsTab.Position = UDim2.new(0.075,0,0,30)
+functionsTab.Text = "⚙️ FUNCTIONS"
+functionsTab.Font = Enum.Font.GothamBold
+functionsTab.TextSize = 13
+functionsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+functionsTab.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", functionsTab).CornerRadius = UDim.new(0,8)
 
-local dev1 = Instance.new("TextLabel", leftPanel)
-dev1.Size = UDim2.new(1,0,0,50)
-dev1.Position = UDim2.new(0,0,0,60)
-dev1.Text = "ZZZ\nLead Developer"
-dev1.Font = Enum.Font.GothamBold
-dev1.TextSize = 13
-dev1.TextColor3 = Color3.new(1,1,1)
-dev1.BackgroundTransparency = 1
+local creditsTab = Instance.new("TextButton", sidebar)
+creditsTab.Size = UDim2.new(0.85,0,0,45)
+creditsTab.Position = UDim2.new(0.075,0,0,85)
+creditsTab.Text = "👥 CREDITS"
+creditsTab.Font = Enum.Font.GothamBold
+creditsTab.TextSize = 13
+creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+creditsTab.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", creditsTab).CornerRadius = UDim.new(0,8)
 
-local dev2 = Instance.new("TextLabel", leftPanel)
-dev2.Size = UDim2.new(1,0,0,50)
-dev2.Position = UDim2.new(0,0,0,115)
-dev2.Text = "mathyas\nCo-Developer"
-dev2.Font = Enum.Font.GothamBold
-dev2.TextSize = 13
-dev2.TextColor3 = Color3.new(1,1,1)
-dev2.BackgroundTransparency = 1
+-- RIGHT PANEL (CONTENT)
+local contentPanel = Instance.new("Frame", frame)
+contentPanel.Size = UDim2.new(1,-150,1,-45)
+contentPanel.Position = UDim2.new(0,145,0,45)
+contentPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
+contentPanel.BackgroundTransparency = 1
 
-local discordBtn = Instance.new("TextButton", leftPanel)
-discordBtn.Size = UDim2.new(0.85,0,0,55)
-discordBtn.Position = UDim2.new(0.075,0,0,175)
-discordBtn.Text = "💬 JOIN DISCORD\nClick to copy"
-discordBtn.Font = Enum.Font.GothamBold
-discordBtn.TextSize = 11
-discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
-discordBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
+-- FUNCTIONS PANEL
+local functionsPanel = Instance.new("Frame", contentPanel)
+functionsPanel.Size = UDim2.new(1,0,1,0)
+functionsPanel.BackgroundTransparency = 1
+functionsPanel.Visible = true
 
-discordBtn.MouseButton1Click:Connect(function()
-    local link = "https://discord.gg/bBWPETWW"
-    if setclipboard then setclipboard(link) end
-    local notif = Instance.new("TextLabel", frame)
-    notif.Size = UDim2.new(0,200,0,30)
-    notif.Position = UDim2.new(0.5,-100,0.5,160)
-    notif.Text = "🔗 Link copied!"
-    notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
-    notif.TextColor3 = Color3.new(1,1,1)
-    notif.Font = Enum.Font.GothamBold
-    notif.TextSize = 12
-    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,5)
-    task.wait(2)
-    notif:Destroy()
-end)
-
-local version = Instance.new("TextLabel", leftPanel)
-version.Size = UDim2.new(1,0,0,25)
-version.Position = UDim2.new(0,0,0,240)
-version.Text = "📌 Version 2.0"
-version.Font = Enum.Font.Gotham
-version.TextSize = 10
-version.TextColor3 = Color3.fromRGB(150,150,150)
-version.BackgroundTransparency = 1
-
-local thanks = Instance.new("TextLabel", leftPanel)
-thanks.Size = UDim2.new(1,0,0,25)
-thanks.Position = UDim2.new(0,0,0,265)
-thanks.Text = "❤️ Thanks for using!"
-thanks.Font = Enum.Font.Gotham
-thanks.TextSize = 10
-thanks.TextColor3 = Color3.fromRGB(200,200,200)
-thanks.BackgroundTransparency = 1
-
--- RIGHT PANEL (FUNCTIONS)
-local rightPanel = Instance.new("Frame", frame)
-rightPanel.Size = UDim2.new(1,-210,1,-45)
-rightPanel.Position = UDim2.new(0,205,0,45)
-rightPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
-rightPanel.BackgroundTransparency = 1
-
-local functionsTitle = Instance.new("TextLabel", rightPanel)
+local functionsTitle = Instance.new("TextLabel", functionsPanel)
 functionsTitle.Size = UDim2.new(1,0,0,40)
 functionsTitle.Position = UDim2.new(0,0,0,10)
 functionsTitle.Text = "⚙️ FUNCTIONS"
@@ -197,9 +153,9 @@ local buttons = {}
 
 -- Function to create toggle button
 local function createToggle(text, row, col)
-    local btn = Instance.new("TextButton", rightPanel)
+    local btn = Instance.new("TextButton", functionsPanel)
     btn.Size = UDim2.new(0.44,0,0,48)
-    btn.Position = UDim2.new(col == 1 and 0.03 or 0.53, 0, 0, 55 + (row * 58))
+    btn.Position = UDim2.new(col == 1 and 0.04 or 0.52, 0, 0, 60 + (row * 58))
     btn.Text = text .. " [OFF]"
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 13
@@ -288,6 +244,101 @@ speedBtn.MouseButton1Click:Connect(function()
     updateButton(speedBtn, "speed")
     saveSettings()
     print("Speed is now " .. tostring(settings.speed))
+end)
+
+-- CREDITS PANEL
+local creditsPanel = Instance.new("Frame", contentPanel)
+creditsPanel.Size = UDim2.new(1,0,1,0)
+creditsPanel.BackgroundTransparency = 1
+creditsPanel.Visible = false
+
+local creditsTitle2 = Instance.new("TextLabel", creditsPanel)
+creditsTitle2.Size = UDim2.new(1,0,0,40)
+creditsTitle2.Position = UDim2.new(0,0,0,10)
+creditsTitle2.Text = "👥 CREDITS"
+creditsTitle2.Font = Enum.Font.GothamBold
+creditsTitle2.TextSize = 18
+creditsTitle2.TextColor3 = Color3.fromRGB(255,200,0)
+creditsTitle2.BackgroundTransparency = 1
+
+-- Developers section
+local dev1Label = Instance.new("TextLabel", creditsPanel)
+dev1Label.Size = UDim2.new(1,0,0,60)
+dev1Label.Position = UDim2.new(0,0,0,60)
+dev1Label.Text = "⭐ ZZZ\n\nLead Developer | Project Creator"
+dev1Label.Font = Enum.Font.GothamBold
+dev1Label.TextSize = 13
+dev1Label.TextColor3 = Color3.new(1,1,1)
+dev1Label.BackgroundTransparency = 1
+
+local dev2Label = Instance.new("TextLabel", creditsPanel)
+dev2Label.Size = UDim2.new(1,0,0,60)
+dev2Label.Position = UDim2.new(0,0,0,130)
+dev2Label.Text = "⚡ mathyas\n\nCo-Developer | Programmer"
+dev2Label.Font = Enum.Font.GothamBold
+dev2Label.TextSize = 13
+dev2Label.TextColor3 = Color3.new(1,1,1)
+dev2Label.BackgroundTransparency = 1
+
+-- Discord button
+local discordBtn2 = Instance.new("TextButton", creditsPanel)
+discordBtn2.Size = UDim2.new(0.5,0,0,55)
+discordBtn2.Position = UDim2.new(0.25,0,0,210)
+discordBtn2.Text = "💬 JOIN DISCORD\nClick to copy link"
+discordBtn2.Font = Enum.Font.GothamBold
+discordBtn2.TextSize = 11
+discordBtn2.BackgroundColor3 = Color3.fromRGB(88,101,242)
+discordBtn2.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", discordBtn2).CornerRadius = UDim.new(0,8)
+
+discordBtn2.MouseButton1Click:Connect(function()
+    local link = "https://discord.gg/bBWPETWW"
+    if setclipboard then setclipboard(link) end
+    local notif = Instance.new("TextLabel", frame)
+    notif.Size = UDim2.new(0,200,0,30)
+    notif.Position = UDim2.new(0.5,-100,0.5,160)
+    notif.Text = "🔗 Link copied!"
+    notif.BackgroundColor3 = Color3.fromRGB(0,170,0)
+    notif.TextColor3 = Color3.new(1,1,1)
+    notif.Font = Enum.Font.GothamBold
+    notif.TextSize = 12
+    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,5)
+    task.wait(2)
+    notif:Destroy()
+end)
+
+-- Version info
+local versionLabel = Instance.new("TextLabel", creditsPanel)
+versionLabel.Size = UDim2.new(1,0,0,25)
+versionLabel.Position = UDim2.new(0,0,0,280)
+versionLabel.Text = "📌 Version 2.0 | Premium Script"
+versionLabel.Font = Enum.Font.Gotham
+versionLabel.TextSize = 10
+versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
+versionLabel.BackgroundTransparency = 1
+
+local thanksLabel = Instance.new("TextLabel", creditsPanel)
+thanksLabel.Size = UDim2.new(1,0,0,25)
+thanksLabel.Position = UDim2.new(0,0,0,305)
+thanksLabel.Text = "❤️ Thanks for using our script!"
+thanksLabel.Font = Enum.Font.Gotham
+thanksLabel.TextSize = 10
+thanksLabel.TextColor3 = Color3.fromRGB(200,200,200)
+thanksLabel.BackgroundTransparency = 1
+
+-- Tab switching
+functionsTab.MouseButton1Click:Connect(function()
+    functionsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    creditsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    functionsPanel.Visible = true
+    creditsPanel.Visible = false
+end)
+
+creditsTab.MouseButton1Click:Connect(function()
+    creditsTab.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    functionsTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    functionsPanel.Visible = false
+    creditsPanel.Visible = true
 end)
 
 -- Open/Close
@@ -458,7 +509,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ Script Loaded - Landscape Mode!")
+print("✅ Script Loaded - Tab System!")
 print("💾 Settings auto-save when you click buttons!")
 print("📌 Press Z to open menu")
-print("🎨 Credits on left, Functions on right")
+print("📁 Use tabs to switch between Functions and Credits")
