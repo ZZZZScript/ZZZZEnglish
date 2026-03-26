@@ -1,8 +1,13 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
+
+-- Verificar se é mobile
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+print("📱 Modo: " .. (isMobile and "CELULAR" or "PC"))
 
 -- Settings
 local settings = {
@@ -21,6 +26,15 @@ local settings = {
 local flying = false
 local flySpeed = 80
 local bodyVelocity = nil
+local bodyGyro = nil
+
+-- Mobile controls
+local moveForward = false
+local moveBack = false
+local moveLeft = false
+local moveRight = false
+local moveUp = false
+local moveDown = false
 
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
@@ -67,67 +81,142 @@ local function setNoclip(bool)
     end
 end
 
--- FLY
+-- FLY FUNCTION
 local function startFly()
     if flying then return end
+    
     local character = player.Character
     if not character then return end
+    
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     local hrp = character:FindFirstChild("HumanoidRootPart")
+    
     if not humanoid or not hrp then return end
+    
     flying = true
+    
     humanoid.PlatformStand = true
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    
     bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     bodyVelocity.Parent = hrp
+    
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+    bodyGyro.P = 10000
+    bodyGyro.CFrame = hrp.CFrame
+    bodyGyro.Parent = hrp
+    
+    -- Mostrar botões mobile se for celular
+    if isMobile then
+        showMobileControls(true)
+    end
+    
+    print("🕊️ Fly ON")
 end
 
 local function stopFly()
     if not flying then return end
+    
     flying = false
+    
     local character = player.Character
     if character then
         local humanoid = character:FindFirstChildOfClass("Humanoid")
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        
         if bodyVelocity then bodyVelocity:Destroy() end
-        if humanoid then humanoid.PlatformStand = false end
+        if bodyGyro then bodyGyro:Destroy() end
         bodyVelocity = nil
+        bodyGyro = nil
+        
+        if humanoid then
+            humanoid.PlatformStand = false
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+        end
+        
+        if hrp then hrp.Velocity = Vector3.new(0, 0, 0) end
     end
+    
+    -- Esconder botões mobile
+    if isMobile then
+        showMobileControls(false)
+    end
+    
+    print("🕊️ Fly OFF")
 end
 
--- Fly movement
+-- Movimento do Fly
 RunService.RenderStepped:Connect(function()
     if not settings.fly or not flying then return end
+    
     local character = player.Character
     if not character then return end
+    
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp or not bodyVelocity then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then humanoid.PlatformStand = true end
     
     local moveDirection = Vector3.new(0, 0, 0)
     local camera = workspace.CurrentCamera
     local camCF = camera.CFrame
     
-    if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-        moveDirection = moveDirection - camCF.LookVector
-    end
-    if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-        moveDirection = moveDirection + camCF.LookVector
-    end
-    if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-        moveDirection = moveDirection - camCF.RightVector
-    end
-    if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-        moveDirection = moveDirection + camCF.RightVector
-    end
-    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-        moveDirection = moveDirection + Vector3.new(0, 1, 0)
-    end
-    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-        moveDirection = moveDirection - Vector3.new(0, 1, 0)
+    -- PC: teclado
+    if not isMobile then
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDirection = moveDirection - camCF.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDirection = moveDirection + camCF.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDirection = moveDirection - camCF.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDirection = moveDirection + camCF.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveDirection = moveDirection + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            moveDirection = moveDirection - Vector3.new(0, 1, 0)
+        end
+    else
+        -- Mobile: botões de toque
+        if moveForward then
+            moveDirection = moveDirection - camCF.LookVector
+        end
+        if moveBack then
+            moveDirection = moveDirection + camCF.LookVector
+        end
+        if moveLeft then
+            moveDirection = moveDirection - camCF.RightVector
+        end
+        if moveRight then
+            moveDirection = moveDirection + camCF.RightVector
+        end
+        if moveUp then
+            moveDirection = moveDirection + Vector3.new(0, 1, 0)
+        end
+        if moveDown then
+            moveDirection = moveDirection - Vector3.new(0, 1, 0)
+        end
     end
     
     if moveDirection.Magnitude > 0 then
-        bodyVelocity.Velocity = moveDirection.Unit * flySpeed
+        local velocity = moveDirection.Unit * flySpeed
+        bodyVelocity.Velocity = velocity
+        
+        if velocity.Magnitude > 0.1 then
+            local lookPos = hrp.Position + velocity
+            bodyGyro.CFrame = CFrame.lookAt(hrp.Position, lookPos)
+        end
     else
         bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     end
@@ -136,7 +225,11 @@ end)
 -- Toggles
 local function toggleFly()
     settings.fly = not settings.fly
-    if settings.fly then startFly() else stopFly() end
+    if settings.fly then 
+        startFly()
+    else 
+        stopFly()
+    end
     saveSettings()
 end
 
@@ -152,14 +245,21 @@ gui.Name = "PvpLab"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- Botão Z
+-- Botão Z (PC) ou Botão Menu (Mobile)
 local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 50, 0, 50)
-openBtn.Position = UDim2.new(0, 10, 0.5, -25)
+if isMobile then
+    openBtn.Size = UDim2.new(0, 60, 0, 60)
+    openBtn.Position = UDim2.new(0, 15, 1, -80)
+    openBtn.Text = "MENU"
+    openBtn.TextSize = 14
+else
+    openBtn.Size = UDim2.new(0, 50, 0, 50)
+    openBtn.Position = UDim2.new(0, 10, 0.5, -25)
+    openBtn.Text = "Z"
+    openBtn.TextSize = 24
+end
 openBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-openBtn.Text = "Z"
 openBtn.Font = Enum.Font.GothamBlack
-openBtn.TextSize = 24
 openBtn.TextColor3 = Color3.new(1, 1, 1)
 openBtn.Draggable = true
 openBtn.Parent = gui
@@ -167,8 +267,8 @@ Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0, 12)
 
 -- Menu
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 450, 0, 400)
-frame.Position = UDim2.new(0.5, -225, 0.5, -200)
+frame.Size = UDim2.new(0, 450, 0, 450)
+frame.Position = UDim2.new(0.5, -225, 0.5, -225)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.Visible = false
 frame.Draggable = true
@@ -185,7 +285,7 @@ Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 12)
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, -45, 1, 0)
 titleLabel.Position = UDim2.new(0, 12, 0, 0)
-titleLabel.Text = "PVP LAB"
+titleLabel.Text = "PVP LAB " .. (isMobile and "📱" or "💻")
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextSize = 16
 titleLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -208,7 +308,7 @@ local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1, 0, 1, -35)
 scroll.Position = UDim2.new(0, 0, 0, 35)
 scroll.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-scroll.CanvasSize = UDim2.new(0, 0, 0, 500)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 550)
 scroll.ScrollBarThickness = 6
 scroll.Parent = frame
 
@@ -385,11 +485,15 @@ end)
 
 yPos = yPos + 55
 
--- Controls
+-- Controls info (diferente para PC e Mobile)
 local controls = Instance.new("TextLabel")
 controls.Size = UDim2.new(0.94, 0, 0, 80)
 controls.Position = UDim2.new(0.03, 0, 0, yPos)
-controls.Text = "🎮 FLY CONTROLS:\n\nW = Forward | S = Backward\nA = Left | D = Right\nSPACE = Up | CTRL = Down"
+if isMobile then
+    controls.Text = "🎮 MOBILE CONTROLS:\n\n↑ = Forward | ↓ = Back\n← = Left | → = Right\n⬆️ UP = Fly Up | ⬇️ DOWN = Fly Down"
+else
+    controls.Text = "🎮 PC CONTROLS:\n\nW = Forward | S = Backward\nA = Left | D = Right\nSPACE = Fly Up | CTRL = Fly Down"
+end
 controls.Font = Enum.Font.Gotham
 controls.TextSize = 9
 controls.TextColor3 = Color3.fromRGB(150, 150, 150)
@@ -433,7 +537,7 @@ yPos = yPos + 48
 local version = Instance.new("TextLabel")
 version.Size = UDim2.new(1, 0, 0, 18)
 version.Position = UDim2.new(0, 0, 0, yPos)
-version.Text = "Version 3.0 | PVP + Fly + NoClip"
+version.Text = "Version 3.0 | PVP + Fly | " .. (isMobile and "Mobile Ready" or "PC Ready")
 version.Font = Enum.Font.Gotham
 version.TextSize = 8
 version.TextColor3 = Color3.fromRGB(100, 100, 100)
@@ -441,6 +545,61 @@ version.BackgroundTransparency = 1
 version.Parent = scroll
 
 scroll.CanvasSize = UDim2.new(0, 0, 0, yPos + 30)
+
+-- BOTÕES DE CONTROLE PARA MOBILE
+local mobileControls = {}
+
+local function showMobileControls(show)
+    for _, btn in pairs(mobileControls) do
+        if btn then btn.Visible = show end
+    end
+end
+
+if isMobile then
+    -- Criar botões de movimento na tela (apenas quando fly estiver ativo)
+    local function createMobileButton(text, position, callbackStart, callbackEnd)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 70, 0, 70)
+        btn.Position = position
+        btn.Text = text
+        btn.TextSize = 20
+        btn.Font = Enum.Font.GothamBold
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        btn.BackgroundTransparency = 0.3
+        btn.Visible = false
+        btn.Parent = gui
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 35)
+        
+        btn.MouseButton1Down:Connect(callbackStart)
+        btn.MouseButton1Up:Connect(callbackEnd)
+        btn.MouseLeave:Connect(callbackEnd)
+        
+        table.insert(mobileControls, btn)
+        return btn
+    end
+    
+    -- Botões de direção
+    local upBtn = createMobileButton("↑", UDim2.new(0.5, -35, 1, -150), function() moveForward = true end, function() moveForward = false end)
+    local downBtn = createMobileButton("↓", UDim2.new(0.5, -35, 1, -70), function() moveBack = true end, function() moveBack = false end)
+    local leftBtn = createMobileButton("←", UDim2.new(0.5, -110, 1, -110), function() moveLeft = true end, function() moveLeft = false end)
+    local rightBtn = createMobileButton("→", UDim2.new(0.5, 40, 1, -110), function() moveRight = true end, function() moveRight = false end)
+    
+    -- Botões de altura
+    local upHeightBtn = createMobileButton("⬆️", UDim2.new(1, -90, 1, -150), function() moveUp = true end, function() moveUp = false end)
+    local downHeightBtn = createMobileButton("⬇️", UDim2.new(1, -90, 1, -70), function() moveDown = true end, function() moveDown = false end)
+    
+    -- Ajustar textos
+    upBtn.Text = "⬆️"
+    downBtn.Text = "⬇️"
+    leftBtn.Text = "⬅️"
+    rightBtn.Text = "➡️"
+    upHeightBtn.Text = "🔼"
+    downHeightBtn.Text = "🔽"
+    
+    upHeightBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+    downHeightBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 0)
+end
 
 -- Open/Close
 openBtn.MouseButton1Click:Connect(function()
@@ -464,7 +623,7 @@ end
 if settings.fly then startFly() end
 if settings.noclip then setNoclip(true) end
 
--- PVP Functions
+-- PVP Functions (mesmas de antes)
 RunService.RenderStepped:Connect(function()
     if settings.auto and player.Character and not settings.fly then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
@@ -594,4 +753,10 @@ end)
 
 player.CharacterRemoving:Connect(stopFly)
 
-print("✅ Script Loaded! Press Z to open menu")
+print("✅ Script Loaded! Modo: " .. (isMobile and "CELULAR" or "PC"))
+print("📌 Press Z / Tap MENU to open")
+if isMobile then
+    print("🕊️ When Fly is ON, control buttons will appear on screen!")
+else
+    print("🕊️ Use W/A/S/D + Space/CTRL to fly!")
+end
