@@ -18,12 +18,12 @@ gui.Name = "ZzzUI"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- CORES (igual imagem)
-local corFundo = Color3.fromRGB(20, 22, 30)
-local corCard = Color3.fromRGB(30, 32, 42)
+-- CORES (preta igual imagem)
+local corFundo = Color3.fromRGB(10, 10, 12)
+local corCard = Color3.fromRGB(18, 18, 22)
 local corAzul = Color3.fromRGB(66, 133, 244)
 local corTextoBranco = Color3.fromRGB(255, 255, 255)
-local corTextoClaro = Color3.fromRGB(180, 185, 200)
+local corTextoClaro = Color3.fromRGB(170, 170, 180)
 local corDourado = Color3.fromRGB(255, 200, 100)
 local corVerde = Color3.fromRGB(80, 200, 80)
 
@@ -69,16 +69,16 @@ comerciante.TextColor3 = corTextoBranco
 comerciante.BackgroundTransparency = 1
 comerciante.Parent = topo
 
--- Pvp Laboratório
-local pvpLab = Instance.new("TextLabel")
-pvpLab.Size = UDim2.new(1, 0, 0, 22)
-pvpLab.Position = UDim2.new(0, 0, 0, 52)
-pvpLab.Text = "Pvp Laboratório"
-pvpLab.Font = Enum.Font.Gotham
-pvpLab.TextSize = 12
-pvpLab.TextColor3 = corTextoClaro
-pvpLab.BackgroundTransparency = 1
-pvpLab.Parent = topo
+-- Lab Pvp
+local labPvp = Instance.new("TextLabel")
+labPvp.Size = UDim2.new(1, 0, 0, 22)
+labPvp.Position = UDim2.new(0, 0, 0, 52)
+labPvp.Text = "Lab Pvp"
+labPvp.Font = Enum.Font.Gotham
+labPvp.TextSize = 12
+labPvp.TextColor3 = corTextoClaro
+labPvp.BackgroundTransparency = 1
+labPvp.Parent = topo
 
 -- Botão fechar
 local fechar = Instance.new("TextButton")
@@ -133,8 +133,8 @@ scroll.ScrollBarThickness = 4
 scroll.ScrollBarImageColor3 = corAzul
 scroll.Parent = menu
 
--- ========== FUNÇÃO CRIAR CARD COM TOGGLE ==========
-local function criarCard(icone, texto, y)
+-- ========== FUNÇÃO CRIAR CARD COM TOGGLE DESLIZANTE ==========
+local function criarToggle(icone, texto, y)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 52)
     card.Position = UDim2.new(0, 0, 0, y)
@@ -163,30 +163,22 @@ local function criarCard(icone, texto, y)
     textoLab.TextXAlignment = Enum.TextXAlignment.Left
     textoLab.Parent = card
     
+    -- Botão toggle deslizante (sem texto OFF/ON)
     local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 48, 0, 24)
-    toggle.Position = UDim2.new(1, -58, 0.5, -12)
+    toggle.Size = UDim2.new(0, 50, 0, 26)
+    toggle.Position = UDim2.new(1, -60, 0.5, -13)
     toggle.Text = ""
-    toggle.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
+    toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
     toggle.Parent = card
     Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
     
+    -- Bolinha que desliza
     local bola = Instance.new("Frame")
-    bola.Size = UDim2.new(0, 18, 0, 18)
-    bola.Position = UDim2.new(0, 4, 0.5, -9)
-    bola.BackgroundColor3 = corTextoBranco
+    bola.Size = UDim2.new(0, 22, 0, 22)
+    bola.Position = UDim2.new(0, 3, 0.5, -11)
+    bola.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
     bola.Parent = toggle
     Instance.new("UICorner", bola).CornerRadius = UDim.new(1, 0)
-    
-    local status = Instance.new("TextLabel")
-    status.Size = UDim2.new(0, 32, 0, 16)
-    status.Position = UDim2.new(1, -105, 0.5, -8)
-    status.Text = "OFF"
-    status.Font = Enum.Font.GothamBold
-    status.TextSize = 8
-    status.TextColor3 = Color3.fromRGB(255, 80, 80)
-    status.BackgroundTransparency = 1
-    status.Parent = card
     
     local ativo = false
     local callback = nil
@@ -195,20 +187,26 @@ local function criarCard(icone, texto, y)
         ativo = not ativo
         if ativo then
             toggle.BackgroundColor3 = corAzul
-            bola.Position = UDim2.new(1, -22, 0.5, -9)
-            status.Text = "ON"
-            status.TextColor3 = Color3.fromRGB(80, 255, 80)
+            bola.Position = UDim2.new(1, -25, 0.5, -11)
         else
-            toggle.BackgroundColor3 = Color3.fromRGB(55, 58, 70)
-            bola.Position = UDim2.new(0, 4, 0.5, -9)
-            status.Text = "OFF"
-            status.TextColor3 = Color3.fromRGB(255, 80, 80)
+            toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            bola.Position = UDim2.new(0, 3, 0.5, -11)
         end
         if callback then callback(ativo) end
     end)
     
     return {
-        onToggle = function(cb) callback = cb end
+        onToggle = function(cb) callback = cb end,
+        setAtivo = function(val)
+            ativo = val
+            if ativo then
+                toggle.BackgroundColor3 = corAzul
+                bola.Position = UDim2.new(1, -25, 0.5, -11)
+            else
+                toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+                bola.Position = UDim2.new(0, 3, 0.5, -11)
+            end
+        end
     }
 end
 
@@ -216,23 +214,23 @@ end
 local y = 10
 
 -- Auto Attack
-local autoAttack = criarCard("⚔️", "Auto Attack", y)
+local autoAttack = criarToggle("⚔️", "Auto Attack", y)
 y = y + 58
 
 -- ESP
-local esp = criarCard("👁️", "ESP", y)
+local esp = criarToggle("👁️", "ESP", y)
 y = y + 58
 
 -- Spin Bot
-local spinBot = criarCard("🌀", "Spin Bot", y)
+local spinBot = criarToggle("🌀", "Spin Bot", y)
 y = y + 58
 
 -- Super Jump
-local superJump = criarCard("🦘", "Super Jump", y)
+local superJump = criarToggle("🦘", "Super Jump", y)
 y = y + 58
 
 -- Auto Hit
-local autoHit = criarCard("👊", "Auto Hit", y)
+local autoHit = criarToggle("👊", "Auto Hit", y)
 y = y + 65
 
 -- ========== INFORMAÇÕES ==========
@@ -674,6 +672,6 @@ fechar.MouseButton1Click:Connect(function()
 end)
 
 print("✅ Zzz V1 Carregado!")
-print("📌 Interface igual à imagem COMERCIANTE")
+print("📌 Interface preta igual à imagem")
 print("📜 Use scroll para ver todas as opções")
-print("📁 Abas: Main | Credits")
+print("🔘 Toggles deslizantes (esquerda OFF / direita ON)")
