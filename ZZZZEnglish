@@ -19,34 +19,53 @@ local settings = {
 -- Save key
 local SAVE_KEY = "PvpLab_Saves"
 
--- Auto Sell List - All brainrot names
-local autoSellList = {
-    -- COMMON
-    "Noobini Pizzanini", "Lirili Larila", "Fluri Flura", "Cacto Hipopotamo",
-    "Pipi Potato", "Tric Trac Barabum", "Burbaloni Loliloli",
-    -- UNCOMMON
-    "Boneca Ambalabu", "Trippi Troppi", "Svinina Bombardino", "Bambini Crostini",
-    "Avocadini Guffo", "Bandito Bobrito", "Tatatata Sahur",
-    -- RARE
-    "Gangster Footera", "Tung Tung Sahur", "Cappuccino Assasino", "Pipi Kiwi",
-    "Orangutini Ananassini", "Talpa Di Fero", "Espresso Signora",
-    -- EPIC
-    "Brr Brr Patapim", "Rhino Toasterino", "Brr Bicus Dicus", "Strawberelli Flamingelli",
-    "Bananito Delfinito", "Balerina Cappucina", "Glorbo Fruttodrillo",
-    -- LEGENDARY
-    "Blueberrinni Octopusini", "Chimpanzini Bananini", "Bombardiro Crocodilo",
-    "Elefanto Cocofanto", "Bombombini Gusini", "Pandaccini Bananini", "Chef Crabracadabra",
-    -- MYTHIC
-    "Gorillo Watermelondrillo", "Frigo Camelo", "Girafa Celestre", "Ganganzelli Trulala",
-    "Tigroligre Frutonni", "Matteo", "Cavallo Virtuoso",
-    -- SECRET
-    "La Vacca Saturno Saturnita", "Esok Sekolah", "Tralaledon", "Tralalero Tralala",
-    "Chicleteira Bicicleteira", "Tortugini Dragonfrutini", "Nuclearo Dinossauro",
-    "Quesadilla Crocodila", "Caramelini Brasilini", "Penguino Cocosini", "Cupcake Koala",
-    "Cookie And Milk", "Capitano Mob", "Garama and Madundung", "Lucky Block",
-    -- STELLAR
-    "Elefanto Geladerino", "Meowl", "Smurf Cat", "Capitão Clash Warnini", "Strawberry Elephant"
+-- Auto Sell List - All brainrot names (organizados por categoria)
+local autoSellCategories = {
+    COMMON = {
+        "Noobini Pizzanini", "Lirili Larila", "Fluri Flura", "Cacto Hipopotamo",
+        "Pipi Potato", "Tric Trac Barabum", "Burbaloni Loliloli"
+    },
+    UNCOMMON = {
+        "Boneca Ambalabu", "Trippi Troppi", "Svinina Bombardino", "Bambini Crostini",
+        "Avocadini Guffo", "Bandito Bobrito", "Tatatata Sahur"
+    },
+    RARE = {
+        "Gangster Footera", "Tung Tung Sahur", "Cappuccino Assasino", "Pipi Kiwi",
+        "Orangutini Ananassini", "Talpa Di Fero", "Espresso Signora"
+    },
+    EPIC = {
+        "Brr Brr Patapim", "Rhino Toasterino", "Brr Bicus Dicus", "Strawberelli Flamingelli",
+        "Bananito Delfinito", "Balerina Cappucina", "Glorbo Fruttodrillo"
+    },
+    LEGENDARY = {
+        "Blueberrinni Octopusini", "Chimpanzini Bananini", "Bombardiro Crocodilo",
+        "Elefanto Cocofanto", "Bombombini Gusini", "Pandaccini Bananini", "Chef Crabracadabra"
+    },
+    MYTHIC = {
+        "Gorillo Watermelondrillo", "Frigo Camelo", "Girafa Celestre", "Ganganzelli Trulala",
+        "Tigroligre Frutonni", "Matteo", "Cavallo Virtuoso"
+    },
+    SECRET = {
+        "La Vacca Saturno Saturnita", "Esok Sekolah", "Tralaledon", "Tralalero Tralala",
+        "Chicleteira Bicicleteira", "Tortugini Dragonfrutini", "Nuclearo Dinossauro",
+        "Quesadilla Crocodila", "Caramelini Brasilini", "Penguino Cocosini", "Cupcake Koala",
+        "Cookie And Milk", "Capitano Mob", "Garama and Madundung", "Lucky Block"
+    },
+    STELLAR = {
+        "Elefanto Geladerino", "Meowl", "Smurf Cat", "Capitão Clash Warnini", "Strawberry Elephant"
+    }
 }
+
+-- Flatten all items for selection
+local allItems = {}
+local selectedItems = {}
+
+for category, items in pairs(autoSellCategories) do
+    for _, item in pairs(items) do
+        table.insert(allItems, item)
+        selectedItems[item] = true -- All selected by default
+    end
+end
 
 -- Load settings
 local function loadSettings()
@@ -60,12 +79,28 @@ local function loadSettings()
         settings.hit = string.find(data, '"hit":true') and true or false
         settings.speed = string.find(data, '"speed":true') and true or false
         settings.autoSell = string.find(data, '"autoSell":true') and true or false
+        
+        -- Load selected items
+        local selectedData = string.match(data, '"selectedItems":"(.-)"')
+        if selectedData then
+            for item in string.gmatch(selectedData, "([^,]+)") do
+                selectedItems[item] = true
+            end
+        end
         print("✅ Loaded")
     end
 end
 
 -- Save settings
 local function saveSettings()
+    local selectedStr = ""
+    for item, selected in pairs(selectedItems) do
+        if selected then
+            selectedStr = selectedStr .. item .. ","
+        end
+    end
+    selectedStr = selectedStr:sub(1, -2)
+    
     local json = '{"auto":'..tostring(settings.auto)..
                  ',"esp":'..tostring(settings.esp)..
                  ',"spin":'..tostring(settings.spin)..
@@ -73,7 +108,8 @@ local function saveSettings()
                  ',"jump":'..tostring(settings.jump)..
                  ',"hit":'..tostring(settings.hit)..
                  ',"speed":'..tostring(settings.speed)..
-                 ',"autoSell":'..tostring(settings.autoSell)..'}'
+                 ',"autoSell":'..tostring(settings.autoSell)..
+                 ',"selectedItems":"'..selectedStr..'"}'
     player:SetAttribute(SAVE_KEY, json)
     print("💾 Saved!")
 end
@@ -96,10 +132,10 @@ openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
--- MAIN FRAME - REDUCED SIZE
+-- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,580,0,340)
-frame.Position = UDim2.new(0.5,-290,0.5,-170)
+frame.Size = UDim2.new(0,680,0,480)
+frame.Position = UDim2.new(0.5,-340,0.5,-240)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
@@ -192,11 +228,11 @@ pvpTitle.TextSize = 12
 pvpTitle.TextColor3 = Color3.fromRGB(255,200,0)
 pvpTitle.BackgroundTransparency = 1
 
--- FARM PANEL
+-- FARM PANEL (with scrollable item list)
 local farmPanel = Instance.new("ScrollingFrame", contentPanel)
 farmPanel.Size = UDim2.new(1,0,1,0)
 farmPanel.BackgroundTransparency = 1
-farmPanel.CanvasSize = UDim2.new(0,0,0,150)
+farmPanel.CanvasSize = UDim2.new(0,0,0,600)
 farmPanel.ScrollBarThickness = 4
 farmPanel.Visible = false
 
@@ -217,17 +253,9 @@ creditsPanel.CanvasSize = UDim2.new(0,0,0,280)
 creditsPanel.ScrollBarThickness = 4
 creditsPanel.Visible = false
 
-local creditsTitle = Instance.new("TextLabel", creditsPanel)
-creditsTitle.Size = UDim2.new(1,0,0,25)
-creditsTitle.Position = UDim2.new(0,0,0,5)
-creditsTitle.Text = "CREDITS"
-creditsTitle.Font = Enum.Font.GothamBold
-creditsTitle.TextSize = 12
-creditsTitle.TextColor3 = Color3.fromRGB(255,200,0)
-creditsTitle.BackgroundTransparency = 1
-
--- Store toggles
+-- Store toggles and item buttons
 local toggles = {}
+local itemButtons = {}
 
 -- Function to create a toggle switch
 local function createToggleRow(panel, name, yPos, key)
@@ -285,6 +313,65 @@ local function createToggleRow(panel, name, yPos, key)
     return row
 end
 
+-- Function to create category header
+local function createCategoryHeader(panel, categoryName, yPos)
+    local header = Instance.new("TextLabel", panel)
+    header.Size = UDim2.new(0.96,0,0,25)
+    header.Position = UDim2.new(0.02,0,0,yPos)
+    header.Text = categoryName
+    header.Font = Enum.Font.GothamBold
+    header.TextSize = 11
+    header.TextColor3 = Color3.fromRGB(255,200,0)
+    header.BackgroundTransparency = 1
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    return header
+end
+
+-- Function to create selectable item row
+local function createItemRow(panel, itemName, yPos)
+    local row = Instance.new("Frame", panel)
+    row.Size = UDim2.new(0.96,0,0,28)
+    row.Position = UDim2.new(0.02,0,0,yPos)
+    row.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0,4)
+    
+    local label = Instance.new("TextLabel", row)
+    label.Size = UDim2.new(0.75,0,1,0)
+    label.Position = UDim2.new(0,8,0,0)
+    label.Text = itemName
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 9
+    label.TextColor3 = Color3.new(1,1,1)
+    label.BackgroundTransparency = 1
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local checkBox = Instance.new("TextButton", row)
+    checkBox.Size = UDim2.new(0,20,0,20)
+    checkBox.Position = UDim2.new(1,-28,0.5,-10)
+    checkBox.Text = selectedItems[itemName] and "✓" or ""
+    checkBox.Font = Enum.Font.GothamBold
+    checkBox.TextSize = 12
+    checkBox.TextColor3 = Color3.new(1,1,1)
+    checkBox.BackgroundColor3 = selectedItems[itemName] and Color3.fromRGB(0,170,0) or Color3.fromRGB(80,80,80)
+    Instance.new("UICorner", checkBox).CornerRadius = UDim.new(0,4)
+    
+    checkBox.MouseButton1Click:Connect(function()
+        selectedItems[itemName] = not selectedItems[itemName]
+        if selectedItems[itemName] then
+            checkBox.Text = "✓"
+            checkBox.BackgroundColor3 = Color3.fromRGB(0,170,0)
+        else
+            checkBox.Text = ""
+            checkBox.BackgroundColor3 = Color3.fromRGB(80,80,80)
+        end
+        saveSettings()
+        print("Item " .. itemName .. " is now " .. (selectedItems[itemName] and "selected" or "deselected"))
+    end)
+    
+    itemButtons[itemName] = checkBox
+    return row
+end
+
 -- Create PVP toggles
 createToggleRow(pvpPanel, "Auto Attack", 40, "auto")
 createToggleRow(pvpPanel, "ESP", 85, "esp")
@@ -294,31 +381,86 @@ createToggleRow(pvpPanel, "Super Jump", 220, "jump")
 createToggleRow(pvpPanel, "Auto Hit", 265, "hit")
 createToggleRow(pvpPanel, "Speed", 310, "speed")
 
--- Create FARM toggles
-createToggleRow(farmPanel, "Auto Sell", 45, "autoSell")
+-- Create FARM toggle
+createToggleRow(farmPanel, "Auto Sell (Enable)", 45, "autoSell")
 
--- Auto Sell Info Text
-local sellInfo = Instance.new("TextLabel", farmPanel)
-sellInfo.Size = UDim2.new(0.96,0,0,45)
-sellInfo.Position = UDim2.new(0.02,0,0,95)
-sellInfo.Text = "💰 Auto Sell will automatically sell\nall brainrot items when enabled"
-sellInfo.Font = Enum.Font.Gotham
-sellInfo.TextSize = 9
-sellInfo.TextColor3 = Color3.fromRGB(150,150,150)
-sellInfo.BackgroundTransparency = 1
-sellInfo.TextXAlignment = Enum.TextXAlignment.Left
+-- Create item selection list
+local currentY = 95
+for category, items in pairs(autoSellCategories) do
+    currentY = currentY + 5
+    createCategoryHeader(farmPanel, "=== " .. category .. " ===", currentY)
+    currentY = currentY + 28
+    
+    for _, item in pairs(items) do
+        createItemRow(farmPanel, item, currentY)
+        currentY = currentY + 32
+    end
+end
 
-local sellCount = Instance.new("TextLabel", farmPanel)
-sellCount.Size = UDim2.new(0.96,0,0,20)
-sellCount.Position = UDim2.new(0.02,0,0,145)
-sellCount.Text = "Items in list: " .. #autoSellList
-sellCount.Font = Enum.Font.Gotham
-sellCount.TextSize = 9
-sellCount.TextColor3 = Color3.fromRGB(100,200,100)
-sellCount.BackgroundTransparency = 1
-sellCount.TextXAlignment = Enum.TextXAlignment.Left
+-- Buttons for Select All / Deselect All
+local buttonRow = Instance.new("Frame", farmPanel)
+buttonRow.Size = UDim2.new(0.96,0,0,35)
+buttonRow.Position = UDim2.new(0.02,0,0,currentY)
+buttonRow.BackgroundColor3 = Color3.fromRGB(35,35,35)
+Instance.new("UICorner", buttonRow).CornerRadius = UDim.new(0,6)
+
+local selectAllBtn = Instance.new("TextButton", buttonRow)
+selectAllBtn.Size = UDim2.new(0.48,0,1,0)
+selectAllBtn.Position = UDim2.new(0,5,0,0)
+selectAllBtn.Text = "SELECT ALL"
+selectAllBtn.Font = Enum.Font.GothamBold
+selectAllBtn.TextSize = 10
+selectAllBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
+selectAllBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", selectAllBtn).CornerRadius = UDim.new(0,4)
+
+local deselectAllBtn = Instance.new("TextButton", buttonRow)
+deselectAllBtn.Size = UDim2.new(0.48,0,1,0)
+deselectAllBtn.Position = UDim2.new(0.52,0,0,0)
+deselectAllBtn.Text = "DESELECT ALL"
+deselectAllBtn.Font = Enum.Font.GothamBold
+deselectAllBtn.TextSize = 10
+deselectAllBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
+deselectAllBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", deselectAllBtn).CornerRadius = UDim.new(0,4)
+
+selectAllBtn.MouseButton1Click:Connect(function()
+    for item, _ in pairs(selectedItems) do
+        selectedItems[item] = true
+        if itemButtons[item] then
+            itemButtons[item].Text = "✓"
+            itemButtons[item].BackgroundColor3 = Color3.fromRGB(0,170,0)
+        end
+    end
+    saveSettings()
+    print("All items selected")
+end)
+
+deselectAllBtn.MouseButton1Click:Connect(function()
+    for item, _ in pairs(selectedItems) do
+        selectedItems[item] = false
+        if itemButtons[item] then
+            itemButtons[item].Text = ""
+            itemButtons[item].BackgroundColor3 = Color3.fromRGB(80,80,80)
+        end
+    end
+    saveSettings()
+    print("All items deselected")
+end)
+
+currentY = currentY + 45
+farmPanel.CanvasSize = UDim2.new(0,0,0,currentY + 20)
 
 -- CREDITS CONTENT
+local creditsTitle = Instance.new("TextLabel", creditsPanel)
+creditsTitle.Size = UDim2.new(1,0,0,25)
+creditsTitle.Position = UDim2.new(0,0,0,5)
+creditsTitle.Text = "CREDITS"
+creditsTitle.Font = Enum.Font.GothamBold
+creditsTitle.TextSize = 12
+creditsTitle.TextColor3 = Color3.fromRGB(255,200,0)
+creditsTitle.BackgroundTransparency = 1
+
 local dev1Card = Instance.new("Frame", creditsPanel)
 dev1Card.Size = UDim2.new(0.96,0,0,55)
 dev1Card.Position = UDim2.new(0.02,0,0,40)
@@ -400,7 +542,7 @@ end)
 local versionLabel = Instance.new("TextLabel", creditsPanel)
 versionLabel.Size = UDim2.new(1,0,0,18)
 versionLabel.Position = UDim2.new(0,0,0,220)
-versionLabel.Text = "Version 2.0 | Premium Script"
+versionLabel.Text = "Version 2.1 | Premium Script"
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextSize = 8
 versionLabel.TextColor3 = Color3.fromRGB(150,150,150)
@@ -414,6 +556,8 @@ thanksLabel.Font = Enum.Font.Gotham
 thanksLabel.TextSize = 8
 thanksLabel.TextColor3 = Color3.fromRGB(200,200,200)
 thanksLabel.BackgroundTransparency = 1
+
+creditsPanel.CanvasSize = UDim2.new(0,0,0,270)
 
 -- Tab switching
 pvpTab.MouseButton1Click:Connect(function()
@@ -467,15 +611,28 @@ for key, toggle in pairs(toggles) do
     end
 end
 
--- AUTO SELL FUNCTION
+-- Update item checkboxes after loading
+for item, selected in pairs(selectedItems) do
+    if itemButtons[item] then
+        if selected then
+            itemButtons[item].Text = "✓"
+            itemButtons[item].BackgroundColor3 = Color3.fromRGB(0,170,0)
+        else
+            itemButtons[item].Text = ""
+            itemButtons[item].BackgroundColor3 = Color3.fromRGB(80,80,80)
+        end
+    end
+end
+
+-- AUTO SELL FUNCTION (only sells selected items)
 local function autoSell()
     if not settings.autoSell then return end
     
     for _, item in pairs(workspace:GetDescendants()) do
         if item:IsA("Model") or item:IsA("Part") or item:IsA("Tool") then
             local itemName = item.Name
-            for _, sellName in pairs(autoSellList) do
-                if string.find(itemName, sellName) or string.find(sellName, itemName) then
+            for sellName, selected in pairs(selectedItems) do
+                if selected and (string.find(itemName, sellName) or string.find(sellName, itemName)) then
                     pcall(function()
                         if item:IsA("Tool") then
                             item:Destroy()
@@ -491,8 +648,8 @@ local function autoSell()
     
     if player.Backpack then
         for _, tool in pairs(player.Backpack:GetChildren()) do
-            for _, sellName in pairs(autoSellList) do
-                if string.find(tool.Name, sellName) or string.find(sellName, tool.Name) then
+            for sellName, selected in pairs(selectedItems) do
+                if selected and (string.find(tool.Name, sellName) or string.find(sellName, tool.Name)) then
                     pcall(function()
                         tool:Destroy()
                         print("💰 Auto Sold from Backpack: " .. tool.Name)
@@ -505,8 +662,8 @@ local function autoSell()
     if player.Character then
         for _, tool in pairs(player.Character:GetChildren()) do
             if tool:IsA("Tool") then
-                for _, sellName in pairs(autoSellList) do
-                    if string.find(tool.Name, sellName) or string.find(sellName, tool.Name) then
+                for sellName, selected in pairs(selectedItems) do
+                    if selected and (string.find(tool.Name, sellName) or string.find(sellName, tool.Name)) then
                         pcall(function()
                             tool:Destroy()
                             print("💰 Auto Sold from Character: " .. tool.Name)
@@ -526,8 +683,7 @@ spawn(function()
     end
 end)
 
--- PVP FUNCTIONS
-
+-- PVP FUNCTIONS (same as before)
 -- Auto Attack
 RunService.RenderStepped:Connect(function()
     if settings.auto and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -601,82 +757,4 @@ spawn(function()
     end
 end)
 
-player.CharacterAdded:Connect(function()
-    task.wait(0.2)
-    setSpeed()
-end)
-
--- Spin Bot
-RunService.RenderStepped:Connect(function()
-    if settings.spin and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(25), 0)
-    end
-end)
-
--- Reset Player
-local resetCooldown = false
-RunService.RenderStepped:Connect(function()
-    if settings.resetP and not resetCooldown then
-        resetCooldown = true
-        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-            player.Character:FindFirstChildOfClass("Humanoid").Health = 0
-        end
-        task.wait(1)
-        resetCooldown = false
-    end
-end)
-
--- Super Jump
-local jumpTime = 0
-UserInputService.InputBegan:Connect(function(input, processed)
-    if processed then return end
-    if settings.jump and input.KeyCode == Enum.KeyCode.Space then
-        local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-        if hum and tick() - jumpTime > 0.1 then
-            jumpTime = tick()
-            hum:ChangeState(Enum.HumanoidStateType.Jumping)
-            hum.JumpPower = 120
-        end
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if player.Character then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.JumpPower = settings.jump and 120 or 50
-        end
-    end
-end)
-
--- ESP
-RunService.RenderStepped:Connect(function()
-    if settings.esp then
-        for _, v in pairs(Players:GetPlayers()) do
-            if v ~= player and v.Character then
-                if not v.Character:FindFirstChild("ESP_Box") then
-                    local box = Instance.new("BoxHandleAdornment")
-                    box.Name = "ESP_Box"
-                    box.Size = Vector3.new(4, 5, 4)
-                    box.Color3 = Color3.fromRGB(255,0,0)
-                    box.AlwaysOnTop = true
-                    box.ZIndex = 10
-                    box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
-                    box.Parent = v.Character
-                end
-            end
-        end
-    else
-        for _, v in pairs(Players:GetPlayers()) do
-            if v.Character then
-                local box = v.Character:FindFirstChild("ESP_Box")
-                if box then box:Destroy() end
-            end
-        end
-    end
-end)
-
-print("✅ Script Loaded!")
-print("📁 Tabs: PVP | FARM | CREDITS")
-print("💰 Auto Sell in FARM tab - sells all brainrot items automatically!")
-print("📌 Press Z to open menu")
+player.CharacterAdded:Connect
