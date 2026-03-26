@@ -22,7 +22,6 @@ local SAVE_KEY = "PvpLab_Saves"
 local function loadSettings()
     local data = player:GetAttribute(SAVE_KEY)
     if data then
-        -- Parse manually
         settings.auto = string.find(data, '"auto":true') and true or false
         settings.esp = string.find(data, '"esp":true') and true or false
         settings.spin = string.find(data, '"spin":true') and true or false
@@ -53,7 +52,7 @@ gui.Name = "PvpLab"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- Button to open
+-- Z BUTTON
 local openBtn = Instance.new("TextButton", gui)
 openBtn.Size = UDim2.new(0,50,0,50)
 openBtn.Position = UDim2.new(0,15,0.5,0)
@@ -65,26 +64,33 @@ openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Draggable = true
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,10)
 
--- Main frame
+-- MAIN FRAME - LANDSCAPE MODE (Wider)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,280,0,400)
-frame.Position = UDim2.new(0.5,-140,0.5,-200)
+frame.Size = UDim2.new(0,600,0,350)
+frame.Position = UDim2.new(0.5,-300,0.5,-175)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Visible = false
 frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
--- Title
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,40)
+-- TITLE BAR
+local titleBar = Instance.new("Frame", frame)
+titleBar.Size = UDim2.new(1,0,0,40)
+titleBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
+titleBar.BackgroundTransparency = 0
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0,12)
+
+local title = Instance.new("TextLabel", titleBar)
+title.Size = UDim2.new(1,-40,1,0)
+title.Position = UDim2.new(0,10,0,0)
 title.Text = "PVP LAB"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
+title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Close button
-local closeBtn = Instance.new("TextButton", frame)
+local closeBtn = Instance.new("TextButton", titleBar)
 closeBtn.Size = UDim2.new(0,30,0,30)
 closeBtn.Position = UDim2.new(1,-35,0,5)
 closeBtn.Text = "X"
@@ -92,106 +98,47 @@ closeBtn.BackgroundTransparency = 1
 closeBtn.TextColor3 = Color3.new(1,1,1)
 closeBtn.TextSize = 18
 
--- Scroll frame for buttons
-local scroll = Instance.new("ScrollingFrame", frame)
-scroll.Size = UDim2.new(1,0,1,-50)
-scroll.Position = UDim2.new(0,0,0,45)
-scroll.BackgroundTransparency = 1
-scroll.CanvasSize = UDim2.new(0,0,0,350)
-scroll.ScrollBarThickness = 5
-
--- Store buttons
-local buttons = {}
-
--- Function to create toggle button
-local function createToggle(text, y, key)
-    local btn = Instance.new("TextButton", scroll)
-    btn.Size = UDim2.new(0.9,0,0,40)
-    btn.Position = UDim2.new(0.05,0,0,y)
-    btn.Text = text .. " [OFF]"
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 14
-    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-    btn.TextColor3 = Color3.new(1,1,1)
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
-    
-    -- Update text based on setting
-    local function updateButton()
-        if settings[key] then
-            btn.Text = text .. " [ON]"
-            btn.BackgroundColor3 = Color3.fromRGB(0,150,0)
-        else
-            btn.Text = text .. " [OFF]"
-            btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-        end
-    end
-    
-    updateButton()
-    
-    btn.MouseButton1Click:Connect(function()
-        settings[key] = not settings[key]
-        updateButton()
-        saveSettings()
-        print(text .. " is now " .. tostring(settings[key]))
-    end)
-    
-    buttons[key] = btn
-    return btn
-end
-
--- Create all buttons
-createToggle("Auto Attack", 10, "auto")
-createToggle("ESP", 60, "esp")
-createToggle("Spin Bot", 110, "spin")
-createToggle("Reset Player", 160, "resetP")
-createToggle("Super Jump", 210, "jump")
-createToggle("Auto Hit", 260, "hit")
-createToggle("Speed", 310, "speed")
-
--- Credits tab button
-local creditsBtn = Instance.new("TextButton", frame)
-creditsBtn.Size = UDim2.new(0.4,0,0,30)
-creditsBtn.Position = UDim2.new(0.55,0,0,5)
-creditsBtn.Text = "CREDITS"
-creditsBtn.Font = Enum.Font.GothamBold
-creditsBtn.TextSize = 12
-creditsBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
-creditsBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", creditsBtn).CornerRadius = UDim.new(0,6)
-
--- Credits frame
-local creditsFrame = Instance.new("Frame", frame)
-creditsFrame.Size = UDim2.new(1,0,1,-50)
-creditsFrame.Position = UDim2.new(0,0,0,45)
-creditsFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-creditsFrame.Visible = false
-Instance.new("UICorner", creditsFrame).CornerRadius = UDim.new(0,8)
+-- LEFT PANEL (CREDITS)
+local leftPanel = Instance.new("Frame", frame)
+leftPanel.Size = UDim2.new(0,180,1,-40)
+leftPanel.Position = UDim2.new(0,0,0,40)
+leftPanel.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Instance.new("UICorner", leftPanel).CornerRadius = UDim.new(0,0)
 
 -- Credits content
-local dev1 = Instance.new("TextLabel", creditsFrame)
-dev1.Size = UDim2.new(1,0,0,40)
-dev1.Position = UDim2.new(0,0,0,20)
+local creditsTitle = Instance.new("TextLabel", leftPanel)
+creditsTitle.Size = UDim2.new(1,0,0,35)
+creditsTitle.Position = UDim2.new(0,0,0,10)
+creditsTitle.Text = "👥 DEVELOPERS"
+creditsTitle.Font = Enum.Font.GothamBold
+creditsTitle.TextSize = 14
+creditsTitle.TextColor3 = Color3.fromRGB(255,215,0)
+creditsTitle.BackgroundTransparency = 1
+
+local dev1 = Instance.new("TextLabel", leftPanel)
+dev1.Size = UDim2.new(1,0,0,50)
+dev1.Position = UDim2.new(0,0,0,50)
 dev1.Text = "⭐ ZZZ\nLead Developer"
 dev1.Font = Enum.Font.GothamBold
 dev1.TextSize = 12
 dev1.TextColor3 = Color3.new(1,1,1)
 dev1.BackgroundTransparency = 1
 
-local dev2 = Instance.new("TextLabel", creditsFrame)
-dev2.Size = UDim2.new(1,0,0,40)
-dev2.Position = UDim2.new(0,0,0,70)
+local dev2 = Instance.new("TextLabel", leftPanel)
+dev2.Size = UDim2.new(1,0,0,50)
+dev2.Position = UDim2.new(0,0,0,105)
 dev2.Text = "⚡ mathyas\nCo-Developer"
 dev2.Font = Enum.Font.GothamBold
 dev2.TextSize = 12
 dev2.TextColor3 = Color3.new(1,1,1)
 dev2.BackgroundTransparency = 1
 
-local discordBtn = Instance.new("TextButton", creditsFrame)
-discordBtn.Size = UDim2.new(0.8,0,0,50)
-discordBtn.Position = UDim2.new(0.1,0,0,130)
-discordBtn.Text = "💬 JOIN DISCORD\nclick to copy link"
+local discordBtn = Instance.new("TextButton", leftPanel)
+discordBtn.Size = UDim2.new(0.85,0,0,55)
+discordBtn.Position = UDim2.new(0.075,0,0,165)
+discordBtn.Text = "💬 JOIN DISCORD\nClick to copy"
 discordBtn.Font = Enum.Font.GothamBold
-discordBtn.TextSize = 12
+discordBtn.TextSize = 11
 discordBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
 discordBtn.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", discordBtn).CornerRadius = UDim.new(0,8)
@@ -212,37 +159,140 @@ discordBtn.MouseButton1Click:Connect(function()
     notif:Destroy()
 end)
 
-local version = Instance.new("TextLabel", creditsFrame)
-version.Size = UDim2.new(1,0,0,30)
-version.Position = UDim2.new(0,0,0,200)
+local version = Instance.new("TextLabel", leftPanel)
+version.Size = UDim2.new(1,0,0,25)
+version.Position = UDim2.new(0,0,0,230)
 version.Text = "📌 Version 2.0"
 version.Font = Enum.Font.Gotham
 version.TextSize = 10
 version.TextColor3 = Color3.fromRGB(150,150,150)
 version.BackgroundTransparency = 1
 
-local thanks = Instance.new("TextLabel", creditsFrame)
-thanks.Size = UDim2.new(1,0,0,30)
-thanks.Position = UDim2.new(0,0,0,230)
+local thanks = Instance.new("TextLabel", leftPanel)
+thanks.Size = UDim2.new(1,0,0,25)
+thanks.Position = UDim2.new(0,0,0,255)
 thanks.Text = "❤️ Thanks for using!"
 thanks.Font = Enum.Font.Gotham
 thanks.TextSize = 10
 thanks.TextColor3 = Color3.fromRGB(200,200,200)
 thanks.BackgroundTransparency = 1
 
--- Tab switching
-local showingCredits = false
-creditsBtn.MouseButton1Click:Connect(function()
-    showingCredits = not showingCredits
-    scroll.Visible = not showingCredits
-    creditsFrame.Visible = showingCredits
-    if showingCredits then
-        creditsBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+-- RIGHT PANEL (FUNCTIONS)
+local rightPanel = Instance.new("Frame", frame)
+rightPanel.Size = UDim2.new(1,-190,1,-40)
+rightPanel.Position = UDim2.new(0,185,0,40)
+rightPanel.BackgroundColor3 = Color3.fromRGB(20,20,20)
+rightPanel.BackgroundTransparency = 1
+
+-- Functions title
+local functionsTitle = Instance.new("TextLabel", rightPanel)
+functionsTitle.Size = UDim2.new(1,0,0,35)
+functionsTitle.Position = UDim2.new(0,0,0,5)
+functionsTitle.Text = "⚙️ FUNCTIONS"
+functionsTitle.Font = Enum.Font.GothamBold
+functionsTitle.TextSize = 14
+functionsTitle.TextColor3 = Color3.fromRGB(255,215,0)
+functionsTitle.BackgroundTransparency = 1
+
+-- Store buttons
+local buttons = {}
+
+-- Function to create toggle button
+local function createToggle(text, row, col)
+    local btn = Instance.new("TextButton", rightPanel)
+    btn.Size = UDim2.new(0.45,0,0,45)
+    btn.Position = UDim2.new(col == 1 and 0.025 or 0.525, 0, 0, 45 + (row * 55))
+    btn.Text = text .. " [OFF]"
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 13
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+    return btn
+end
+
+-- Create buttons in grid layout (no scrolling needed)
+local autoBtn = createToggle("Auto Attack", 0, 1)
+local espBtn = createToggle("ESP", 0, 2)
+local spinBtn = createToggle("Spin Bot", 1, 1)
+local resetBtn = createToggle("Reset Player", 1, 2)
+local jumpBtn = createToggle("Super Jump", 2, 1)
+local hitBtn = createToggle("Auto Hit", 2, 2)
+local speedBtn = createToggle("Speed", 3, 1)
+
+-- Store buttons with their keys
+buttons["auto"] = autoBtn
+buttons["esp"] = espBtn
+buttons["spin"] = spinBtn
+buttons["resetP"] = resetBtn
+buttons["jump"] = jumpBtn
+buttons["hit"] = hitBtn
+buttons["speed"] = speedBtn
+
+-- Update button appearance function
+local function updateButton(btn, key)
+    if settings[key] then
+        btn.Text = btn.Text:gsub("%[OFF%]", "[ON]")
+        btn.Text = btn.Text:gsub("%[ON%]", "[ON]")
+        btn.BackgroundColor3 = Color3.fromRGB(0,150,0)
     else
-        creditsBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
+        btn.Text = btn.Text:gsub("%[ON%]", "[OFF]")
+        btn.Text = btn.Text:gsub("%[OFF%]", "[OFF]")
+        btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
     end
+end
+
+-- Connect button clicks
+autoBtn.MouseButton1Click:Connect(function()
+    settings.auto = not settings.auto
+    updateButton(autoBtn, "auto")
+    saveSettings()
+    print("Auto Attack is now " .. tostring(settings.auto))
 end)
 
+espBtn.MouseButton1Click:Connect(function()
+    settings.esp = not settings.esp
+    updateButton(espBtn, "esp")
+    saveSettings()
+    print("ESP is now " .. tostring(settings.esp))
+end)
+
+spinBtn.MouseButton1Click:Connect(function()
+    settings.spin = not settings.spin
+    updateButton(spinBtn, "spin")
+    saveSettings()
+    print("Spin Bot is now " .. tostring(settings.spin))
+end)
+
+resetBtn.MouseButton1Click:Connect(function()
+    settings.resetP = not settings.resetP
+    updateButton(resetBtn, "resetP")
+    saveSettings()
+    print("Reset Player is now " .. tostring(settings.resetP))
+end)
+
+jumpBtn.MouseButton1Click:Connect(function()
+    settings.jump = not settings.jump
+    updateButton(jumpBtn, "jump")
+    saveSettings()
+    print("Super Jump is now " .. tostring(settings.jump))
+end)
+
+hitBtn.MouseButton1Click:Connect(function()
+    settings.hit = not settings.hit
+    updateButton(hitBtn, "hit")
+    saveSettings()
+    print("Auto Hit is now " .. tostring(settings.hit))
+end)
+
+speedBtn.MouseButton1Click:Connect(function()
+    settings.speed = not settings.speed
+    updateButton(speedBtn, "speed")
+    saveSettings()
+    print("Speed is now " .. tostring(settings.speed))
+end)
+
+-- Open/Close
 openBtn.MouseButton1Click:Connect(function()
     frame.Visible = not frame.Visible
 end)
@@ -257,15 +307,7 @@ loadSettings()
 -- Update all buttons after loading
 task.wait(0.5)
 for key, btn in pairs(buttons) do
-    if settings[key] then
-        btn.Text = btn.Text:gsub("%[OFF%]", "[ON]")
-        btn.Text = btn.Text:gsub("%[ON%]", "[ON]")
-        btn.BackgroundColor3 = Color3.fromRGB(0,150,0)
-    else
-        btn.Text = btn.Text:gsub("%[ON%]", "[OFF]")
-        btn.Text = btn.Text:gsub("%[OFF%]", "[OFF]")
-        btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-    end
+    updateButton(btn, key)
 end
 
 -- FUNCTIONS
@@ -418,6 +460,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ Script loaded!")
+print("✅ Script loaded - Landscape Mode!")
 print("💾 Settings auto-save when you click buttons!")
 print("📌 Press Z to open menu")
+print("🎨 Credits on left, Functions on right")
