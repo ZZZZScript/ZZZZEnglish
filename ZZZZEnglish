@@ -1,13 +1,10 @@
--- ========== TESTE DE DIAGNÓSTICO ==========
+-- TESTE APENAS HTTP (SEM GUI COMPLEXA)
+print("Teste HTTP iniciado!")
+
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
-print("=== TESTE 1: Aguardando PlayerGui ===")
-local playerGui = player:WaitForChild("PlayerGui", 5)
-print("✅ PlayerGui carregado!")
-
-print("=== TESTE 2: Fazendo requisição HTTP ===")
 local url = "https://discord-node-bot--joaolmadureira2.replit.app/check?id=" .. player.UserId
 print("URL: " .. url)
 
@@ -16,78 +13,38 @@ local success, response = pcall(function()
 end)
 
 if success then
-    print("✅ HTTP Request funcionou!")
-    print("📥 Resposta recebida: " .. tostring(response))
+    print("HTTP Funcionou! Resposta: " .. response)
     
-    print("=== TESTE 3: Decodificando JSON ===")
-    local success2, data = pcall(function()
-        return HttpService:JSONDecode(response)
-    end)
+    local data = HttpService:JSONDecode(response)
+    print("Access: " .. tostring(data.access))
     
-    if success2 then
-        print("✅ JSON decodificado!")
-        print("📊 Dados: " .. tostring(data))
+    if data.access then
+        print("ACESSO LIBERADO!")
         
-        if data.access then
-            print("🔓 ACESSO LIBERADO! Vamos carregar o script...")
-            
-            -- ========== SCRIPT SIMPLES PARA TESTAR ==========
-            local gui = Instance.new("ScreenGui")
-            gui.Name = "TestGUI"
-            gui.Parent = playerGui
-            
-            local frame = Instance.new("Frame")
-            frame.Size = UDim2.new(0, 300, 0, 200)
-            frame.Position = UDim2.new(0.5, -150, 0.5, -100)
-            frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-            frame.Parent = gui
-            Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-            
-            local text = Instance.new("TextLabel")
-            text.Size = UDim2.new(1, 0, 1, 0)
-            text.Text = "✅ ACESSO LIBERADO!\n\nUsuário: " .. player.Name .. "\n\nClique no botão Z para abrir o menu"
-            text.TextColor3 = Color3.fromRGB(255, 255, 255)
-            text.BackgroundTransparency = 1
-            text.TextWrapped = true
-            text.Font = Enum.Font.Gotham
-            text.TextSize = 14
-            text.Parent = frame
-            
-            -- Botão Z
-            local botaoZ = Instance.new("TextButton")
-            botaoZ.Size = UDim2.new(0, 50, 0, 50)
-            botaoZ.Position = UDim2.new(1, -60, 0.5, -25)
-            botaoZ.BackgroundColor3 = Color3.fromRGB(80, 70, 180)
-            botaoZ.Text = "Z"
-            botaoZ.TextColor3 = Color3.fromRGB(255, 255, 255)
-            botaoZ.TextScaled = true
-            botaoZ.Font = Enum.Font.GothamBlack
-            botaoZ.Parent = gui
-            Instance.new("UICorner", botaoZ).CornerRadius = UDim.new(0, 25)
-            
-            botaoZ.MouseButton1Click:Connect(function()
-                frame.Visible = not frame.Visible
-            end)
-            
-            print("✅ GUI de teste criada! Clique no botão Z.")
-            
-            -- Aguardar 5 segundos e remover a GUI de teste
-            task.wait(5)
-            gui:Destroy()
-            
-            -- Agora carrega o script completo
-            print("=== Carregando script completo ===")
-            
-            -- AQUI VOCÊ PODE COLOCAR O SCRIPT COMPLETO
-            
-        else
-            print("🔒 ACESSO NEGADO!")
-            player:Kick("Sem acesso - Usuário não autorizado")
-        end
+        -- Criar GUI de confirmação
+        local gui = Instance.new("ScreenGui")
+        gui.Parent = player:WaitForChild("PlayerGui")
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 300, 0, 150)
+        frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+        frame.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+        frame.Parent = gui
+        Instance.new("UICorner", frame)
+        
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1, 0, 1, 0)
+        text.Text = "✅ ACESSO LIBERADO!\nUsuário: " .. player.Name
+        text.TextColor3 = Color3.fromRGB(255, 255, 255)
+        text.BackgroundTransparency = 1
+        text.TextScaled = true
+        text.Parent = frame
+        
+        task.wait(3)
+        gui:Destroy()
     else
-        print("❌ Erro ao decodificar JSON: " .. tostring(data))
-        print("Resposta bruta: " .. tostring(response))
+        print("ACESSO NEGADO!")
     end
 else
-    print("❌ Erro no HTTP Request: " .. tostring(response))
+    print("HTTP FALHOU! Erro: " .. tostring(response))
 end
