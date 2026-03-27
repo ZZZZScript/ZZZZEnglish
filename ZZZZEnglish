@@ -26,6 +26,13 @@ local acesso = false
 if success and response then
     print("📥 Resposta: " .. response)
     
+    -- Verifica se veio HTML (erro)
+    if string.find(response, "<") then
+        warn("❌ Erro: API retornou HTML")
+        player:Kick("Erro no servidor")
+        return
+    end
+    
     -- Tenta decodificar como JSON
     local successJSON, data = pcall(function()
         return HttpService:JSONDecode(response)
@@ -49,6 +56,7 @@ if success and response then
     end
 else
     print("❌ ERRO NA CONEXÃO: " .. tostring(response))
+    player:Kick("Erro ao conectar com servidor")
 end
 
 if acesso then
