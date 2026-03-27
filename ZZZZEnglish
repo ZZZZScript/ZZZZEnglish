@@ -2,8 +2,10 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
+local mouse = player:GetMouse()
 
 -- Remover GUIs antigas
 for _, gui in pairs(player.PlayerGui:GetChildren()) do
@@ -25,7 +27,7 @@ local corToggleOn = Color3.fromRGB(100, 100, 120)
 local corTextoBranco = Color3.fromRGB(255, 255, 255)
 local corTextoClaro = Color3.fromRGB(160, 160, 170)
 
--- ========== BOTÃO Z ==========
+-- ========== BOTÃO Z (MÓVEL) ==========
 local botaoZ = Instance.new("TextButton")
 botaoZ.Size = UDim2.new(0, 55, 0, 55)
 botaoZ.Position = UDim2.new(0, 10, 0.5, -27)
@@ -34,35 +36,38 @@ botaoZ.Text = "Z"
 botaoZ.TextColor3 = corTextoBranco
 botaoZ.TextScaled = true
 botaoZ.Font = Enum.Font.GothamBlack
+botaoZ.Draggable = true
+botaoZ.Active = true
 botaoZ.Parent = gui
 Instance.new("UICorner", botaoZ).CornerRadius = UDim.new(0, 15)
 
--- DRAG BOTÃO
-local arrastandoZ = false
-local posInicialZ, mouseInicialZ
+-- Sistema de drag para o botão Z
+local draggingZ = false
+local dragStartZ
+local startPosZ
 
 botaoZ.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        arrastandoZ = true
-        mouseInicialZ = input.Position
-        posInicialZ = botaoZ.Position
+        draggingZ = true
+        dragStartZ = Vector2.new(input.Position.X, input.Position.Y)
+        startPosZ = botaoZ.Position
     end
 end)
 
 botaoZ.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        arrastandoZ = false
+        draggingZ = false
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if arrastandoZ and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - mouseInicialZ
-        botaoZ.Position = UDim2.new(posInicialZ.X.Scale, posInicialZ.X.Offset + delta.X, posInicialZ.Y.Scale, posInicialZ.Y.Offset + delta.Y)
+    if draggingZ and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartZ
+        botaoZ.Position = UDim2.new(startPosZ.X.Scale, startPosZ.X.Offset + delta.X, startPosZ.Y.Scale, startPosZ.Y.Offset + delta.Y)
     end
 end)
 
--- ========== MENU ==========
+-- ========== MENU (MÓVEL) ==========
 local menu = Instance.new("Frame")
 menu.Size = UDim2.new(0, 380, 0, 320)
 menu.Position = UDim2.new(0.5, -190, 0.5, -160)
@@ -71,28 +76,29 @@ menu.Visible = false
 menu.Parent = gui
 Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 12)
 
--- DRAG MENU
-local arrastandoMenu = false
-local posInicialMenu, mouseInicialMenu
+-- Sistema de drag para o menu
+local draggingMenu = false
+local dragStartMenu
+local startPosMenu
 
 menu.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        arrastandoMenu = true
-        mouseInicialMenu = input.Position
-        posInicialMenu = menu.Position
+        draggingMenu = true
+        dragStartMenu = Vector2.new(input.Position.X, input.Position.Y)
+        startPosMenu = menu.Position
     end
 end)
 
 menu.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        arrastandoMenu = false
+        draggingMenu = false
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if arrastandoMenu and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - mouseInicialMenu
-        menu.Position = UDim2.new(posInicialMenu.X.Scale, posInicialMenu.X.Offset + delta.X, posInicialMenu.Y.Scale, posInicialMenu.Y.Offset + delta.Y)
+    if draggingMenu and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartMenu
+        menu.Position = UDim2.new(startPosMenu.X.Scale, startPosMenu.X.Offset + delta.X, startPosMenu.Y.Scale, startPosMenu.Y.Offset + delta.Y)
     end
 end)
 
@@ -331,7 +337,7 @@ end)
 
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 40)
 
--- ========== AUTO COLLECT MONEY (SILENCIOSO) ==========
+-- ========== AUTO COLLECT MONEY (CORRIGIDO) ==========
 local coletando = false
 
 autoCollect.onToggle(function(v)
@@ -339,50 +345,125 @@ autoCollect.onToggle(function(v)
     print("Auto Collect: " .. (v and "ON" or "OFF"))
 end)
 
+-- Função melhorada para coletar dinheiro
+local function collectMoney()
+    if not coletando then return end
+    
+    local char = player.Character
+    if not char then return end
+    
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    local collected = false
+    
+    -- Procurar por objetos de dinheiro
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj and obj.Parent then
+            local objName = obj.Name:lower()
+            local isMoneyObject = false
+            
+            -- Verificar se é um objeto de dinheiro
+            if obj:IsA("BasePart") then
+                if objName:find("coin") or objName:find("money") or objName:find("cash") or 
+                   objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+                    isMoneyObject = true
+                end
+            elseif obj:IsA("Model") then
+                if objName:find("coin") or objName:find("money") or objName:find("cash") or 
+                   objName:find("diamond") or objName:find("crystal") or objName:find("gem") or
+                   obj:FindFirstChild("TouchInterest") then
+                    isMoneyObject = true
+                end
+            end
+            
+            if isMoneyObject then
+                pcall(function()
+                    -- Tentar teleportar o objeto para o jogador
+                    if obj:IsA("BasePart") then
+                        local success, errorMsg = pcall(function()
+                            obj.CFrame = root.CFrame
+                        end)
+                        
+                        if success then
+                            collected = true
+                            task.wait(0.05)
+                            obj:Destroy()
+                        end
+                    elseif obj:IsA("Model") then
+                        -- Para modelos, mover todos os BaseParts
+                        local parts = {}
+                        for _, part in pairs(obj:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                table.insert(parts, part)
+                            end
+                        end
+                        
+                        for _, part in pairs(parts) do
+                            pcall(function()
+                                part.CFrame = root.CFrame
+                            end)
+                        end
+                        
+                        collected = true
+                        task.wait(0.05)
+                        obj:Destroy()
+                    end
+                end)
+            end
+        end
+    end
+    
+    return collected
+end
+
+-- Loop de coleta otimizado
 spawn(function()
     while true do
         if coletando then
-            local char = player.Character
-            if char then
-                local root = char:FindFirstChild("HumanoidRootPart")
-                if root then
-                    for _, obj in pairs(workspace:GetDescendants()) do
-                        if obj:IsA("BasePart") then
-                            local nome = obj.Name:lower()
-                            if nome:find("coin") or nome:find("money") or nome:find("cash") then
-                                pcall(function()
-                                    -- Remove sons e placas
-                                    for _, child in pairs(obj:GetChildren()) do
-                                        if child:IsA("Sound") or child:IsA("BillboardGui") or child:IsA("Decal") then
-                                            child:Destroy()
-                                        end
-                                    end
-                                    -- Teleporta e destrói
-                                    obj.CFrame = root.CFrame
-                                    obj:Destroy()
-                                end)
-                            end
-                        end
-                        if obj:IsA("Model") then
-                            local nome = obj.Name:lower()
-                            if nome:find("coin") or nome:find("money") or nome:find("cash") then
-                                pcall(function()
-                                    for _, child in pairs(obj:GetDescendants()) do
-                                        if child:IsA("Sound") or child:IsA("BillboardGui") then
-                                            child:Destroy()
-                                        end
-                                    end
-                                    obj:Destroy()
-                                end)
-                            end
-                        end
-                    end
-                end
-            end
+            collectMoney()
         end
-        task.wait(0.2)
+        task.wait(0.1)
     end
 end)
+
+-- Detectar novos objetos que aparecem
+local function onDescendantAdded(descendant)
+    if not coletando then return end
+    
+    task.wait(0.1)
+    local objName = descendant.Name:lower()
+    local isMoneyObject = false
+    
+    if descendant:IsA("BasePart") then
+        if objName:find("coin") or objName:find("money") or objName:find("cash") or 
+           objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+            isMoneyObject = true
+        end
+    elseif descendant:IsA("Model") then
+        if objName:find("coin") or objName:find("money") or objName:find("cash") or 
+           objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+            isMoneyObject = true
+        end
+    end
+    
+    if isMoneyObject and descendant.Parent then
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            pcall(function()
+                task.wait(0.05)
+                if descendant:IsA("BasePart") then
+                    descendant.CFrame = char.HumanoidRootPart.CFrame
+                    descendant:Destroy()
+                elseif descendant:IsA("Model") then
+                    descendant:Destroy()
+                end
+            end)
+        end
+    end
+end
+
+workspace.DescendantAdded:Connect(onDescendantAdded)
 
 -- ========== ABA CREDITS ==========
 local creditsScroll = Instance.new("ScrollingFrame")
@@ -587,6 +668,6 @@ fechar.MouseButton1Click:Connect(function()
 end)
 
 print("✅ SCRIPT CARREGADO!")
-print("👉 Clique no Z para abrir")
-print("👉 Arraste o Z e o menu")
-print("💰 Ative Auto Collect Money - coleta dinheiro sem placa e sem som!")
+print("👉 Clique e arraste o Z para mover")
+print("👉 Clique e arraste o menu pela barra superior")
+print("💰 Ative Auto Collect Money - coleta dinheiro automaticamente!")
