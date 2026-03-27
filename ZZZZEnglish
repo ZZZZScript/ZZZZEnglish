@@ -40,35 +40,64 @@ local function makeDraggable(frame)
             dragging = true
             dragStart = input.Position
             startPos = frame.Position
+            print("Começou arrastar")
         end
     end)
     
     frame.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
+            print("Parou arrastar")
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            local newX = startPos.X.Offset + delta.X
+            local newY = startPos.Y.Offset + delta.Y
+            frame.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
         end
     end)
 end
 
 -- ========== ÍCONE FLUTUANTE (MÓVEL) ==========
 local iconButton = Instance.new("TextButton")
-iconButton.Size = UDim2.new(0, 45, 0, 45)
-iconButton.Position = UDim2.new(0, 10, 0.5, -22)
+iconButton.Size = UDim2.new(0, 50, 0, 50)
+iconButton.Position = UDim2.new(0, 10, 0.5, -25)
 iconButton.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 iconButton.Text = "Z"
 iconButton.TextColor3 = corTextoBranco
 iconButton.TextScaled = true
 iconButton.Font = Enum.Font.GothamBlack
 iconButton.Parent = gui
-Instance.new("UICorner", iconButton).CornerRadius = UDim.new(0, 12)
-makeDraggable(iconButton)
+Instance.new("UICorner", iconButton).CornerRadius = UDim.new(0, 15)
+
+-- Aplicar drag no ícone
+local iconDragging = false
+local iconDragStart = nil
+local iconStartPos = nil
+
+iconButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        iconDragging = true
+        iconDragStart = input.Position
+        iconStartPos = iconButton.Position
+    end
+end)
+
+iconButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        iconDragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if iconDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - iconDragStart
+        iconButton.Position = UDim2.new(iconStartPos.X.Scale, iconStartPos.X.Offset + delta.X, iconStartPos.Y.Scale, iconStartPos.Y.Offset + delta.Y)
+    end
+end)
 
 -- ========== MENU (MÓVEL) ==========
 local menu = Instance.new("Frame")
@@ -79,7 +108,32 @@ menu.BackgroundTransparency = 0
 menu.Visible = false
 menu.Parent = gui
 Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 12)
-makeDraggable(menu)
+
+-- Aplicar drag no menu
+local menuDragging = false
+local menuDragStart = nil
+local menuStartPos = nil
+
+menu.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        menuDragging = true
+        menuDragStart = input.Position
+        menuStartPos = menu.Position
+    end
+end)
+
+menu.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        menuDragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if menuDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - menuDragStart
+        menu.Position = UDim2.new(menuStartPos.X.Scale, menuStartPos.X.Offset + delta.X, menuStartPos.Y.Scale, menuStartPos.Y.Offset + delta.Y)
+    end
+end)
 
 -- ========== TOPO ==========
 local topo = Instance.new("Frame")
@@ -348,10 +402,10 @@ end)
 y = y + 40
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 10)
 
--- ========== AUTO COLLECT MONEY (CORRIGIDO - FUNCIONA O TEMPO TODO) ==========
+-- ========== AUTO COLLECT MONEY (CORRIGIDO - COLETA CONSTANTEMENTE) ==========
 local collectActive = false
 
--- Função para coletar dinheiro do chão (roda constantemente)
+-- Loop de coleta contínuo (roda SEMPRE quando ativado)
 spawn(function()
     while true do
         if collectActive then
@@ -359,48 +413,16 @@ spawn(function()
             if character then
                 local hrp = character:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- Procurar por dinheiro/coins no workspace
+                    -- Procurar em todo workspace
                     for _, obj in pairs(workspace:GetDescendants()) do
                         if obj:IsA("BasePart") then
                             local nome = obj.Name:lower()
-                            -- Verificar se é dinheiro/coin
-                            if string.find(nome, "coin") or 
-                               string.find(nome, "money") or 
-                               string.find(nome, "cash") or 
-                               string.find(nome, "drop") then
-                                
-                                pcall(function()
-                                    -- Teleportar o dinheiro para perto do jogador
-                                    obj.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
-                                    -- Remover sons e efeitos
-                                    local sound = obj:FindFirstChildWhichIsA("Sound")
-                                    if sound then sound:Destroy() end
-                                    local billboard = obj:FindFirstChildWhichIsA("BillboardGui")
-                                    if billboard then billboard:Destroy() end
-                                    -- Destruir o objeto imediatamente
-                                    obj:Destroy()
-                                end)
-                            end
-                        end
-                        
-                        -- Verificar por modelos de dinheiro
-                        if obj:IsA("Model") then
-                            local nome = obj.Name:lower()
+                            -- Verificar se é dinheiro
                             if string.find(nome, "coin") or string.find(nome, "money") or string.find(nome, "cash") then
                                 pcall(function()
-                                    local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                                    if primary then
-                                        primary.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
-                                    end
-                                    -- Remover sons e efeitos
-                                    for _, sound in pairs(obj:GetDescendants()) do
-                                        if sound:IsA("Sound") then
-                                            sound:Destroy()
-                                        end
-                                        if sound:IsA("BillboardGui") then
-                                            sound:Destroy()
-                                        end
-                                    end
+                                    -- Teleportar e destruir
+                                    obj.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
+                                    task.wait(0.05)
                                     obj:Destroy()
                                 end)
                             end
@@ -682,6 +704,6 @@ fechar.MouseButton1Click:Connect(function()
 end)
 
 print("✅ Zzz V1 Carregado!")
-print("📌 Ícone e menu podem ser movidos (segure e arraste)")
-print("💰 Auto Collect Money - Coleta DINHEIRO automaticamente O TEMPO TODO quando ativado!")
-print("🔘 Ative o toggle e ele vai coletar tudo sem parar")
+print("📌 Ícone Z: Segure e arraste para mover")
+print("📌 Menu: Segure na barra superior para mover")
+print("💰 Auto Collect Money: Coleta DINHEIRO automaticamente O TEMPO TODO!")
