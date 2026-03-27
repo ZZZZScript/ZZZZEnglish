@@ -69,8 +69,8 @@ end)
 
 -- ========== MENU (MÓVEL) ==========
 local menu = Instance.new("Frame")
-menu.Size = UDim2.new(0, 380, 0, 320)
-menu.Position = UDim2.new(0.5, -190, 0.5, -160)
+menu.Size = UDim2.new(0, 380, 0, 380)
+menu.Position = UDim2.new(0.5, -190, 0.5, -190)
 menu.BackgroundColor3 = corFundo
 menu.Visible = false
 menu.Parent = gui
@@ -173,7 +173,7 @@ local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1, -80, 1, -55)
 scroll.Position = UDim2.new(0, 75, 0, 55)
 scroll.BackgroundTransparency = 1
-scroll.CanvasSize = UDim2.new(0, 0, 0, 350)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 450)
 scroll.ScrollBarThickness = 3
 scroll.Parent = menu
 
@@ -243,13 +243,14 @@ local function criarToggle(icone, texto, y)
     return toggles[texto]
 end
 
--- CRIAR
+-- CRIAR TOGGLES
 local y = 5
 local autoAttack = criarToggle("⚔️", "Auto Attack", y); y = y + 42
 local esp = criarToggle("👁️", "ESP", y); y = y + 42
 local spinBot = criarToggle("🌀", "Spin Bot", y); y = y + 42
 local superJump = criarToggle("🦘", "Super Jump", y); y = y + 42
 local autoHit = criarToggle("👊", "Auto Hit", y); y = y + 42
+local anchor = criarToggle("⚓", "Anchor (Anti-Knockback)", y); y = y + 42
 local autoCollect = criarToggle("💰", "Auto Collect Money", y); y = y + 50
 
 -- INFORMAÇÕES
@@ -337,7 +338,7 @@ end)
 
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 40)
 
--- ========== AUTO COLLECT MONEY (CORRIGIDO) ==========
+-- ========== AUTO COLLECT MONEY (CORRIGIDO E MELHORADO) ==========
 local coletando = false
 
 autoCollect.onToggle(function(v)
@@ -356,8 +357,9 @@ local function collectMoney()
     if not root then return end
     
     local collected = false
+    local objectsToCollect = {}
     
-    -- Procurar por objetos de dinheiro
+    -- Coletar todos os objetos de dinheiro
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj and obj.Parent then
             local objName = obj.Name:lower()
@@ -366,52 +368,59 @@ local function collectMoney()
             -- Verificar se é um objeto de dinheiro
             if obj:IsA("BasePart") then
                 if objName:find("coin") or objName:find("money") or objName:find("cash") or 
-                   objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+                   objName:find("diamond") or objName:find("crystal") or objName:find("gem") or
+                   objName:find("token") or objName:find("brick") then
                     isMoneyObject = true
                 end
             elseif obj:IsA("Model") then
                 if objName:find("coin") or objName:find("money") or objName:find("cash") or 
                    objName:find("diamond") or objName:find("crystal") or objName:find("gem") or
-                   obj:FindFirstChild("TouchInterest") then
+                   objName:find("token") or obj:FindFirstChild("TouchInterest") then
                     isMoneyObject = true
                 end
             end
             
-            if isMoneyObject then
-                pcall(function()
-                    -- Tentar teleportar o objeto para o jogador
-                    if obj:IsA("BasePart") then
-                        local success, errorMsg = pcall(function()
-                            obj.CFrame = root.CFrame
-                        end)
-                        
-                        if success then
-                            collected = true
-                            task.wait(0.05)
-                            obj:Destroy()
-                        end
-                    elseif obj:IsA("Model") then
-                        -- Para modelos, mover todos os BaseParts
-                        local parts = {}
-                        for _, part in pairs(obj:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                table.insert(parts, part)
-                            end
-                        end
-                        
-                        for _, part in pairs(parts) do
-                            pcall(function()
-                                part.CFrame = root.CFrame
-                            end)
-                        end
-                        
-                        collected = true
-                        task.wait(0.05)
+            if isMoneyObject and obj ~= char and not obj:IsDescendantOf(char) then
+                table.insert(objectsToCollect, obj)
+            end
+        end
+    end
+    
+    -- Coletar os objetos
+    for _, obj in pairs(objectsToCollect) do
+        pcall(function()
+            -- Tentar teleportar o objeto para o jogador
+            if obj:IsA("BasePart") and obj.Parent then
+                local success = pcall(function()
+                    obj.CFrame = root.CFrame + Vector3.new(0, 1, 0)
+                    task.wait(0.02)
+                    if obj.Parent then
                         obj:Destroy()
                     end
                 end)
+                if success then collected = true end
+            elseif obj:IsA("Model") and obj.Parent then
+                -- Para modelos, mover todos os BaseParts
+                local parts = {}
+                for _, part in pairs(obj:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        table.insert(parts, part)
+                    end
+                end
+                
+                for _, part in pairs(parts) do
+                    pcall(function()
+                        part.CFrame = root.CFrame + Vector3.new(0, 1, 0)
+                    end)
+                end
+                
+                task.wait(0.02)
+                if obj.Parent then
+                    obj:Destroy()
+                end
+                collected = true
             end
-        end
+        end)
     end
     
     return collected
@@ -423,40 +432,49 @@ spawn(function()
         if coletando then
             collectMoney()
         end
-        task.wait(0.1)
+        task.wait(0.08) -- Mais rápido
     end
 end)
 
--- Detectar novos objetos que aparecem
+-- Detectar novos objetos que aparecem (mais rápido)
 local function onDescendantAdded(descendant)
     if not coletando then return end
     
-    task.wait(0.1)
+    task.wait(0.05)
+    if not descendant or not descendant.Parent then return end
+    
     local objName = descendant.Name:lower()
     local isMoneyObject = false
     
     if descendant:IsA("BasePart") then
         if objName:find("coin") or objName:find("money") or objName:find("cash") or 
-           objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+           objName:find("diamond") or objName:find("crystal") or objName:find("gem") or
+           objName:find("token") then
             isMoneyObject = true
         end
     elseif descendant:IsA("Model") then
         if objName:find("coin") or objName:find("money") or objName:find("cash") or 
-           objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+           objName:find("diamond") or objName:find("crystal") or objName:find("gem") or
+           objName:find("token") then
             isMoneyObject = true
         end
     end
     
-    if isMoneyObject and descendant.Parent then
+    if isMoneyObject and descendant.Parent and descendant ~= player.Character then
         local char = player.Character
         if char and char:FindFirstChild("HumanoidRootPart") then
             pcall(function()
-                task.wait(0.05)
-                if descendant:IsA("BasePart") then
-                    descendant.CFrame = char.HumanoidRootPart.CFrame
-                    descendant:Destroy()
-                elseif descendant:IsA("Model") then
-                    descendant:Destroy()
+                task.wait(0.03)
+                if descendant and descendant.Parent then
+                    if descendant:IsA("BasePart") then
+                        descendant.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0, 1, 0)
+                        task.wait(0.02)
+                        if descendant.Parent then
+                            descendant:Destroy()
+                        end
+                    elseif descendant:IsA("Model") then
+                        descendant:Destroy()
+                    end
                 end
             end)
         end
@@ -464,6 +482,75 @@ local function onDescendantAdded(descendant)
 end
 
 workspace.DescendantAdded:Connect(onDescendantAdded)
+
+-- ========== ANCHOR (ANTI-KNOCKBACK) ==========
+local anchorAtivo = false
+local anchorPosition = nil
+local anchorConnection = nil
+
+anchor.onToggle(function(v)
+    anchorAtivo = v
+    print("Anchor: " .. (v and "ON" or "OFF"))
+    
+    if anchorAtivo then
+        -- Salvar posição atual
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            anchorPosition = player.Character.HumanoidRootPart.Position
+        end
+        
+        -- Conectar para manter a posição
+        if anchorConnection then anchorConnection:Disconnect() end
+        
+        anchorConnection = RunService.Heartbeat:Connect(function()
+            if anchorAtivo and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    -- Atualizar posição de ancoragem se não tiver uma
+                    if not anchorPosition then
+                        anchorPosition = hrp.Position
+                    end
+                    
+                    -- Verificar se foi empurrado (knockback)
+                    local currentPos = hrp.Position
+                    local distance = (currentPos - anchorPosition).Magnitude
+                    
+                    -- Se foi empurrado muito longe, teleportar de volta
+                    if distance > 3 then
+                        -- Teleportar de volta para a posição de ancoragem
+                        hrp.CFrame = CFrame.new(anchorPosition)
+                        
+                        -- Resetar velocidade
+                        if player.Character:FindFirstChildOfClass("Humanoid") then
+                            local hum = player.Character:FindFirstChildOfClass("Humanoid")
+                            hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+                        end
+                    end
+                    
+                    -- Atualizar posição de ancoragem lentamente (para permitir movimento normal)
+                    anchorPosition = anchorPosition:Lerp(currentPos, 0.1)
+                end
+            elseif not anchorAtivo then
+                anchorPosition = nil
+            end
+        end)
+    else
+        if anchorConnection then
+            anchorConnection:Disconnect()
+            anchorConnection = nil
+        end
+        anchorPosition = nil
+    end
+end)
+
+-- Resetar anchor quando o personagem morre
+player.CharacterAdded:Connect(function()
+    if anchorAtivo then
+        task.wait(0.5)
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            anchorPosition = player.Character.HumanoidRootPart.Position
+        end
+    end
+end)
 
 -- ========== ABA CREDITS ==========
 local creditsScroll = Instance.new("ScrollingFrame")
@@ -670,4 +757,5 @@ end)
 print("✅ SCRIPT CARREGADO!")
 print("👉 Clique e arraste o Z para mover")
 print("👉 Clique e arraste o menu pela barra superior")
+print("⚓ Ative ANCHOR para não ser empurrado quando te baterem")
 print("💰 Ative Auto Collect Money - coleta dinheiro automaticamente!")
