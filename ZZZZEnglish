@@ -304,7 +304,7 @@ end)
 
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 45)
 
--- ========== FUNÇÃO PARA CRIAR PLATAFORMA GIGANTE (3000x90x3000) ==========
+-- ========== FUNÇÃO PARA CRIAR PLATAFORMA GIGANTE (3000x150x3000) ==========
 local function criarPlataforma()
     -- Destruir plataforma antiga se existir
     if plataforma then
@@ -319,11 +319,11 @@ local function criarPlataforma()
     if not hrp then return end
     
     -- Salvar a posição onde a plataforma vai ser criada (fixa)
-    plataformaPosicao = hrp.Position - Vector3.new(0, 45, 0)  -- Altura 90, centralizar a 45 abaixo
+    plataformaPosicao = hrp.Position - Vector3.new(0, 75, 0)  -- Altura 150, centralizar a 75 abaixo
     
-    -- Criar plataforma GIGANTE (Largura 3000, Altura 90, Profundidade 3000)
+    -- Criar plataforma GIGANTE (Largura 3000, Altura 150, Profundidade 3000)
     local platform = Instance.new("Part")
-    platform.Size = Vector3.new(3000, 90, 3000)  -- Largura 3000, Altura 90, Profundidade 3000
+    platform.Size = Vector3.new(3000, 150, 3000)  -- Largura 3000, Altura 150, Profundidade 3000
     platform.Position = plataformaPosicao
     platform.Anchored = true
     platform.CanCollide = true
@@ -342,7 +342,7 @@ local function criarPlataforma()
     glow.Parent = platform
     
     plataforma = platform
-    print("🛡️ Plataforma anti-queda criada! Tamanho: 3000x90x3000 (FIXA)")
+    print("🛡️ Plataforma anti-queda criada! Tamanho: 3000x150x3000 (FIXA)")
 end
 
 local function removerPlataforma()
@@ -405,7 +405,7 @@ autoCollectBtn.MouseButton1Click:Connect(function()
     print("💰 Auto Collect: " .. (coletando and "LIGADO" or "DESLIGADO"))
 end)
 
--- PLATAFORMA ANTI-QUEDA (FIXA - GIGANTE 3000x90x3000)
+-- PLATAFORMA ANTI-QUEDA (FIXA - GIGANTE 3000x150x3000)
 plataformaBtn.MouseButton1Click:Connect(function()
     plataformaAtiva = not plataformaAtiva
     plataformaBtn.Text = plataformaAtiva and "ON" or "OFF"
@@ -414,7 +414,7 @@ plataformaBtn.MouseButton1Click:Connect(function()
     
     if plataformaAtiva then
         criarPlataforma()
-        print("🛡️ Plataforma anti-queda ATIVADA! (3000x90x3000 - FIXA)")
+        print("🛡️ Plataforma anti-queda ATIVADA! (3000x150x3000 - FIXA)")
     else
         removerPlataforma()
         print("🛡️ Plataforma anti-queda DESATIVADA!")
@@ -427,7 +427,7 @@ player.CharacterAdded:Connect(function()
     if plataformaAtiva and plataformaPosicao then
         -- Recriar plataforma na mesma posição
         local platform = Instance.new("Part")
-        platform.Size = Vector3.new(3000, 90, 3000)
+        platform.Size = Vector3.new(3000, 150, 3000)
         platform.Position = plataformaPosicao
         platform.Anchored = true
         platform.CanCollide = true
@@ -671,5 +671,5 @@ end)
 
 print("✅ SCRIPT CARREGADO!")
 print("👉 Clique no Z para abrir o menu")
-print("🛡️ PLATAFORMA ANTI-QUEDA: Cria uma plataforma GIGANTE (3000x90x3000) FIXA!")
+print("🛡️ PLATAFORMA ANTI-QUEDA: Cria uma plataforma GIGANTE (3000x150x3000) FIXA!")
 print("💰 AUTO COLLECT MONEY: Coleta dinheiro automaticamente!")
