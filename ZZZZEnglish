@@ -303,7 +303,7 @@ end)
 
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 45)
 
--- ========== FUNÇÃO PARA CRIAR PLATAFORMA ==========
+-- ========== FUNÇÃO PARA CRIAR PLATAFORMA (100x30) ==========
 local function criarPlataforma()
     -- Destruir plataforma antiga se existir
     if plataforma then
@@ -317,13 +317,13 @@ local function criarPlataforma()
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     
-    -- Criar plataforma invisível
+    -- Criar plataforma GRANDE (Largura 100, Altura 30, Profundidade 100)
     local platform = Instance.new("Part")
-    platform.Size = Vector3.new(8, 0.5, 8)
-    platform.Position = hrp.Position - Vector3.new(0, 3, 0)
+    platform.Size = Vector3.new(100, 30, 100)  -- Largura 100, Altura 30, Profundidade 100
+    platform.Position = hrp.Position - Vector3.new(0, 15, 0)  -- Centralizar a plataforma abaixo
     platform.Anchored = true
     platform.CanCollide = true
-    platform.Transparency = 0.8
+    platform.Transparency = 0.7
     platform.BrickColor = BrickColor.new("Bright blue")
     platform.Material = Enum.Material.SmoothPlastic
     platform.Name = "AntiFallPlatform"
@@ -333,19 +333,20 @@ local function criarPlataforma()
     local glow = Instance.new("SelectionBox")
     glow.Adornee = platform
     glow.Color3 = Color3.fromRGB(0, 150, 255)
-    glow.LineThickness = 0.1
-    glow.Transparency = 0.5
+    glow.LineThickness = 0.5
+    glow.Transparency = 0.3
     glow.Parent = platform
     
     plataforma = platform
-    print("🛡️ Plataforma anti-queda criada abaixo de você!")
+    print("🛡️ Plataforma anti-queda criada! Tamanho: 100x30x100")
     
     -- Atualizar posição da plataforma a cada segundo
     spawn(function()
         while plataformaAtiva and plataforma and player.Character do
             local root = player.Character:FindFirstChild("HumanoidRootPart")
             if root then
-                plataforma.Position = root.Position - Vector3.new(0, 3, 0)
+                -- Manter a plataforma centralizada abaixo do jogador
+                plataforma.Position = root.Position - Vector3.new(0, 15, 0)
             end
             task.wait(0.5)
         end
@@ -420,7 +421,7 @@ plataformaBtn.MouseButton1Click:Connect(function()
     
     if plataformaAtiva then
         criarPlataforma()
-        print("🛡️ Plataforma anti-queda ATIVADA!")
+        print("🛡️ Plataforma anti-queda ATIVADA! (100x30x100)")
     else
         removerPlataforma()
         print("🛡️ Plataforma anti-queda DESATIVADA!")
@@ -657,5 +658,5 @@ end)
 
 print("✅ SCRIPT CARREGADO!")
 print("👉 Clique no Z para abrir o menu")
-print("🛡️ PLATAFORMA ANTI-QUEDA: Cria uma plataforma invisível abaixo de você para não cair!")
+print("🛡️ PLATAFORMA ANTI-QUEDA: Cria uma plataforma GIGANTE (100x30x100) abaixo de você!")
 print("💰 AUTO COLLECT MONEY: Coleta dinheiro automaticamente!")
