@@ -4,114 +4,91 @@ local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
 
--- Criar GUI principal
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ZzzUI"
-screenGui.Parent = player.PlayerGui
+-- Remover GUIs antigas
+for _, gui in pairs(player.PlayerGui:GetChildren()) do
+    if gui.Name == "ZzzUI" then
+        gui:Destroy()
+    end
+end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "ZzzUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- CORES
+local corFundo = Color3.fromRGB(8, 8, 10)
+local corCard = Color3.fromRGB(20, 20, 25)
+local corToggleOff = Color3.fromRGB(45, 45, 55)
+local corToggleOn = Color3.fromRGB(100, 100, 120)
+local corTextoBranco = Color3.fromRGB(255, 255, 255)
+local corTextoClaro = Color3.fromRGB(160, 160, 170)
+
+-- Variáveis para ANCHOR
+local anchorPosition = nil
+local anchorActive = false
+local anchorCooldown = false
 
 -- ========== BOTÃO Z ==========
 local botaoZ = Instance.new("TextButton")
-botaoZ.Size = UDim2.new(0, 60, 0, 60)
-botaoZ.Position = UDim2.new(0, 20, 0.5, -30)
-botaoZ.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+botaoZ.Size = UDim2.new(0, 55, 0, 55)
+botaoZ.Position = UDim2.new(0, 10, 0.5, -27)
+botaoZ.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 botaoZ.Text = "Z"
-botaoZ.TextColor3 = Color3.fromRGB(255, 255, 255)
-botaoZ.TextSize = 30
+botaoZ.TextColor3 = corTextoBranco
+botaoZ.TextScaled = true
 botaoZ.Font = Enum.Font.GothamBlack
-botaoZ.Parent = screenGui
+botaoZ.Parent = gui
+Instance.new("UICorner", botaoZ).CornerRadius = UDim.new(0, 15)
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 30)
-corner.Parent = botaoZ
-
--- Variáveis para arrastar o botão
-local arrastando = false
-local posInicial
-local mouseInicial
+-- DRAG BOTÃO
+local arrastandoZ = false
+local posInicialZ, mouseInicialZ
 
 botaoZ.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        arrastando = true
-        mouseInicial = Vector2.new(input.Position.X, input.Position.Y)
-        posInicial = botaoZ.Position
+        arrastandoZ = true
+        mouseInicialZ = input.Position
+        posInicialZ = botaoZ.Position
     end
 end)
 
 botaoZ.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        arrastando = false
+        arrastandoZ = false
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if arrastando and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = Vector2.new(input.Position.X, input.Position.Y) - mouseInicial
-        botaoZ.Position = UDim2.new(posInicial.X.Scale, posInicial.X.Offset + delta.X, 
-                                     posInicial.Y.Scale, posInicial.Y.Offset + delta.Y)
+    if arrastandoZ and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - mouseInicialZ
+        botaoZ.Position = UDim2.new(posInicialZ.X.Scale, posInicialZ.X.Offset + delta.X, posInicialZ.Y.Scale, posInicialZ.Y.Offset + delta.Y)
     end
 end)
 
 -- ========== MENU ==========
 local menu = Instance.new("Frame")
-menu.Size = UDim2.new(0, 400, 0, 450)
-menu.Position = UDim2.new(0.5, -200, 0.5, -225)
-menu.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-menu.BackgroundTransparency = 0
+menu.Size = UDim2.new(0, 380, 0, 350)
+menu.Position = UDim2.new(0.5, -190, 0.5, -175)
+menu.BackgroundColor3 = corFundo
 menu.Visible = false
-menu.Parent = screenGui
+menu.Parent = gui
+Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 12)
 
-local menuCorner = Instance.new("UICorner")
-menuCorner.CornerRadius = UDim.new(0, 12)
-menuCorner.Parent = menu
-
--- Barra superior para arrastar o menu
-local barraSuperior = Instance.new("Frame")
-barraSuperior.Size = UDim2.new(1, 0, 0, 40)
-barraSuperior.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-barraSuperior.Parent = menu
-
-local barraCorner = Instance.new("UICorner")
-barraCorner.CornerRadius = UDim.new(0, 12)
-barraCorner.Parent = barraSuperior
-
--- Título
-local titulo = Instance.new("TextLabel")
-titulo.Size = UDim2.new(1, -60, 1, 0)
-titulo.Position = UDim2.new(0, 10, 0, 0)
-titulo.Text = "COMERCIANTE"
-titulo.TextColor3 = Color3.fromRGB(255, 255, 255)
-titulo.TextSize = 16
-titulo.Font = Enum.Font.GothamBold
-titulo.TextXAlignment = Enum.TextXAlignment.Left
-titulo.BackgroundTransparency = 1
-titulo.Parent = barraSuperior
-
--- Botão fechar
-local fecharBtn = Instance.new("TextButton")
-fecharBtn.Size = UDim2.new(0, 30, 0, 30)
-fecharBtn.Position = UDim2.new(1, -35, 0, 5)
-fecharBtn.Text = "X"
-fecharBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-fecharBtn.TextSize = 14
-fecharBtn.BackgroundTransparency = 1
-fecharBtn.Parent = barraSuperior
-
--- Arrastar menu
+-- DRAG MENU
 local arrastandoMenu = false
-local posInicialMenu
-local mouseInicialMenu
+local posInicialMenu, mouseInicialMenu
 
-barraSuperior.InputBegan:Connect(function(input)
+menu.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         arrastandoMenu = true
-        mouseInicialMenu = Vector2.new(input.Position.X, input.Position.Y)
+        mouseInicialMenu = input.Position
         posInicialMenu = menu.Position
     end
 end)
 
-barraSuperior.InputEnded:Connect(function(input)
+menu.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         arrastandoMenu = false
     end
@@ -119,231 +96,462 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if arrastandoMenu and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = Vector2.new(input.Position.X, input.Position.Y) - mouseInicialMenu
-        menu.Position = UDim2.new(posInicialMenu.X.Scale, posInicialMenu.X.Offset + delta.X,
-                                   posInicialMenu.Y.Scale, posInicialMenu.Y.Offset + delta.Y)
+        local delta = input.Position - mouseInicialMenu
+        menu.Position = UDim2.new(posInicialMenu.X.Scale, posInicialMenu.X.Offset + delta.X, posInicialMenu.Y.Scale, posInicialMenu.Y.Offset + delta.Y)
     end
 end)
 
--- ScrollFrame para os toggles
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, -20, 1, -50)
-scrollFrame.Position = UDim2.new(0, 10, 0, 45)
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 400)
-scrollFrame.ScrollBarThickness = 5
-scrollFrame.Parent = menu
+-- TOPO
+local topo = Instance.new("Frame")
+topo.Size = UDim2.new(1, 0, 0, 45)
+topo.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
+topo.Parent = menu
+Instance.new("UICorner", topo).CornerRadius = UDim.new(0, 12)
 
--- Função para criar toggle
-local function criarToggle(nome, icone, posY)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 45)
-    frame.Position = UDim2.new(0, 0, 0, posY)
-    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-    frame.Parent = scrollFrame
+local titulo = Instance.new("TextLabel")
+titulo.Size = UDim2.new(1, 0, 0, 24)
+titulo.Position = UDim2.new(0, 0, 0, 6)
+titulo.Text = "COMERCIANTE"
+titulo.Font = Enum.Font.GothamBlack
+titulo.TextSize = 16
+titulo.TextColor3 = corTextoBranco
+titulo.BackgroundTransparency = 1
+titulo.Parent = topo
+
+local sub = Instance.new("TextLabel")
+sub.Size = UDim2.new(1, 0, 0, 14)
+sub.Position = UDim2.new(0, 0, 0, 28)
+sub.Text = "Lab Pvp"
+sub.Font = Enum.Font.Gotham
+sub.TextSize = 8
+sub.TextColor3 = corTextoClaro
+sub.BackgroundTransparency = 1
+sub.Parent = topo
+
+local fechar = Instance.new("TextButton")
+fechar.Size = UDim2.new(0, 24, 0, 24)
+fechar.Position = UDim2.new(1, -30, 0, 6)
+fechar.Text = "✕"
+fechar.Font = Enum.Font.GothamBold
+fechar.TextSize = 12
+fechar.TextColor3 = corTextoBranco
+fechar.BackgroundTransparency = 1
+fechar.Parent = topo
+
+-- SIDEBAR
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 70, 1, -45)
+sidebar.Position = UDim2.new(0, 0, 0, 45)
+sidebar.BackgroundColor3 = corCard
+sidebar.Parent = menu
+
+local abaMain = Instance.new("TextButton")
+abaMain.Size = UDim2.new(0.85, 0, 0, 32)
+abaMain.Position = UDim2.new(0.075, 0, 0, 10)
+abaMain.Text = "Main"
+abaMain.Font = Enum.Font.GothamBold
+abaMain.TextSize = 11
+abaMain.TextColor3 = corTextoBranco
+abaMain.BackgroundColor3 = corToggleOn
+abaMain.Parent = sidebar
+Instance.new("UICorner", abaMain).CornerRadius = UDim.new(0, 6)
+
+local abaCredits = Instance.new("TextButton")
+abaCredits.Size = UDim2.new(0.85, 0, 0, 32)
+abaCredits.Position = UDim2.new(0.075, 0, 0, 48)
+abaCredits.Text = "Credits"
+abaCredits.Font = Enum.Font.GothamBold
+abaCredits.TextSize = 11
+abaCredits.TextColor3 = corTextoClaro
+abaCredits.BackgroundColor3 = corCard
+abaCredits.Parent = sidebar
+Instance.new("UICorner", abaCredits).CornerRadius = UDim.new(0, 6)
+
+-- SCROLL
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, -80, 1, -55)
+scroll.Position = UDim2.new(0, 75, 0, 55)
+scroll.BackgroundTransparency = 1
+scroll.CanvasSize = UDim2.new(0, 0, 0, 400)
+scroll.ScrollBarThickness = 3
+scroll.Parent = menu
+
+-- TOGGLES
+local toggles = {}
+
+local function criarToggle(icone, texto, y)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, 0, 0, 36)
+    card.Position = UDim2.new(0, 0, 0, y)
+    card.BackgroundColor3 = corCard
+    card.Parent = scroll
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 6)
     
-    local frameCorner = Instance.new("UICorner")
-    frameCorner.CornerRadius = UDim.new(0, 8)
-    frameCorner.Parent = frame
+    local iconeLab = Instance.new("TextLabel")
+    iconeLab.Size = UDim2.new(0, 28, 0, 28)
+    iconeLab.Position = UDim2.new(0, 6, 0.5, -14)
+    iconeLab.Text = icone
+    iconeLab.Font = Enum.Font.Gotham
+    iconeLab.TextSize = 16
+    iconeLab.TextColor3 = corToggleOn
+    iconeLab.BackgroundTransparency = 1
+    iconeLab.Parent = card
     
-    local iconLabel = Instance.new("TextLabel")
-    iconLabel.Size = UDim2.new(0, 35, 0, 35)
-    iconLabel.Position = UDim2.new(0, 5, 0.5, -17.5)
-    iconLabel.Text = icone
-    iconLabel.TextSize = 20
-    iconLabel.BackgroundTransparency = 1
-    iconLabel.Parent = frame
+    local textoLab = Instance.new("TextLabel")
+    textoLab.Size = UDim2.new(0, 100, 0, 20)
+    textoLab.Position = UDim2.new(0, 38, 0.5, -10)
+    textoLab.Text = texto
+    textoLab.Font = Enum.Font.GothamBold
+    textoLab.TextSize = 10
+    textoLab.TextColor3 = corTextoBranco
+    textoLab.BackgroundTransparency = 1
+    textoLab.TextXAlignment = Enum.TextXAlignment.Left
+    textoLab.Parent = card
     
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(0, 150, 0, 25)
-    nameLabel.Position = UDim2.new(0, 45, 0.5, -12.5)
-    nameLabel.Text = nome
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.TextSize = 14
-    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.Parent = frame
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 38, 0, 20)
+    toggle.Position = UDim2.new(1, -45, 0.5, -10)
+    toggle.Text = ""
+    toggle.BackgroundColor3 = corToggleOff
+    toggle.Parent = card
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
     
-    local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Size = UDim2.new(0, 50, 0, 25)
-    toggleBtn.Position = UDim2.new(1, -55, 0.5, -12.5)
-    toggleBtn.Text = "OFF"
-    toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleBtn.TextSize = 12
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
-    toggleBtn.Parent = frame
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 12)
-    btnCorner.Parent = toggleBtn
+    local bola = Instance.new("Frame")
+    bola.Size = UDim2.new(0, 16, 0, 16)
+    bola.Position = UDim2.new(0, 2, 0.5, -8)
+    bola.BackgroundColor3 = Color3.fromRGB(220, 220, 230)
+    bola.Parent = toggle
+    Instance.new("UICorner", bola).CornerRadius = UDim.new(1, 0)
     
     local ativo = false
+    local callback = nil
     
-    toggleBtn.MouseButton1Click:Connect(function()
+    toggle.MouseButton1Click:Connect(function()
         ativo = not ativo
         if ativo then
-            toggleBtn.Text = "ON"
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 100)
+            toggle.BackgroundColor3 = corToggleOn
+            bola.Position = UDim2.new(1, -18, 0.5, -8)
         else
-            toggleBtn.Text = "OFF"
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+            toggle.BackgroundColor3 = corToggleOff
+            bola.Position = UDim2.new(0, 2, 0.5, -8)
         end
+        if callback then callback(ativo) end
     end)
     
-    return toggleBtn, function() return ativo end
+    toggles[texto] = {onToggle = function(cb) callback = cb end}
+    return toggles[texto]
 end
 
--- Criar os toggles
-local y = 10
-local autoAttackBtn, getAutoAttack = criarToggle("Auto Attack", "⚔️", y); y = y + 55
-local espBtn, getESP = criarToggle("ESP", "👁️", y); y = y + 55
-local spinBtn, getSpin = criarToggle("Spin Bot", "🌀", y); y = y + 55
-local jumpBtn, getJump = criarToggle("Super Jump", "🦘", y); y = y + 55
-local hitBtn, getHit = criarToggle("Auto Hit", "👊", y); y = y + 55
-local anchorBtn, getAnchor = criarToggle("Anchor", "⚓", y); y = y + 55
-local collectBtn, getCollect = criarToggle("Auto Collect", "💰", y); y = y + 65
+-- CRIAR TOGGLES
+local y = 5
+local autoAttack = criarToggle("⚔️", "Auto Attack", y); y = y + 42
+local esp = criarToggle("👁️", "ESP", y); y = y + 42
+local spinBot = criarToggle("🌀", "Spin Bot", y); y = y + 42
+local superJump = criarToggle("🦘", "Super Jump", y); y = y + 42
+local autoHit = criarToggle("👊", "Auto Hit", y); y = y + 42
+local autoCollect = criarToggle("💰", "Auto Collect Money", y); y = y + 42
+local anchorToggle = criarToggle("⚓", "Anchor", y); y = y + 50
 
--- Botão Auto Rejoin
-local rejoinBtn = Instance.new("TextButton")
-rejoinBtn.Size = UDim2.new(1, 0, 0, 40)
-rejoinBtn.Position = UDim2.new(0, 0, 0, y)
-rejoinBtn.Text = "🔄 AUTO REJOIN"
-rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-rejoinBtn.TextSize = 14
-rejoinBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-rejoinBtn.Parent = scrollFrame
+-- INFORMAÇÕES
+local infoFrame = Instance.new("Frame")
+infoFrame.Size = UDim2.new(1, 0, 0, 65)
+infoFrame.Position = UDim2.new(0, 0, 0, y)
+infoFrame.BackgroundTransparency = 1
+infoFrame.Parent = scroll
+y = y + 70
 
-local rejoinCorner = Instance.new("UICorner")
-rejoinCorner.CornerRadius = UDim.new(0, 8)
-rejoinCorner.Parent = rejoinBtn
+local indice = Instance.new("TextLabel")
+indice.Size = UDim2.new(1, 0, 0, 16)
+indice.Position = UDim2.new(0, 0, 0, 0)
+indice.Text = "📊 Indice"
+indice.Font = Enum.Font.GothamBold
+indice.TextSize = 10
+indice.TextColor3 = corToggleOn
+indice.BackgroundTransparency = 1
+indice.Parent = infoFrame
 
-rejoinBtn.MouseButton1Click:Connect(function()
+local duelos = Instance.new("TextLabel")
+duelos.Size = UDim2.new(0.5, 0, 0, 14)
+duelos.Position = UDim2.new(0, 0, 0, 18)
+duelos.Text = "⚔️ Duelos"
+duelos.Font = Enum.Font.Gotham
+duelos.TextSize = 9
+duelos.TextColor3 = corTextoClaro
+duelos.BackgroundTransparency = 1
+duelos.Parent = infoFrame
+
+local anchor = Instance.new("TextLabel")
+anchor.Size = UDim2.new(0.5, 0, 0, 14)
+anchor.Position = UDim2.new(0, 0, 0, 34)
+anchor.Text = "⚓ Anchor"
+anchor.Font = Enum.Font.Gotham
+anchor.TextSize = 9
+anchor.TextColor3 = corTextoClaro
+anchor.BackgroundTransparency = 1
+anchor.Parent = infoFrame
+
+local x28 = Instance.new("TextLabel")
+x28.Size = UDim2.new(0.3, 0, 0, 18)
+x28.Position = UDim2.new(0.5, 0, 0, 16)
+x28.Text = "x28"
+x28.Font = Enum.Font.GothamBold
+x28.TextSize = 14
+x28.TextColor3 = Color3.fromRGB(200, 180, 100)
+x28.BackgroundTransparency = 1
+x28.Parent = infoFrame
+
+local x30 = Instance.new("TextLabel")
+x30.Size = UDim2.new(0.3, 0, 0, 18)
+x30.Position = UDim2.new(0.7, 0, 0, 16)
+x30.Text = "x30"
+x30.Font = Enum.Font.GothamBold
+x30.TextSize = 14
+x30.TextColor3 = Color3.fromRGB(200, 180, 100)
+x30.BackgroundTransparency = 1
+x30.Parent = infoFrame
+
+local money = Instance.new("TextLabel")
+money.Size = UDim2.new(0.5, 0, 0, 18)
+money.Position = UDim2.new(0, 0, 0, 48)
+money.Text = "$684.65T"
+money.Font = Enum.Font.GothamBold
+money.TextSize = 11
+money.TextColor3 = Color3.fromRGB(100, 180, 100)
+money.BackgroundTransparency = 1
+money.Parent = infoFrame
+
+local autoRejoin = Instance.new("TextButton")
+autoRejoin.Size = UDim2.new(1, 0, 0, 30)
+autoRejoin.Position = UDim2.new(0, 0, 0, y)
+autoRejoin.Text = "🔄 Auto Rejoin"
+autoRejoin.Font = Enum.Font.GothamBold
+autoRejoin.TextSize = 10
+autoRejoin.TextColor3 = corTextoBranco
+autoRejoin.BackgroundColor3 = corCard
+autoRejoin.Parent = scroll
+Instance.new("UICorner", autoRejoin).CornerRadius = UDim.new(0, 6)
+
+autoRejoin.MouseButton1Click:Connect(function()
     TeleportService:Teleport(game.PlaceId, player)
 end)
 
--- Ajustar tamanho do canvas
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, y + 50)
+scroll.CanvasSize = UDim2.new(0, 0, 0, y + 40)
 
--- ========== FUNÇÕES ==========
+-- ========== ANCHOR SYSTEM ==========
+local anchorAtivo = false
 
--- Auto Collect Money
-local coletando = false
-collectBtn.MouseButton1Click:Connect(function()
-    coletando = not coletando
-    print("Auto Collect: " .. (coletando and "ON" or "OFF"))
+anchorToggle.onToggle(function(v)
+    anchorAtivo = v
+    if v and player.Character then
+        anchorPosition = player.Character.HumanoidRootPart.Position
+        print("⚓ Anchor ativado! Posição salva: " .. tostring(anchorPosition))
+    elseif not v then
+        print("⚓ Anchor desativado")
+    end
 end)
 
-local function collectMoney()
-    if not coletando then return end
-    
-    local char = player.Character
-    if not char then return end
-    
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj and obj.Parent then
-            local nome = obj.Name:lower()
-            if nome:find("coin") or nome:find("money") or nome:find("cash") then
-                pcall(function()
-                    if obj:IsA("BasePart") then
-                        obj.CFrame = root.CFrame
-                        task.wait()
-                        obj:Destroy()
-                    elseif obj:IsA("Model") then
-                        obj:Destroy()
-                    end
-                end)
+-- Monitorar quando o jogador cai (fica no chão ou morre)
+RunService.RenderStepped:Connect(function()
+    if anchorAtivo and player.Character then
+        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        
+        if humanoid and hrp and anchorPosition then
+            -- Se o jogador caiu (está no chão) ou está morrendo
+            if humanoid.Health <= 0 or (humanoid:GetState() == Enum.HumanoidStateType.FallingDown) or (humanoid:GetState() == Enum.HumanoidStateType.GettingUp) then
+                if not anchorCooldown then
+                    anchorCooldown = true
+                    task.wait(0.5)
+                    -- Teleportar de volta para a posição salva
+                    hrp.CFrame = CFrame.new(anchorPosition)
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    print("⚓ Anchor: Teleportado de volta!")
+                    task.wait(2)
+                    anchorCooldown = false
+                end
             end
         end
     end
-end
+end)
+
+-- Atualizar posição do Anchor periodicamente (a cada 2 segundos)
+spawn(function()
+    while true do
+        if anchorAtivo and player.Character then
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp and hrp.Position.Y > -10 then
+                anchorPosition = hrp.Position
+            end
+        end
+        task.wait(2)
+    end
+end)
+
+-- ========== AUTO COLLECT MONEY (CORRIGIDO) ==========
+local coletando = false
+
+autoCollect.onToggle(function(v)
+    coletando = v
+    print("Auto Collect Money: " .. (v and "ON" or "OFF"))
+end)
 
 spawn(function()
     while true do
         if coletando then
-            collectMoney()
-        end
-        task.wait(0.1)
-    end
-end)
-
--- Anchor (Anti-Knockback)
-local anchorAtivo = false
-local posAncora = nil
-local conexaoAnchor = nil
-
-anchorBtn.MouseButton1Click:Connect(function()
-    anchorAtivo = not anchorAtivo
-    print("Anchor: " .. (anchorAtivo and "ON" or "OFF"))
-    
-    if anchorAtivo then
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            posAncora = player.Character.HumanoidRootPart.Position
-        end
-        
-        if conexaoAnchor then conexaoAnchor:Disconnect() end
-        
-        conexaoAnchor = RunService.Heartbeat:Connect(function()
-            if anchorAtivo and player.Character then
-                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    if not posAncora then
-                        posAncora = hrp.Position
-                    end
-                    
-                    local distancia = (hrp.Position - posAncora).Magnitude
-                    if distancia > 3 then
-                        hrp.CFrame = CFrame.new(posAncora)
-                        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-                        if hum then
-                            hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+            local char = player.Character
+            if char then
+                local root = char:FindFirstChild("HumanoidRootPart")
+                if root then
+                    for _, obj in pairs(workspace:GetDescendants()) do
+                        if obj:IsA("BasePart") then
+                            local nome = obj.Name:lower()
+                            if nome:find("coin") or nome:find("money") or nome:find("cash") or nome:find("drop") or obj:FindFirstChild("TouchInterest") then
+                                pcall(function()
+                                    -- Remover sons e placas
+                                    for _, child in pairs(obj:GetChildren()) do
+                                        if child:IsA("Sound") or child:IsA("BillboardGui") or child:IsA("Decal") then
+                                            child:Destroy()
+                                        end
+                                    end
+                                    -- Teleportar para o jogador e destruir
+                                    obj.CFrame = root.CFrame
+                                    task.wait(0.05)
+                                    obj:Destroy()
+                                end)
+                            end
+                        end
+                        if obj:IsA("Model") then
+                            local nome = obj.Name:lower()
+                            if nome:find("coin") or nome:find("money") or nome:find("cash") then
+                                pcall(function()
+                                    for _, child in pairs(obj:GetDescendants()) do
+                                        if child:IsA("Sound") or child:IsA("BillboardGui") then
+                                            child:Destroy()
+                                        end
+                                    end
+                                    obj:Destroy()
+                                end)
+                            end
                         end
                     end
-                    
-                    posAncora = posAncora:Lerp(hrp.Position, 0.1)
                 end
             end
-        end)
-    else
-        if conexaoAnchor then
-            conexaoAnchor:Disconnect()
-            conexaoAnchor = nil
         end
-        posAncora = nil
+        task.wait(0.2)
     end
 end)
 
+-- ========== ABA CREDITS ==========
+local creditsScroll = Instance.new("ScrollingFrame")
+creditsScroll.Size = UDim2.new(1, -80, 1, -55)
+creditsScroll.Position = UDim2.new(0, 75, 0, 55)
+creditsScroll.BackgroundTransparency = 1
+creditsScroll.CanvasSize = UDim2.new(0, 0, 0, 140)
+creditsScroll.ScrollBarThickness = 3
+creditsScroll.Visible = false
+creditsScroll.Parent = menu
+
+local cy = 10
+local credTitulo = Instance.new("TextLabel")
+credTitulo.Size = UDim2.new(1, 0, 0, 24)
+credTitulo.Position = UDim2.new(0, 0, 0, cy)
+credTitulo.Text = "👥 CREDITS"
+credTitulo.Font = Enum.Font.GothamBold
+credTitulo.TextSize = 12
+credTitulo.TextColor3 = corToggleOn
+credTitulo.BackgroundTransparency = 1
+credTitulo.Parent = creditsScroll
+cy = cy + 30
+
+local dev1 = Instance.new("Frame")
+dev1.Size = UDim2.new(1, 0, 0, 38)
+dev1.Position = UDim2.new(0, 0, 0, cy)
+dev1.BackgroundColor3 = corCard
+dev1.Parent = creditsScroll
+Instance.new("UICorner", dev1).CornerRadius = UDim.new(0, 6)
+
+local d1 = Instance.new("TextLabel")
+d1.Size = UDim2.new(1, 0, 0, 18)
+d1.Position = UDim2.new(0, 8, 0, 6)
+d1.Text = "👨‍💻 Mathyas - Lead Developer"
+d1.Font = Enum.Font.GothamBold
+d1.TextSize = 10
+d1.TextColor3 = corTextoBranco
+d1.BackgroundTransparency = 1
+d1.Parent = dev1
+cy = cy + 44
+
+local dev2 = Instance.new("Frame")
+dev2.Size = UDim2.new(1, 0, 0, 38)
+dev2.Position = UDim2.new(0, 0, 0, cy)
+dev2.BackgroundColor3 = corCard
+dev2.Parent = creditsScroll
+Instance.new("UICorner", dev2).CornerRadius = UDim.new(0, 6)
+
+local d2 = Instance.new("TextLabel")
+d2.Size = UDim2.new(1, 0, 0, 18)
+d2.Position = UDim2.new(0, 8, 0, 6)
+d2.Text = "👨‍💻 Zzz - Co-Developer"
+d2.Font = Enum.Font.GothamBold
+d2.TextSize = 10
+d2.TextColor3 = corTextoBranco
+d2.BackgroundTransparency = 1
+d2.Parent = dev2
+cy = cy + 44
+
+local discord = Instance.new("TextButton")
+discord.Size = UDim2.new(1, 0, 0, 32)
+discord.Position = UDim2.new(0, 0, 0, cy)
+discord.Text = "💬 JOIN DISCORD"
+discord.Font = Enum.Font.GothamBold
+discord.TextSize = 10
+discord.TextColor3 = corTextoBranco
+discord.BackgroundColor3 = Color3.fromRGB(45, 55, 70)
+discord.Parent = creditsScroll
+Instance.new("UICorner", discord).CornerRadius = UDim.new(0, 6)
+
+discord.MouseButton1Click:Connect(function()
+    setclipboard("https://discord.gg/PDmAh9Ua4")
+end)
+
+creditsScroll.CanvasSize = UDim2.new(0, 0, 0, cy + 40)
+
+-- ========== FUNÇÕES PVP ==========
+local active = {
+    auto = false, esp = false, spin = false, superJump = false, hit = false
+}
+
+autoAttack.onToggle(function(v) active.auto = v end)
+esp.onToggle(function(v) active.esp = v end)
+spinBot.onToggle(function(v) active.spin = v end)
+superJump.onToggle(function(v) active.superJump = v end)
+autoHit.onToggle(function(v) active.hit = v end)
+
 -- Super Jump
-local function atualizarJump()
+local function setSuperJump()
     if player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.JumpPower = getJump() and 120 or 50
-        end
+        if hum then hum.JumpPower = active.superJump and 120 or 50 end
     end
 end
 
-player.CharacterAdded:Connect(function() task.wait(0.2); atualizarJump() end)
-RunService.RenderStepped:Connect(atualizarJump)
+player.CharacterAdded:Connect(function() task.wait(0.2); setSuperJump() end)
+RunService.RenderStepped:Connect(setSuperJump)
 
 -- Auto Attack
 RunService.RenderStepped:Connect(function()
-    if getAutoAttack() and player.Character then
+    if active.auto and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
-            local maisPerto, dist = nil, math.huge
+            local closest, dist = nil, math.huge
             for _, v in pairs(Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                     local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < dist then
-                        dist, maisPerto = d, v
-                    end
+                    if d < dist then dist, closest = d, v end
                 end
             end
-            if maisPerto and dist < 20 then
-                hrp.Velocity = (maisPerto.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
+            if closest and dist < 20 then
+                hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
                 if dist < 8 then
                     local tool = player.Character:FindFirstChildOfClass("Tool")
                     if tool then tool:Activate() end
@@ -355,21 +563,19 @@ end)
 
 -- Auto Hit
 RunService.RenderStepped:Connect(function()
-    if getHit() and player.Character then
+    if active.hit and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hum and hrp then
-            local maisPerto, dist = nil, math.huge
+            local closest, dist = nil, math.huge
             for _, v in pairs(Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                     local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < dist and d < 10 then
-                        dist, maisPerto = d, v
-                    end
+                    if d < dist and d < 10 then dist, closest = d, v end
                 end
             end
-            if maisPerto then
-                hum:MoveTo(maisPerto.Character.HumanoidRootPart.Position)
+            if closest then
+                hum:MoveTo(closest.Character.HumanoidRootPart.Position)
                 local tool = player.Character:FindFirstChildOfClass("Tool")
                 if tool then tool:Activate() end
             end
@@ -379,23 +585,21 @@ end)
 
 -- Spin Bot
 RunService.RenderStepped:Connect(function()
-    if getSpin() and player.Character then
+    if active.spin and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0)
-        end
+        if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
     end
 end)
 
 -- ESP
 RunService.RenderStepped:Connect(function()
-    if getESP() then
+    if active.esp then
         for _, v in pairs(Players:GetPlayers()) do
-            if v ~= player and v.Character and not v.Character:FindFirstChild("ESPBox") then
+            if v ~= player and v.Character and not v.Character:FindFirstChild("ESP_Box") then
                 local box = Instance.new("BoxHandleAdornment")
-                box.Name = "ESPBox"
+                box.Name = "ESP_Box"
                 box.Size = Vector3.new(4, 5, 4)
-                box.Color3 = Color3.fromRGB(100, 100, 255)
+                box.Color3 = corToggleOn
                 box.AlwaysOnTop = true
                 box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
                 box.Parent = v.Character
@@ -404,22 +608,42 @@ RunService.RenderStepped:Connect(function()
     else
         for _, v in pairs(Players:GetPlayers()) do
             if v.Character then
-                local box = v.Character:FindFirstChild("ESPBox")
+                local box = v.Character:FindFirstChild("ESP_Box")
                 if box then box:Destroy() end
             end
         end
     end
 end)
 
--- ABRIR/FECHAR MENU
-botaoZ.MouseButton1Click:Connect(function()
-    menu.Visible = not menu.Visible
-    print("Menu aberto:", menu.Visible)
+-- TROCAR ABA
+abaMain.MouseButton1Click:Connect(function()
+    abaMain.BackgroundColor3 = corToggleOn
+    abaMain.TextColor3 = corTextoBranco
+    abaCredits.BackgroundColor3 = corCard
+    abaCredits.TextColor3 = corTextoClaro
+    scroll.Visible = true
+    creditsScroll.Visible = false
 end)
 
-fecharBtn.MouseButton1Click:Connect(function()
+abaCredits.MouseButton1Click:Connect(function()
+    abaCredits.BackgroundColor3 = corToggleOn
+    abaCredits.TextColor3 = corTextoBranco
+    abaMain.BackgroundColor3 = corCard
+    abaMain.TextColor3 = corTextoClaro
+    scroll.Visible = false
+    creditsScroll.Visible = true
+end)
+
+-- ABRIR/FECHAR
+botaoZ.MouseButton1Click:Connect(function()
+    menu.Visible = not menu.Visible
+end)
+
+fechar.MouseButton1Click:Connect(function()
     menu.Visible = false
 end)
 
-print("✅ SCRIPT CARREGADO! Clique no botão Z para abrir o menu!")
-print("👉 O botão Z está no canto esquerdo da tela")
+print("✅ SCRIPT CARREGADO!")
+print("👉 Clique no Z para abrir")
+print("⚓ ANCHOR: Ative para voltar ao lugar quando cair")
+print("💰 Auto Collect Money: Coleta dinheiro automaticamente!")
