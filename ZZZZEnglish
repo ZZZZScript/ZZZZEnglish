@@ -29,42 +29,10 @@ local corTextoClaro = Color3.fromRGB(160, 160, 170)
 local corDourado = Color3.fromRGB(200, 180, 100)
 local corVerde = Color3.fromRGB(100, 180, 100)
 
--- ========== FUNÇÃO PARA DRAG (MOVER) - CORRIGIDA ==========
-local function makeDraggable(frame)
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-    
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            print("Começou arrastar")
-        end
-    end)
-    
-    frame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-            print("Parou arrastar")
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            local newX = startPos.X.Offset + delta.X
-            local newY = startPos.Y.Offset + delta.Y
-            frame.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
-        end
-    end)
-end
-
--- ========== ÍCONE FLUTUANTE (MÓVEL) ==========
+-- ========== ÍCONE FLUTUANTE (SIMPLES) ==========
 local iconButton = Instance.new("TextButton")
-iconButton.Size = UDim2.new(0, 50, 0, 50)
-iconButton.Position = UDim2.new(0, 10, 0.5, -25)
+iconButton.Size = UDim2.new(0, 55, 0, 55)
+iconButton.Position = UDim2.new(0, 10, 0.5, -27)
 iconButton.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 iconButton.Text = "Z"
 iconButton.TextColor3 = corTextoBranco
@@ -73,65 +41,55 @@ iconButton.Font = Enum.Font.GothamBlack
 iconButton.Parent = gui
 Instance.new("UICorner", iconButton).CornerRadius = UDim.new(0, 15)
 
--- Aplicar drag no ícone
-local iconDragging = false
-local iconDragStart = nil
-local iconStartPos = nil
+-- Drag do ícone (SIMPLES)
+local dragging = false
+local dragStartPos = nil
+local startPosition = nil
 
-iconButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        iconDragging = true
-        iconDragStart = input.Position
-        iconStartPos = iconButton.Position
-    end
+iconButton.MouseButton1Down:Connect(function()
+    dragging = true
+    dragStartPos = UserInputService:GetMouseLocation()
+    startPosition = iconButton.Position
 end)
 
-iconButton.InputEnded:Connect(function(input)
+UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        iconDragging = false
+        dragging = false
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if iconDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - iconDragStart
-        iconButton.Position = UDim2.new(iconStartPos.X.Scale, iconStartPos.X.Offset + delta.X, iconStartPos.Y.Scale, iconStartPos.Y.Offset + delta.Y)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStartPos
+        iconButton.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
     end
 end)
 
--- ========== MENU (MÓVEL) ==========
+-- ========== MENU PRINCIPAL ==========
 local menu = Instance.new("Frame")
-menu.Size = UDim2.new(0, 400, 0, 300)
-menu.Position = UDim2.new(0.5, -200, 0.5, -150)
+menu.Size = UDim2.new(0, 380, 0, 320)
+menu.Position = UDim2.new(0.5, -190, 0.5, -160)
 menu.BackgroundColor3 = corFundo
 menu.BackgroundTransparency = 0
 menu.Visible = false
 menu.Parent = gui
 Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 12)
 
--- Aplicar drag no menu
+-- Drag do menu
 local menuDragging = false
-local menuDragStart = nil
-local menuStartPos = nil
+local menuDragStartPos = nil
+local menuStartPosition = nil
 
-menu.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        menuDragging = true
-        menuDragStart = input.Position
-        menuStartPos = menu.Position
-    end
-end)
-
-menu.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        menuDragging = false
-    end
+menu.MouseButton1Down:Connect(function()
+    menuDragging = true
+    menuDragStartPos = UserInputService:GetMouseLocation()
+    menuStartPosition = menu.Position
 end)
 
 UserInputService.InputChanged:Connect(function(input)
     if menuDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - menuDragStart
-        menu.Position = UDim2.new(menuStartPos.X.Scale, menuStartPos.X.Offset + delta.X, menuStartPos.Y.Scale, menuStartPos.Y.Offset + delta.Y)
+        local delta = input.Position - menuDragStartPos
+        menu.Position = UDim2.new(menuStartPosition.X.Scale, menuStartPosition.X.Offset + delta.X, menuStartPosition.Y.Scale, menuStartPosition.Y.Offset + delta.Y)
     end
 end)
 
@@ -140,7 +98,6 @@ local topo = Instance.new("Frame")
 topo.Size = UDim2.new(1, 0, 0, 45)
 topo.Position = UDim2.new(0, 0, 0, 0)
 topo.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
-topo.BackgroundTransparency = 0
 topo.Parent = menu
 Instance.new("UICorner", topo).CornerRadius = UDim.new(0, 12)
 
@@ -179,7 +136,6 @@ local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 70, 1, -45)
 sidebar.Position = UDim2.new(0, 0, 0, 45)
 sidebar.BackgroundColor3 = corCard
-sidebar.BackgroundTransparency = 0
 sidebar.Parent = menu
 
 local abaMain = Instance.new("TextButton")
@@ -209,7 +165,7 @@ local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1, -80, 1, -55)
 scroll.Position = UDim2.new(0, 75, 0, 55)
 scroll.BackgroundTransparency = 1
-scroll.CanvasSize = UDim2.new(0, 0, 0, 350)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 320)
 scroll.ScrollBarThickness = 3
 scroll.ScrollBarImageColor3 = corToggleOn
 scroll.Parent = menu
@@ -276,20 +232,11 @@ local function criarToggle(icone, texto, y)
     
     return {
         onToggle = function(cb) callback = cb end,
-        setAtivo = function(val)
-            ativo = val
-            if ativo then
-                toggle.BackgroundColor3 = corToggleOn
-                bola.Position = UDim2.new(1, -18, 0.5, -8)
-            else
-                toggle.BackgroundColor3 = corToggleOff
-                bola.Position = UDim2.new(0, 2, 0.5, -8)
-            end
-        end
+        getAtivo = function() return ativo end
     }
 end
 
--- ========== CONTEÚDO PRINCIPAL ==========
+-- ========== CONTEÚDO ==========
 local y = 5
 
 local autoAttack = criarToggle("⚔️", "Auto Attack", y)
@@ -307,19 +254,19 @@ y = y + 42
 local autoHit = criarToggle("👊", "Auto Hit", y)
 y = y + 42
 
-local autoCollectMoney = criarToggle("💰", "Auto Collect Money", y)
+local autoCollect = criarToggle("💰", "Auto Collect Money", y)
 y = y + 50
 
 -- Informações
 local infoFrame = Instance.new("Frame")
-infoFrame.Size = UDim2.new(1, 0, 0, 80)
+infoFrame.Size = UDim2.new(1, 0, 0, 70)
 infoFrame.Position = UDim2.new(0, 0, 0, y)
 infoFrame.BackgroundTransparency = 1
 infoFrame.Parent = scroll
-y = y + 85
+y = y + 75
 
 local indice = Instance.new("TextLabel")
-indice.Size = UDim2.new(1, 0, 0, 18)
+indice.Size = UDim2.new(1, 0, 0, 16)
 indice.Position = UDim2.new(0, 0, 0, 0)
 indice.Text = "📊 Indice"
 indice.Font = Enum.Font.GothamBold
@@ -330,8 +277,8 @@ indice.TextXAlignment = Enum.TextXAlignment.Left
 indice.Parent = infoFrame
 
 local duelos = Instance.new("TextLabel")
-duelos.Size = UDim2.new(0.5, 0, 0, 16)
-duelos.Position = UDim2.new(0, 0, 0, 20)
+duelos.Size = UDim2.new(0.5, 0, 0, 14)
+duelos.Position = UDim2.new(0, 0, 0, 18)
 duelos.Text = "⚔️ Duelos"
 duelos.Font = Enum.Font.Gotham
 duelos.TextSize = 9
@@ -341,8 +288,8 @@ duelos.TextXAlignment = Enum.TextXAlignment.Left
 duelos.Parent = infoFrame
 
 local anchor = Instance.new("TextLabel")
-anchor.Size = UDim2.new(0.5, 0, 0, 16)
-anchor.Position = UDim2.new(0, 0, 0, 38)
+anchor.Size = UDim2.new(0.5, 0, 0, 14)
+anchor.Position = UDim2.new(0, 0, 0, 34)
 anchor.Text = "⚓ Anchor"
 anchor.Font = Enum.Font.Gotham
 anchor.TextSize = 9
@@ -352,40 +299,38 @@ anchor.TextXAlignment = Enum.TextXAlignment.Left
 anchor.Parent = infoFrame
 
 local x28 = Instance.new("TextLabel")
-x28.Size = UDim2.new(0.3, 0, 0, 20)
-x28.Position = UDim2.new(0.5, 0, 0, 20)
+x28.Size = UDim2.new(0.3, 0, 0, 18)
+x28.Position = UDim2.new(0.5, 0, 0, 18)
 x28.Text = "x28"
 x28.Font = Enum.Font.GothamBold
 x28.TextSize = 14
 x28.TextColor3 = corDourado
 x28.BackgroundTransparency = 1
-x28.TextXAlignment = Enum.TextXAlignment.Center
 x28.Parent = infoFrame
 
 local x30 = Instance.new("TextLabel")
-x30.Size = UDim2.new(0.3, 0, 0, 20)
-x30.Position = UDim2.new(0.7, 0, 0, 20)
+x30.Size = UDim2.new(0.3, 0, 0, 18)
+x30.Position = UDim2.new(0.7, 0, 0, 18)
 x30.Text = "x30"
 x30.Font = Enum.Font.GothamBold
 x30.TextSize = 14
 x30.TextColor3 = corDourado
 x30.BackgroundTransparency = 1
-x30.TextXAlignment = Enum.TextXAlignment.Center
 x30.Parent = infoFrame
 
 local money = Instance.new("TextLabel")
-money.Size = UDim2.new(0.5, 0, 0, 20)
-money.Position = UDim2.new(0, 0, 0, 58)
+money.Size = UDim2.new(0.5, 0, 0, 18)
+money.Position = UDim2.new(0, 0, 0, 52)
 money.Text = "$684.65T"
 money.Font = Enum.Font.GothamBold
-money.TextSize = 12
+money.TextSize = 11
 money.TextColor3 = corVerde
 money.BackgroundTransparency = 1
 money.TextXAlignment = Enum.TextXAlignment.Left
 money.Parent = infoFrame
 
 local autoRejoin = Instance.new("TextButton")
-autoRejoin.Size = UDim2.new(1, 0, 0, 32)
+autoRejoin.Size = UDim2.new(1, 0, 0, 30)
 autoRejoin.Position = UDim2.new(0, 0, 0, y)
 autoRejoin.Text = "🔄 Auto Rejoin"
 autoRejoin.Font = Enum.Font.GothamBold
@@ -399,13 +344,13 @@ autoRejoin.MouseButton1Click:Connect(function()
     TeleportService:Teleport(game.PlaceId, player)
 end)
 
-y = y + 40
+y = y + 38
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 10)
 
--- ========== AUTO COLLECT MONEY (CORRIGIDO - COLETA CONSTANTEMENTE) ==========
+-- ========== AUTO COLLECT MONEY (SIMPLES E FUNCIONAL) ==========
 local collectActive = false
 
--- Loop de coleta contínuo (roda SEMPRE quando ativado)
+-- Loop de coleta
 spawn(function()
     while true do
         if collectActive then
@@ -413,16 +358,12 @@ spawn(function()
             if character then
                 local hrp = character:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- Procurar em todo workspace
                     for _, obj in pairs(workspace:GetDescendants()) do
                         if obj:IsA("BasePart") then
                             local nome = obj.Name:lower()
-                            -- Verificar se é dinheiro
                             if string.find(nome, "coin") or string.find(nome, "money") or string.find(nome, "cash") then
                                 pcall(function()
-                                    -- Teleportar e destruir
-                                    obj.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
-                                    task.wait(0.05)
+                                    obj.CFrame = hrp.CFrame
                                     obj:Destroy()
                                 end)
                             end
@@ -431,7 +372,7 @@ spawn(function()
                 end
             end
         end
-        task.wait(0.1)
+        task.wait(0.2)
     end
 end)
 
@@ -440,7 +381,7 @@ local creditsScroll = Instance.new("ScrollingFrame")
 creditsScroll.Size = UDim2.new(1, -80, 1, -55)
 creditsScroll.Position = UDim2.new(0, 75, 0, 55)
 creditsScroll.BackgroundTransparency = 1
-creditsScroll.CanvasSize = UDim2.new(0, 0, 0, 150)
+creditsScroll.CanvasSize = UDim2.new(0, 0, 0, 140)
 creditsScroll.ScrollBarThickness = 3
 creditsScroll.ScrollBarImageColor3 = corToggleOn
 creditsScroll.Visible = false
@@ -460,7 +401,7 @@ creditsTitle.Parent = creditsScroll
 creditsY = creditsY + 28
 
 local dev1 = Instance.new("Frame")
-dev1.Size = UDim2.new(1, 0, 0, 42)
+dev1.Size = UDim2.new(1, 0, 0, 40)
 dev1.Position = UDim2.new(0, 0, 0, creditsY)
 dev1.BackgroundColor3 = corCard
 dev1.Parent = creditsScroll
@@ -477,21 +418,10 @@ dev1Name.BackgroundTransparency = 1
 dev1Name.TextXAlignment = Enum.TextXAlignment.Left
 dev1Name.Parent = dev1
 
-local dev1Role = Instance.new("TextLabel")
-dev1Role.Size = UDim2.new(1, 0, 0, 14)
-dev1Role.Position = UDim2.new(0, 8, 0, 24)
-dev1Role.Text = "Project Creator & Programmer"
-dev1Role.Font = Enum.Font.Gotham
-dev1Role.TextSize = 8
-dev1Role.TextColor3 = corTextoClaro
-dev1Role.BackgroundTransparency = 1
-dev1Role.TextXAlignment = Enum.TextXAlignment.Left
-dev1Role.Parent = dev1
-
-creditsY = creditsY + 48
+creditsY = creditsY + 46
 
 local dev2 = Instance.new("Frame")
-dev2.Size = UDim2.new(1, 0, 0, 42)
+dev2.Size = UDim2.new(1, 0, 0, 40)
 dev2.Position = UDim2.new(0, 0, 0, creditsY)
 dev2.BackgroundColor3 = corCard
 dev2.Parent = creditsScroll
@@ -508,18 +438,7 @@ dev2Name.BackgroundTransparency = 1
 dev2Name.TextXAlignment = Enum.TextXAlignment.Left
 dev2Name.Parent = dev2
 
-local dev2Role = Instance.new("TextLabel")
-dev2Role.Size = UDim2.new(1, 0, 0, 14)
-dev2Role.Position = UDim2.new(0, 8, 0, 24)
-dev2Role.Text = "Script Optimization & Support"
-dev2Role.Font = Enum.Font.Gotham
-dev2Role.TextSize = 8
-dev2Role.TextColor3 = corTextoClaro
-dev2Role.BackgroundTransparency = 1
-dev2Role.TextXAlignment = Enum.TextXAlignment.Left
-dev2Role.Parent = dev2
-
-creditsY = creditsY + 48
+creditsY = creditsY + 46
 
 local discordBtn = Instance.new("TextButton")
 discordBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -565,10 +484,10 @@ esp.onToggle(function(v) active.esp = v end)
 spinBot.onToggle(function(v) active.spin = v end)
 superJump.onToggle(function(v) active.superJump = v end)
 autoHit.onToggle(function(v) active.hit = v end)
-autoCollectMoney.onToggle(function(v) 
+autoCollect.onToggle(function(v) 
     active.collect = v
     collectActive = v
-    print("Auto Collect Money: " .. (v and "ON" or "OFF"))
+    print("Auto Collect: " .. (v and "ON" or "OFF"))
 end)
 
 -- Super Jump
@@ -668,30 +587,22 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- ========== TROCAR ABA ==========
-local function trocarAba(aba)
-    if aba == "Main" then
-        abaMain.BackgroundColor3 = corToggleOn
-        abaMain.TextColor3 = corTextoBranco
-        abaCredits.BackgroundColor3 = corCard
-        abaCredits.TextColor3 = corTextoClaro
-        scroll.Visible = true
-        creditsScroll.Visible = false
-    else
-        abaCredits.BackgroundColor3 = corToggleOn
-        abaCredits.TextColor3 = corTextoBranco
-        abaMain.BackgroundColor3 = corCard
-        abaMain.TextColor3 = corTextoClaro
-        scroll.Visible = false
-        creditsScroll.Visible = true
-    end
-end
-
 abaMain.MouseButton1Click:Connect(function()
-    trocarAba("Main")
+    abaMain.BackgroundColor3 = corToggleOn
+    abaMain.TextColor3 = corTextoBranco
+    abaCredits.BackgroundColor3 = corCard
+    abaCredits.TextColor3 = corTextoClaro
+    scroll.Visible = true
+    creditsScroll.Visible = false
 end)
 
 abaCredits.MouseButton1Click:Connect(function()
-    trocarAba("Credits")
+    abaCredits.BackgroundColor3 = corToggleOn
+    abaCredits.TextColor3 = corTextoBranco
+    abaMain.BackgroundColor3 = corCard
+    abaMain.TextColor3 = corTextoClaro
+    scroll.Visible = false
+    creditsScroll.Visible = true
 end)
 
 -- Abrir/fechar
@@ -704,6 +615,6 @@ fechar.MouseButton1Click:Connect(function()
 end)
 
 print("✅ Zzz V1 Carregado!")
-print("📌 Ícone Z: Segure e arraste para mover")
-print("📌 Menu: Segure na barra superior para mover")
-print("💰 Auto Collect Money: Coleta DINHEIRO automaticamente O TEMPO TODO!")
+print("📌 Ícone Z: Clique e arraste para mover")
+print("📌 Menu: Clique na barra superior e arraste")
+print("💰 Auto Collect: Coleta dinheiro automaticamente!")
