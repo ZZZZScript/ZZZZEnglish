@@ -1,26 +1,22 @@
--- TESTE PARA VER RESPOSTA DO SERVIDOR
+-- VERSÃO DE TESTE - COM ID AUTORIZADO MANUALMENTE
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
-local url = "https://discord-node-bot--joaolmadureira2.replit.app/check?id=" .. player.UserId
+-- LISTA DE IDs AUTORIZADOS (COLOQUE SEU ID AQUI)
+local idsAutorizados = {
+    [123456789] = true,  -- SUBSTITUA PELO SEU ID
+    -- Adicione mais IDs aqui
+}
 
-print("🔍 Verificando ID: " .. player.UserId)
-print("🔗 URL: " .. url)
+local meuId = player.UserId
 
-local success, response = pcall(function()
-    return game:HttpGet(url)
-end)
-
-if success then
-    print("📥 RESPOSTA COMPLETA: [" .. response .. "]")
-    print("📏 Tamanho: " .. #response .. " caracteres")
-    print("🔤 Tipo: " .. type(response))
+if idsAutorizados[meuId] then
+    print("✅ ACESSO LIBERADO! ID: " .. meuId)
     
-    -- Mostra cada caractere
-    print("📋 Caracteres:")
-    for i = 1, #response do
-        print("  " .. i .. ": " .. string.byte(response, i) .. " -> " .. string.sub(response, i, i))
-    end
+    -- ========== SEU SCRIPT PRINCIPAL AQUI ==========
+    -- Coloque todo o script principal aqui
+    
 else
-    print("❌ ERRO: " .. tostring(response))
+    print("❌ ACESSO NEGADO! ID: " .. meuId .. " não está na lista")
+    player:Kick("Você não tem acesso!")
 end
