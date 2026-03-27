@@ -25,10 +25,11 @@ local corToggleOn = Color3.fromRGB(100, 100, 120)
 local corTextoBranco = Color3.fromRGB(255, 255, 255)
 local corTextoClaro = Color3.fromRGB(160, 160, 170)
 
--- Variáveis para ANCHOR
-local anchorPosition = nil
-local anchorActive = false
-local anchorCooldown = false
+-- ========== VARIÁVEIS GLOBAIS ==========
+local coletando = false
+local anchorAtivo = false
+local savedPosition = nil
+local teleportCooldown = false
 
 -- ========== BOTÃO Z ==========
 local botaoZ = Instance.new("TextButton")
@@ -177,9 +178,7 @@ scroll.ScrollBarThickness = 3
 scroll.Parent = menu
 
 -- TOGGLES
-local toggles = {}
-
-local function criarToggle(icone, texto, y)
+local function criarToggle(icone, texto, y, callback)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 36)
     card.Position = UDim2.new(0, 0, 0, y)
@@ -224,7 +223,6 @@ local function criarToggle(icone, texto, y)
     Instance.new("UICorner", bola).CornerRadius = UDim.new(1, 0)
     
     local ativo = false
-    local callback = nil
     
     toggle.MouseButton1Click:Connect(function()
         ativo = not ativo
@@ -238,19 +236,36 @@ local function criarToggle(icone, texto, y)
         if callback then callback(ativo) end
     end)
     
-    toggles[texto] = {onToggle = function(cb) callback = cb end}
-    return toggles[texto]
+    return function() return ativo end
 end
 
 -- CRIAR TOGGLES
 local y = 5
-local autoAttack = criarToggle("⚔️", "Auto Attack", y); y = y + 42
-local esp = criarToggle("👁️", "ESP", y); y = y + 42
-local spinBot = criarToggle("🌀", "Spin Bot", y); y = y + 42
-local superJump = criarToggle("🦘", "Super Jump", y); y = y + 42
-local autoHit = criarToggle("👊", "Auto Hit", y); y = y + 42
-local autoCollect = criarToggle("💰", "Auto Collect Money", y); y = y + 42
-local anchorToggle = criarToggle("⚓", "Anchor", y); y = y + 50
+local getAutoAttack = criarToggle("⚔️", "Auto Attack", y, function(v) pcall(function() _G.AutoAttack = v end) end); y = y + 42
+local getESP = criarToggle("👁️", "ESP", y, function(v) pcall(function() _G.ESP = v end) end); y = y + 42
+local getSpin = criarToggle("🌀", "Spin Bot", y, function(v) pcall(function() _G.Spin = v end) end); y = y + 42
+local getSuperJump = criarToggle("🦘", "Super Jump", y, function(v) pcall(function() _G.SuperJump = v end) end); y = y + 42
+local getAutoHit = criarToggle("👊", "Auto Hit", y, function(v) pcall(function() _G.AutoHit = v end) end); y = y + 42
+
+-- AUTO COLLECT
+local getAutoCollect = criarToggle("💰", "Auto Collect Money", y, function(v) 
+    coletando = v
+    print("💰 Auto Collect Money: " .. (v and "LIGADO (coletando constantemente)" or "DESLIGADO"))
+end); y = y + 42
+
+-- ANCHOR
+local getAnchor = criarToggle("⚓", "Anchor", y, function(v) 
+    anchorAtivo = v
+    if v and player.Character then
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            savedPosition = hrp.Position
+            print("⚓ Anchor ATIVADO! Posição salva: " .. math.floor(savedPosition.X) .. ", " .. math.floor(savedPosition.Y) .. ", " .. math.floor(savedPosition.Z))
+        end
+    else
+        print("⚓ Anchor DESATIVADO")
+    end
+end); y = y + 50
 
 -- INFORMAÇÕES
 local infoFrame = Instance.new("Frame")
@@ -280,15 +295,15 @@ duelos.TextColor3 = corTextoClaro
 duelos.BackgroundTransparency = 1
 duelos.Parent = infoFrame
 
-local anchor = Instance.new("TextLabel")
-anchor.Size = UDim2.new(0.5, 0, 0, 14)
-anchor.Position = UDim2.new(0, 0, 0, 34)
-anchor.Text = "⚓ Anchor"
-anchor.Font = Enum.Font.Gotham
-anchor.TextSize = 9
-anchor.TextColor3 = corTextoClaro
-anchor.BackgroundTransparency = 1
-anchor.Parent = infoFrame
+local anchorText = Instance.new("TextLabel")
+anchorText.Size = UDim2.new(0.5, 0, 0, 14)
+anchorText.Position = UDim2.new(0, 0, 0, 34)
+anchorText.Text = "⚓ Anchor"
+anchorText.Font = Enum.Font.Gotham
+anchorText.TextSize = 9
+anchorText.TextColor3 = corTextoClaro
+anchorText.BackgroundTransparency = 1
+anchorText.Parent = infoFrame
 
 local x28 = Instance.new("TextLabel")
 x28.Size = UDim2.new(0.3, 0, 0, 18)
@@ -337,64 +352,7 @@ end)
 
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 40)
 
--- ========== ANCHOR SYSTEM ==========
-local anchorAtivo = false
-
-anchorToggle.onToggle(function(v)
-    anchorAtivo = v
-    if v and player.Character then
-        anchorPosition = player.Character.HumanoidRootPart.Position
-        print("⚓ Anchor ativado! Posição salva: " .. tostring(anchorPosition))
-    elseif not v then
-        print("⚓ Anchor desativado")
-    end
-end)
-
--- Monitorar quando o jogador cai (fica no chão ou morre)
-RunService.RenderStepped:Connect(function()
-    if anchorAtivo and player.Character then
-        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-        
-        if humanoid and hrp and anchorPosition then
-            -- Se o jogador caiu (está no chão) ou está morrendo
-            if humanoid.Health <= 0 or (humanoid:GetState() == Enum.HumanoidStateType.FallingDown) or (humanoid:GetState() == Enum.HumanoidStateType.GettingUp) then
-                if not anchorCooldown then
-                    anchorCooldown = true
-                    task.wait(0.5)
-                    -- Teleportar de volta para a posição salva
-                    hrp.CFrame = CFrame.new(anchorPosition)
-                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
-                    print("⚓ Anchor: Teleportado de volta!")
-                    task.wait(2)
-                    anchorCooldown = false
-                end
-            end
-        end
-    end
-end)
-
--- Atualizar posição do Anchor periodicamente (a cada 2 segundos)
-spawn(function()
-    while true do
-        if anchorAtivo and player.Character then
-            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-            if hrp and hrp.Position.Y > -10 then
-                anchorPosition = hrp.Position
-            end
-        end
-        task.wait(2)
-    end
-end)
-
--- ========== AUTO COLLECT MONEY (CORRIGIDO) ==========
-local coletando = false
-
-autoCollect.onToggle(function(v)
-    coletando = v
-    print("Auto Collect Money: " .. (v and "ON" or "OFF"))
-end)
-
+-- ========== LOOP DO AUTO COLLECT (CONSTANTE) ==========
 spawn(function()
     while true do
         if coletando then
@@ -405,17 +363,14 @@ spawn(function()
                     for _, obj in pairs(workspace:GetDescendants()) do
                         if obj:IsA("BasePart") then
                             local nome = obj.Name:lower()
-                            if nome:find("coin") or nome:find("money") or nome:find("cash") or nome:find("drop") or obj:FindFirstChild("TouchInterest") then
+                            if nome:find("coin") or nome:find("money") or nome:find("cash") or nome:find("drop") then
                                 pcall(function()
-                                    -- Remover sons e placas
                                     for _, child in pairs(obj:GetChildren()) do
                                         if child:IsA("Sound") or child:IsA("BillboardGui") or child:IsA("Decal") then
                                             child:Destroy()
                                         end
                                     end
-                                    -- Teleportar para o jogador e destruir
                                     obj.CFrame = root.CFrame
-                                    task.wait(0.05)
                                     obj:Destroy()
                                 end)
                             end
@@ -424,11 +379,6 @@ spawn(function()
                             local nome = obj.Name:lower()
                             if nome:find("coin") or nome:find("money") or nome:find("cash") then
                                 pcall(function()
-                                    for _, child in pairs(obj:GetDescendants()) do
-                                        if child:IsA("Sound") or child:IsA("BillboardGui") then
-                                            child:Destroy()
-                                        end
-                                    end
                                     obj:Destroy()
                                 end)
                             end
@@ -437,7 +387,40 @@ spawn(function()
                 end
             end
         end
-        task.wait(0.2)
+        task.wait(0.1)
+    end
+end)
+
+-- ========== LOOP DO ANCHOR (CONSTANTE) ==========
+spawn(function()
+    while true do
+        if anchorAtivo and player.Character then
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                -- Salvar posição a cada segundo
+                if hrp.Position.Y > -10 then
+                    savedPosition = hrp.Position
+                end
+                
+                -- Verificar se caiu
+                local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    local state = humanoid:GetState()
+                    if hrp.Position.Y < 0 or state == Enum.HumanoidStateType.FallingDown or state == Enum.HumanoidStateType.GettingUp or humanoid.Health <= 0 then
+                        if not teleportCooldown and savedPosition then
+                            teleportCooldown = true
+                            task.wait(0.5)
+                            hrp.CFrame = CFrame.new(savedPosition)
+                            humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                            print("⚓ Teleportado de volta!")
+                            task.wait(2)
+                            teleportCooldown = false
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(0.5)
     end
 end)
 
@@ -516,22 +499,12 @@ end)
 
 creditsScroll.CanvasSize = UDim2.new(0, 0, 0, cy + 40)
 
--- ========== FUNÇÕES PVP ==========
-local active = {
-    auto = false, esp = false, spin = false, superJump = false, hit = false
-}
-
-autoAttack.onToggle(function(v) active.auto = v end)
-esp.onToggle(function(v) active.esp = v end)
-spinBot.onToggle(function(v) active.spin = v end)
-superJump.onToggle(function(v) active.superJump = v end)
-autoHit.onToggle(function(v) active.hit = v end)
-
+-- ========== PVP FUNÇÕES ==========
 -- Super Jump
 local function setSuperJump()
     if player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.JumpPower = active.superJump and 120 or 50 end
+        if hum then hum.JumpPower = _G.SuperJump and 120 or 50 end
     end
 end
 
@@ -540,7 +513,7 @@ RunService.RenderStepped:Connect(setSuperJump)
 
 -- Auto Attack
 RunService.RenderStepped:Connect(function()
-    if active.auto and player.Character then
+    if _G.AutoAttack and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
             local closest, dist = nil, math.huge
@@ -563,7 +536,7 @@ end)
 
 -- Auto Hit
 RunService.RenderStepped:Connect(function()
-    if active.hit and player.Character then
+    if _G.AutoHit and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hum and hrp then
@@ -585,7 +558,7 @@ end)
 
 -- Spin Bot
 RunService.RenderStepped:Connect(function()
-    if active.spin and player.Character then
+    if _G.Spin and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
         if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
     end
@@ -593,7 +566,7 @@ end)
 
 -- ESP
 RunService.RenderStepped:Connect(function()
-    if active.esp then
+    if _G.ESP then
         for _, v in pairs(Players:GetPlayers()) do
             if v ~= player and v.Character and not v.Character:FindFirstChild("ESP_Box") then
                 local box = Instance.new("BoxHandleAdornment")
@@ -644,6 +617,6 @@ fechar.MouseButton1Click:Connect(function()
 end)
 
 print("✅ SCRIPT CARREGADO!")
-print("👉 Clique no Z para abrir")
-print("⚓ ANCHOR: Ative para voltar ao lugar quando cair")
-print("💰 Auto Collect Money: Coleta dinheiro automaticamente!")
+print("👉 Clique no Z para abrir o menu")
+print("💰 AUTO COLLECT: Ative e ele vai coletar dinheiro CONSTANTEMENTE")
+print("⚓ ANCHOR: Ative e ele vai salvar sua posição e te trazer de volta quando cair")
