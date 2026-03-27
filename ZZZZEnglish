@@ -1,50 +1,26 @@
--- TESTE APENAS HTTP (SEM GUI COMPLEXA)
-print("Teste HTTP iniciado!")
+-- TESTE MÍNIMO - APENAS VER SE O SCRIPT RODA
+print("Script iniciou!")
 
-local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
+print("Player: " .. player.Name)
 
-local url = "https://discord-node-bot--joaolmadureira2.replit.app/check?id=" .. player.UserId
-print("URL: " .. url)
+-- Criar uma GUI simples
+local gui = Instance.new("ScreenGui")
+gui.Name = "TestGui"
+gui.Parent = player:WaitForChild("PlayerGui")
 
-local success, response = pcall(function()
-    return game:HttpGet(url)
-end)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+frame.Parent = gui
 
-if success then
-    print("HTTP Funcionou! Resposta: " .. response)
-    
-    local data = HttpService:JSONDecode(response)
-    print("Access: " .. tostring(data.access))
-    
-    if data.access then
-        print("ACESSO LIBERADO!")
-        
-        -- Criar GUI de confirmação
-        local gui = Instance.new("ScreenGui")
-        gui.Parent = player:WaitForChild("PlayerGui")
-        
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 300, 0, 150)
-        frame.Position = UDim2.new(0.5, -150, 0.5, -75)
-        frame.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-        frame.Parent = gui
-        Instance.new("UICorner", frame)
-        
-        local text = Instance.new("TextLabel")
-        text.Size = UDim2.new(1, 0, 1, 0)
-        text.Text = "✅ ACESSO LIBERADO!\nUsuário: " .. player.Name
-        text.TextColor3 = Color3.fromRGB(255, 255, 255)
-        text.BackgroundTransparency = 1
-        text.TextScaled = true
-        text.Parent = frame
-        
-        task.wait(3)
-        gui:Destroy()
-    else
-        print("ACESSO NEGADO!")
-    end
-else
-    print("HTTP FALHOU! Erro: " .. tostring(response))
-end
+local text = Instance.new("TextLabel")
+text.Size = UDim2.new(1, 0, 1, 0)
+text.Text = "SCRIPT FUNCIONANDO!"
+text.TextColor3 = Color3.fromRGB(255, 255, 255)
+text.BackgroundTransparency = 1
+text.Parent = frame
+
+print("GUI criada! Deve aparecer um quadrado vermelho na tela.")
