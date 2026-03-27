@@ -1,46 +1,745 @@
--- TESTE MÍNIMO
+-- ============================================
+-- Zzz SCRIPT - VERIFICAÇÃO POR ID VIA HTTP
+-- ============================================
+
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+
 local player = Players.LocalPlayer
 
-task.wait(2)
-print("Teste iniciado - ID: " .. player.UserId)
+-- Aguarda o jogo carregar
+task.wait(3)
 
+-- URL com o ID do jogador
 local url = "https://discord-node-bot--joaolmadureira2.replit.app/check?id=" .. player.UserId
-print("URL: " .. url)
 
+print("🔍 Verificando ID: " .. player.UserId)
+
+-- Tenta fazer a requisição
 local success, response = pcall(function()
     return game:HttpGet(url)
 end)
 
-if success then
-    print("Resposta recebida: " .. response)
+if success and response then
+    print("📥 Resposta recebida: " .. response)
     
-    if response == "true" then
-        print("Acesso liberado!")
+    -- Remove espaços e quebras de linha
+    local resposta = string.gsub(response, "%s+", "")
+    resposta = string.lower(resposta)
+    
+    -- Verifica se a resposta é "true" ou contém acesso
+    if resposta == "true" or resposta == "1" or resposta:find("true") or resposta:find("access") then
+        print("✅ ACESSO LIBERADO para ID: " .. player.UserId)
         
-        -- Criar GUI de confirmação
+        -- ========== SCRIPT PRINCIPAL ==========
+        -- Limpar GUIs antigas
+        for _, gui in pairs(player.PlayerGui:GetChildren()) do
+            if gui.Name == "ZzzUI" then
+                gui:Destroy()
+            end
+        end
+
         local gui = Instance.new("ScreenGui")
+        gui.Name = "ZzzUI"
+        gui.ResetOnSpawn = false
         gui.Parent = player:WaitForChild("PlayerGui")
+
+        local corFundo = Color3.fromRGB(8, 8, 10)
+        local corTextoBranco = Color3.fromRGB(255, 255, 255)
+        local corTextoClaro = Color3.fromRGB(160, 160, 170)
+
+        local coletando = false
+        local plataformaAtiva = false
+        local plataforma = nil
+        local plataformaPosicao = nil
+        local speedAtivo = false
+        local velocidadeAtual = 50
+
+        -- Botão Z
+        local botaoZ = Instance.new("TextButton")
+        botaoZ.Size = UDim2.new(0, 55, 0, 55)
+        botaoZ.Position = UDim2.new(0, 10, 0.5, -27)
+        botaoZ.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        botaoZ.Text = "Z"
+        botaoZ.TextColor3 = corTextoBranco
+        botaoZ.TextScaled = true
+        botaoZ.Font = Enum.Font.GothamBlack
+        botaoZ.Parent = gui
+        Instance.new("UICorner", botaoZ).CornerRadius = UDim.new(0, 15)
+
+        -- Arrastar botão Z
+        local arrastandoZ = false
+        local posZ, mouseZ
+        botaoZ.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                arrastandoZ = true
+                mouseZ = i.Position
+                posZ = botaoZ.Position
+            end
+        end)
+        botaoZ.InputEnded:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then arrastandoZ = false end
+        end)
+        UserInputService.InputChanged:Connect(function(i)
+            if arrastandoZ and i.UserInputType == Enum.UserInputType.MouseMovement then
+                local d = i.Position - mouseZ
+                botaoZ.Position = UDim2.new(posZ.X.Scale, posZ.X.Offset + d.X, posZ.Y.Scale, posZ.Y.Offset + d.Y)
+            end
+        end)
+
+        -- Menu principal
+        local menu = Instance.new("Frame")
+        menu.Size = UDim2.new(0, 380, 0, 500)
+        menu.Position = UDim2.new(0.5, -190, 0.5, -250)
+        menu.BackgroundColor3 = corFundo
+        menu.Visible = false
+        menu.Parent = gui
+        Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 12)
+
+        -- Arrastar menu
+        local arrastandoM = false
+        local posM, mouseM
+        menu.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                arrastandoM = true
+                mouseM = i.Position
+                posM = menu.Position
+            end
+        end)
+        menu.InputEnded:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then arrastandoM = false end
+        end)
+        UserInputService.InputChanged:Connect(function(i)
+            if arrastandoM and i.UserInputType == Enum.UserInputType.MouseMovement then
+                local d = i.Position - mouseM
+                menu.Position = UDim2.new(posM.X.Scale, posM.X.Offset + d.X, posM.Y.Scale, posM.Y.Offset + d.Y)
+            end
+        end)
+
+        -- Topo do menu
+        local topoMenu = Instance.new("Frame")
+        topoMenu.Size = UDim2.new(1, 0, 0, 45)
+        topoMenu.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
+        topoMenu.Parent = menu
+        Instance.new("UICorner", topoMenu).CornerRadius = UDim.new(0, 12)
+
+        local tituloMenu = Instance.new("TextLabel")
+        tituloMenu.Size = UDim2.new(1, 0, 0, 24)
+        tituloMenu.Position = UDim2.new(0, 0, 0, 6)
+        tituloMenu.Text = "Zzz SCRIPT"
+        tituloMenu.Font = Enum.Font.GothamBlack
+        tituloMenu.TextSize = 18
+        tituloMenu.TextColor3 = corTextoBranco
+        tituloMenu.BackgroundTransparency = 1
+        tituloMenu.Parent = topoMenu
+
+        local subMenu = Instance.new("TextLabel")
+        subMenu.Size = UDim2.new(1, 0, 0, 14)
+        subMenu.Position = UDim2.new(0, 0, 0, 28)
+        subMenu.Text = "Lab Pvp"
+        subMenu.Font = Enum.Font.Gotham
+        subMenu.TextSize = 8
+        subMenu.TextColor3 = corTextoClaro
+        subMenu.BackgroundTransparency = 1
+        subMenu.Parent = topoMenu
+
+        local fechar = Instance.new("TextButton")
+        fechar.Size = UDim2.new(0, 24, 0, 24)
+        fechar.Position = UDim2.new(1, -30, 0, 6)
+        fechar.Text = "✕"
+        fechar.Font = Enum.Font.GothamBold
+        fechar.TextSize = 12
+        fechar.TextColor3 = corTextoBranco
+        fechar.BackgroundTransparency = 1
+        fechar.Parent = topoMenu
+
+        -- Sidebar
+        local sidebar = Instance.new("Frame")
+        sidebar.Size = UDim2.new(0, 70, 1, -45)
+        sidebar.Position = UDim2.new(0, 0, 0, 45)
+        sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        sidebar.Parent = menu
+
+        local abaMain = Instance.new("TextButton")
+        abaMain.Size = UDim2.new(0.85, 0, 0, 32)
+        abaMain.Position = UDim2.new(0.075, 0, 0, 10)
+        abaMain.Text = "Main"
+        abaMain.Font = Enum.Font.GothamBold
+        abaMain.TextSize = 11
+        abaMain.TextColor3 = corTextoBranco
+        abaMain.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        abaMain.Parent = sidebar
+        Instance.new("UICorner", abaMain).CornerRadius = UDim.new(0, 6)
+
+        local abaCredits = Instance.new("TextButton")
+        abaCredits.Size = UDim2.new(0.85, 0, 0, 32)
+        abaCredits.Position = UDim2.new(0.075, 0, 0, 48)
+        abaCredits.Text = "Credits"
+        abaCredits.Font = Enum.Font.GothamBold
+        abaCredits.TextSize = 11
+        abaCredits.TextColor3 = corTextoClaro
+        abaCredits.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        abaCredits.Parent = sidebar
+        Instance.new("UICorner", abaCredits).CornerRadius = UDim.new(0, 6)
+
+        -- Scroll principal
+        local scroll = Instance.new("ScrollingFrame")
+        scroll.Size = UDim2.new(1, -80, 1, -55)
+        scroll.Position = UDim2.new(0, 75, 0, 55)
+        scroll.BackgroundTransparency = 1
+        scroll.CanvasSize = UDim2.new(0, 0, 0, 550)
+        scroll.ScrollBarThickness = 3
+        scroll.Parent = menu
+
+        -- Função para criar botões toggle
+        local function criarBotao(icone, texto, y)
+            local card = Instance.new("Frame")
+            card.Size = UDim2.new(1, 0, 0, 40)
+            card.Position = UDim2.new(0, 0, 0, y)
+            card.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+            card.Parent = scroll
+            Instance.new("UICorner", card).CornerRadius = UDim.new(0, 6)
+            
+            local iconeLab = Instance.new("TextLabel")
+            iconeLab.Size = UDim2.new(0, 28, 0, 28)
+            iconeLab.Position = UDim2.new(0, 8, 0.5, -14)
+            iconeLab.Text = icone
+            iconeLab.Font = Enum.Font.Gotham
+            iconeLab.TextSize = 16
+            iconeLab.TextColor3 = Color3.fromRGB(100, 100, 120)
+            iconeLab.BackgroundTransparency = 1
+            iconeLab.Parent = card
+            
+            local textoLab = Instance.new("TextLabel")
+            textoLab.Size = UDim2.new(0, 100, 0, 20)
+            textoLab.Position = UDim2.new(0, 42, 0.5, -10)
+            textoLab.Text = texto
+            textoLab.Font = Enum.Font.GothamBold
+            textoLab.TextSize = 10
+            textoLab.TextColor3 = corTextoBranco
+            textoLab.BackgroundTransparency = 1
+            textoLab.TextXAlignment = Enum.TextXAlignment.Left
+            textoLab.Parent = card
+            
+            local toggleBtn = Instance.new("TextButton")
+            toggleBtn.Size = UDim2.new(0, 50, 0, 26)
+            toggleBtn.Position = UDim2.new(1, -58, 0.5, -13)
+            toggleBtn.Text = "OFF"
+            toggleBtn.Font = Enum.Font.GothamBold
+            toggleBtn.TextSize = 10
+            toggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
+            toggleBtn.Parent = card
+            Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 6)
+            
+            return toggleBtn
+        end
+
+        -- Função para criar slider
+        local function criarSlider(icone, texto, y, minVal, maxVal, valorInicial)
+            local card = Instance.new("Frame")
+            card.Size = UDim2.new(1, 0, 0, 65)
+            card.Position = UDim2.new(0, 0, 0, y)
+            card.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+            card.Parent = scroll
+            Instance.new("UICorner", card).CornerRadius = UDim.new(0, 6)
+            
+            local iconeLab = Instance.new("TextLabel")
+            iconeLab.Size = UDim2.new(0, 28, 0, 28)
+            iconeLab.Position = UDim2.new(0, 8, 0.3, -14)
+            iconeLab.Text = icone
+            iconeLab.Font = Enum.Font.Gotham
+            iconeLab.TextSize = 16
+            iconeLab.TextColor3 = Color3.fromRGB(100, 100, 120)
+            iconeLab.BackgroundTransparency = 1
+            iconeLab.Parent = card
+            
+            local textoLab = Instance.new("TextLabel")
+            textoLab.Size = UDim2.new(0, 100, 0, 20)
+            textoLab.Position = UDim2.new(0, 42, 0.15, 0)
+            textoLab.Text = texto
+            textoLab.Font = Enum.Font.GothamBold
+            textoLab.TextSize = 10
+            textoLab.TextColor3 = corTextoBranco
+            textoLab.BackgroundTransparency = 1
+            textoLab.TextXAlignment = Enum.TextXAlignment.Left
+            textoLab.Parent = card
+            
+            local valorLabel = Instance.new("TextLabel")
+            valorLabel.Size = UDim2.new(0, 50, 0, 20)
+            valorLabel.Position = UDim2.new(1, -58, 0.15, 0)
+            valorLabel.Text = tostring(valorInicial)
+            valorLabel.Font = Enum.Font.GothamBold
+            valorLabel.TextSize = 10
+            valorLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+            valorLabel.BackgroundTransparency = 1
+            valorLabel.Parent = card
+            
+            local slider = Instance.new("Frame")
+            slider.Size = UDim2.new(0.7, 0, 0, 4)
+            slider.Position = UDim2.new(0, 42, 0.6, 0)
+            slider.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
+            slider.Parent = card
+            Instance.new("UICorner", slider).CornerRadius = UDim.new(1, 0)
+            
+            local fill = Instance.new("Frame")
+            fill.Size = UDim2.new((valorInicial - minVal) / (maxVal - minVal), 0, 1, 0)
+            fill.BackgroundColor3 = Color3.fromRGB(100, 100, 200)
+            fill.Parent = slider
+            Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+            
+            local knob = Instance.new("TextButton")
+            knob.Size = UDim2.new(0, 12, 0, 12)
+            knob.Position = UDim2.new((valorInicial - minVal) / (maxVal - minVal), -6, 0.5, -6)
+            knob.BackgroundColor3 = Color3.fromRGB(200, 200, 255)
+            knob.Text = ""
+            knob.Parent = slider
+            Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+            
+            local dragging = false
+            
+            local function updateValue(inputPos)
+                local sliderPos = slider.AbsolutePosition.X
+                local sliderWidth = slider.AbsoluteSize.X
+                local percent = math.clamp((inputPos - sliderPos) / sliderWidth, 0, 1)
+                local newValue = math.floor(minVal + (maxVal - minVal) * percent + 0.5)
+                newValue = math.clamp(newValue, minVal, maxVal)
+                
+                fill.Size = UDim2.new(percent, 0, 1, 0)
+                knob.Position = UDim2.new(percent, -6, 0.5, -6)
+                valorLabel.Text = tostring(newValue)
+                
+                if texto == "Speed" then
+                    velocidadeAtual = newValue
+                    if speedAtivo then
+                        local character = player.Character
+                        if character then
+                            local hum = character:FindFirstChildOfClass("Humanoid")
+                            if hum then hum.WalkSpeed = velocidadeAtual end
+                        end
+                    end
+                end
+            end
+            
+            knob.MouseButton1Down:Connect(function()
+                dragging = true
+                local connection
+                connection = UserInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        updateValue(input.Position.X)
+                    end
+                end)
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                        connection:Disconnect()
+                    end
+                end)
+            end)
+            
+            return knob, valorLabel
+        end
+
+        -- Criar botões
+        local y = 8
+        local autoAtkBtn = criarBotao("⚔️", "Auto Attack", y); y = y + 46
+        local espBtn = criarBotao("👁️", "ESP", y); y = y + 46
+        local spinBtn = criarBotao("🌀", "Spin Bot", y); y = y + 46
+        local superJumpBtn = criarBotao("🦘", "Super Jump", y); y = y + 46
+        local autoHitBtn = criarBotao("👊", "Auto Hit", y); y = y + 46
+        local autoCollectBtn = criarBotao("💰", "Auto Collect Money", y); y = y + 46
+        local speedBtn = criarBotao("⚡", "Speed", y); y = y + 46
+        local speedSlider, speedValue = criarSlider("⚡", "Speed", y, 28, 300, 50); y = y + 71
+        local plataformaBtn = criarBotao("🛡️", "Plataforma Anti-Queda", y); y = y + 50
+
+        -- Botão rejoin
+        local rejoinBtn = Instance.new("TextButton")
+        rejoinBtn.Size = UDim2.new(1, 0, 0, 32)
+        rejoinBtn.Position = UDim2.new(0, 0, 0, y)
+        rejoinBtn.Text = "🔄 Auto Rejoin"
+        rejoinBtn.Font = Enum.Font.GothamBold
+        rejoinBtn.TextSize = 10
+        rejoinBtn.TextColor3 = corTextoBranco
+        rejoinBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        rejoinBtn.Parent = scroll
+        Instance.new("UICorner", rejoinBtn).CornerRadius = UDim.new(0, 6)
+
+        rejoinBtn.MouseButton1Click:Connect(function()
+            TeleportService:Teleport(game.PlaceId, player)
+        end)
+
+        scroll.CanvasSize = UDim2.new(0, 0, 0, y + 45)
+
+        -- Funções da plataforma
+        local function criarPlataforma()
+            if plataforma then plataforma:Destroy() end
+            local character = player.Character
+            if not character then return end
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+            plataformaPosicao = hrp.Position - Vector3.new(0, 600, 0)
+            local platform = Instance.new("Part")
+            platform.Size = Vector3.new(3000, 1200, 3000)
+            platform.Position = plataformaPosicao
+            platform.Anchored = true
+            platform.CanCollide = true
+            platform.Transparency = 0.5
+            platform.BrickColor = BrickColor.new("Bright blue")
+            platform.Material = Enum.Material.SmoothPlastic
+            platform.Name = "AntiFallPlatform"
+            platform.Parent = workspace
+            local glow = Instance.new("SelectionBox")
+            glow.Adornee = platform
+            glow.Color3 = Color3.fromRGB(0, 150, 255)
+            glow.LineThickness = 0.5
+            glow.Transparency = 0.3
+            glow.Parent = platform
+            plataforma = platform
+        end
+
+        local function removerPlataforma()
+            if plataforma then
+                plataforma:Destroy()
+                plataforma = nil
+            end
+        end
+
+        -- Variáveis dos toggles
+        local autoAtk = false
+        local espOn = false
+        local spinOn = false
+        local superJumpOn = false
+        local autoHitOn = false
+
+        -- Eventos dos botões
+        autoAtkBtn.MouseButton1Click:Connect(function()
+            autoAtk = not autoAtk
+            autoAtkBtn.Text = autoAtk and "ON" or "OFF"
+            autoAtkBtn.TextColor3 = autoAtk and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            autoAtkBtn.BackgroundColor3 = autoAtk and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+        end)
+
+        espBtn.MouseButton1Click:Connect(function()
+            espOn = not espOn
+            espBtn.Text = espOn and "ON" or "OFF"
+            espBtn.TextColor3 = espOn and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            espBtn.BackgroundColor3 = espOn and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+        end)
+
+        spinBtn.MouseButton1Click:Connect(function()
+            spinOn = not spinOn
+            spinBtn.Text = spinOn and "ON" or "OFF"
+            spinBtn.TextColor3 = spinOn and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            spinBtn.BackgroundColor3 = spinOn and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+        end)
+
+        superJumpBtn.MouseButton1Click:Connect(function()
+            superJumpOn = not superJumpOn
+            superJumpBtn.Text = superJumpOn and "ON" or "OFF"
+            superJumpBtn.TextColor3 = superJumpOn and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            superJumpBtn.BackgroundColor3 = superJumpOn and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+        end)
+
+        autoHitBtn.MouseButton1Click:Connect(function()
+            autoHitOn = not autoHitOn
+            autoHitBtn.Text = autoHitOn and "ON" or "OFF"
+            autoHitBtn.TextColor3 = autoHitOn and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            autoHitBtn.BackgroundColor3 = autoHitOn and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+        end)
+
+        autoCollectBtn.MouseButton1Click:Connect(function()
+            coletando = not coletando
+            autoCollectBtn.Text = coletando and "ON" or "OFF"
+            autoCollectBtn.TextColor3 = coletando and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            autoCollectBtn.BackgroundColor3 = coletando and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+        end)
+
+        speedBtn.MouseButton1Click:Connect(function()
+            speedAtivo = not speedAtivo
+            speedBtn.Text = speedAtivo and "ON" or "OFF"
+            speedBtn.TextColor3 = speedAtivo and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            speedBtn.BackgroundColor3 = speedAtivo and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+            
+            local character = player.Character
+            if character then
+                local hum = character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    if speedAtivo then
+                        hum.WalkSpeed = velocidadeAtual
+                    else
+                        hum.WalkSpeed = 16
+                    end
+                end
+            end
+        end)
+
+        plataformaBtn.MouseButton1Click:Connect(function()
+            plataformaAtiva = not plataformaAtiva
+            plataformaBtn.Text = plataformaAtiva and "ON" or "OFF"
+            plataformaBtn.TextColor3 = plataformaAtiva and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+            plataformaBtn.BackgroundColor3 = plataformaAtiva and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+            if plataformaAtiva then criarPlataforma() else removerPlataforma() end
+        end)
+
+        -- Evento de personagem adicionado
+        player.CharacterAdded:Connect(function()
+            task.wait(1)
+            if plataformaAtiva and plataformaPosicao then
+                local platform = Instance.new("Part")
+                platform.Size = Vector3.new(3000, 1200, 3000)
+                platform.Position = plataformaPosicao
+                platform.Anchored = true
+                platform.CanCollide = true
+                platform.Transparency = 0.5
+                platform.BrickColor = BrickColor.new("Bright blue")
+                platform.Material = Enum.Material.SmoothPlastic
+                platform.Name = "AntiFallPlatform"
+                platform.Parent = workspace
+                local glow = Instance.new("SelectionBox")
+                glow.Adornee = platform
+                glow.Color3 = Color3.fromRGB(0, 150, 255)
+                glow.LineThickness = 0.5
+                glow.Transparency = 0.3
+                glow.Parent = platform
+                plataforma = platform
+            end
+            
+            task.wait(0.2)
+            if speedAtivo then
+                local hum = player.Character:FindFirstChildOfClass("Humanoid")
+                if hum then hum.WalkSpeed = velocidadeAtual end
+            end
+            setJump()
+        end)
+
+        -- Loop Auto Collect Money
+        spawn(function()
+            while true do
+                if coletando then
+                    local char = player.Character
+                    if char then
+                        local root = char:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            for _, obj in pairs(workspace:GetDescendants()) do
+                                if obj:IsA("BasePart") then
+                                    local nome = obj.Name:lower()
+                                    if nome:find("coin") or nome:find("money") or nome:find("cash") or nome:find("drop") then
+                                        pcall(function()
+                                            for _, c in pairs(obj:GetChildren()) do
+                                                if c:IsA("Sound") or c:IsA("BillboardGui") then c:Destroy() end
+                                            end
+                                            obj.CFrame = root.CFrame
+                                            obj:Destroy()
+                                        end)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                task.wait(0.15)
+            end
+        end)
+
+        -- Super Jump
+        local function setJump()
+            if player.Character then
+                local hum = player.Character:FindFirstChildOfClass("Humanoid")
+                if hum then hum.JumpPower = superJumpOn and 120 or 50 end
+            end
+        end
+        player.CharacterAdded:Connect(function() task.wait(0.2); setJump() end)
+        RunService.RenderStepped:Connect(setJump)
+
+        -- Auto Attack
+        RunService.RenderStepped:Connect(function()
+            if autoAtk and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local closest, best = nil, math.huge
+                    for _, v in pairs(Players:GetPlayers()) do
+                        if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                            local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                            if d < best then best, closest = d, v end
+                        end
+                    end
+                    if closest and best < 20 then
+                        hrp.Velocity = (closest.Character.HumanoidRootPart.Position - hrp.Position).Unit * 60
+                        if best < 8 then
+                            local tool = player.Character:FindFirstChildOfClass("Tool")
+                            if tool then tool:Activate() end
+                        end
+                    end
+                end
+            end
+        end)
+
+        -- Auto Hit
+        RunService.RenderStepped:Connect(function()
+            if autoHitOn and player.Character then
+                local hum = player.Character:FindFirstChildOfClass("Humanoid")
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hum and hrp then
+                    local closest, best = nil, math.huge
+                    for _, v in pairs(Players:GetPlayers()) do
+                        if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                            local d = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                            if d < best and d < 10 then best, closest = d, v end
+                        end
+                    end
+                    if closest then
+                        hum:MoveTo(closest.Character.HumanoidRootPart.Position)
+                        local tool = player.Character:FindFirstChildOfClass("Tool")
+                        if tool then tool:Activate() end
+                    end
+                end
+            end
+        end)
+
+        -- Spin Bot
+        RunService.RenderStepped:Connect(function()
+            if spinOn and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
+            end
+        end)
+
+        -- ESP
+        RunService.RenderStepped:Connect(function()
+            if espOn then
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= player and v.Character and not v.Character:FindFirstChild("ESP_Box") then
+                        local box = Instance.new("BoxHandleAdornment")
+                        box.Name = "ESP_Box"
+                        box.Size = Vector3.new(4, 5, 4)
+                        box.Color3 = Color3.fromRGB(100, 100, 120)
+                        box.AlwaysOnTop = true
+                        box.Adornee = v.Character:FindFirstChild("HumanoidRootPart")
+                        box.Parent = v.Character
+                    end
+                end
+            else
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v.Character then
+                        local box = v.Character:FindFirstChild("ESP_Box")
+                        if box then box:Destroy() end
+                    end
+                end
+            end
+        end)
+
+        -- Aba Credits
+        local creditsScroll = Instance.new("ScrollingFrame")
+        creditsScroll.Size = UDim2.new(1, -80, 1, -55)
+        creditsScroll.Position = UDim2.new(0, 75, 0, 55)
+        creditsScroll.BackgroundTransparency = 1
+        creditsScroll.CanvasSize = UDim2.new(0, 0, 0, 120)
+        creditsScroll.ScrollBarThickness = 3
+        creditsScroll.Visible = false
+        creditsScroll.Parent = menu
+
+        local cy = 10
+        local ct = Instance.new("TextLabel")
+        ct.Size = UDim2.new(1, 0, 0, 24)
+        ct.Position = UDim2.new(0, 0, 0, cy)
+        ct.Text = "👥 CREDITS"
+        ct.Font = Enum.Font.GothamBold
+        ct.TextSize = 12
+        ct.TextColor3 = Color3.fromRGB(100, 100, 120)
+        ct.BackgroundTransparency = 1
+        ct.Parent = creditsScroll
+        cy = cy + 30
+
+        local d1 = Instance.new("Frame")
+        d1.Size = UDim2.new(1, 0, 0, 35)
+        d1.Position = UDim2.new(0, 0, 0, cy)
+        d1.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        d1.Parent = creditsScroll
+        Instance.new("UICorner", d1).CornerRadius = UDim.new(0, 5)
+
+        local d1t = Instance.new("TextLabel")
+        d1t.Size = UDim2.new(1, 0, 0, 18)
+        d1t.Position = UDim2.new(0, 8, 0, 6)
+        d1t.Text = "👨‍💻 Mathyas - Lead Developer"
+        d1t.Font = Enum.Font.GothamBold
+        d1t.TextSize = 9
+        d1t.TextColor3 = corTextoBranco
+        d1t.BackgroundTransparency = 1
+        d1t.Parent = d1
+        cy = cy + 42
+
+        local d2 = Instance.new("Frame")
+        d2.Size = UDim2.new(1, 0, 0, 35)
+        d2.Position = UDim2.new(0, 0, 0, cy)
+        d2.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        d2.Parent = creditsScroll
+        Instance.new("UICorner", d2).CornerRadius = UDim.new(0, 5)
+
+        local d2t = Instance.new("TextLabel")
+        d2t.Size = UDim2.new(1, 0, 0, 18)
+        d2t.Position = UDim2.new(0, 8, 0, 6)
+        d2t.Text = "👨‍💻 Zzz - Co-Developer"
+        d2t.Font = Enum.Font.GothamBold
+        d2t.TextSize = 9
+        d2t.TextColor3 = corTextoBranco
+        d2t.BackgroundTransparency = 1
+        d2t.Parent = d2
+        cy = cy + 42
+
+        local disc = Instance.new("TextButton")
+        disc.Size = UDim2.new(1, 0, 0, 32)
+        disc.Position = UDim2.new(0, 0, 0, cy)
+        disc.Text = "💬 JOIN DISCORD"
+        disc.Font = Enum.Font.GothamBold
+        disc.TextSize = 10
+        disc.TextColor3 = corTextoBranco
+        disc.BackgroundColor3 = Color3.fromRGB(45, 55, 70)
+        disc.Parent = creditsScroll
+        Instance.new("UICorner", disc).CornerRadius = UDim.new(0, 5)
+
+        disc.MouseButton1Click:Connect(function()
+            setclipboard("https://discord.gg/PDmAh9Ua4")
+        end)
+
+        creditsScroll.CanvasSize = UDim2.new(0, 0, 0, cy + 40)
+
+        -- Alternar abas
+        abaMain.MouseButton1Click:Connect(function()
+            abaMain.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+            abaMain.TextColor3 = corTextoBranco
+            abaCredits.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+            abaCredits.TextColor3 = corTextoClaro
+            scroll.Visible = true
+            creditsScroll.Visible = false
+        end)
+
+        abaCredits.MouseButton1Click:Connect(function()
+            abaCredits.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+            abaCredits.TextColor3 = corTextoBranco
+            abaMain.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+            abaMain.TextColor3 = corTextoClaro
+            scroll.Visible = false
+            creditsScroll.Visible = true
+        end)
+
+        -- Abrir/fechar menu
+        botaoZ.MouseButton1Click:Connect(function()
+            menu.Visible = not menu.Visible
+        end)
+
+        fechar.MouseButton1Click:Connect(function()
+            menu.Visible = false
+        end)
+
+        print("✅ Zzz Script Carregado! Clique no botão Z para abrir o menu.")
         
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 200, 0, 100)
-        frame.Position = UDim2.new(0.5, -100, 0.5, -50)
-        frame.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-        frame.Parent = gui
-        Instance.new("UICorner", frame)
-        
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, 0, 1, 0)
-        label.Text = "ACESSO LIBERADO!"
-        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        label.BackgroundTransparency = 1
-        label.Parent = frame
-        
-        task.wait(3)
-        gui:Destroy()
     else
-        print("Acesso negado!")
+        print("❌ ACESSO NEGADO para ID: " .. player.UserId)
+        player:Kick("Você não tem acesso a este script!")
     end
 else
-    print("Erro: " .. tostring(response))
+    print("❌ ERRO NA REQUISIÇÃO: " .. tostring(response))
+    player:Kick("Erro ao verificar acesso!")
 end
