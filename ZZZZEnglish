@@ -35,32 +35,30 @@ botaoZ.TextColor3 = corTextoBranco
 botaoZ.TextScaled = true
 botaoZ.Font = Enum.Font.GothamBlack
 botaoZ.Parent = gui
-botaoZ.ZIndex = 10
+botaoZ.BackgroundTransparency = 0
 Instance.new("UICorner", botaoZ).CornerRadius = UDim.new(0, 15)
 
--- Sistema de drag para o botão Z
-local draggingZ = false
-local dragStartZ
-local startPosZ
+-- Variáveis para drag
+local dragging = false
+local dragStart
+local buttonStartPos
 
-botaoZ.InputBegan:Connect(function(input)
+botaoZ.MouseButton1Down:Connect(function()
+    dragging = true
+    dragStart = Vector2.new(mouse.X, mouse.Y)
+    buttonStartPos = botaoZ.Position
+end)
+
+UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        draggingZ = true
-        dragStartZ = Vector2.new(input.Position.X, input.Position.Y)
-        startPosZ = botaoZ.Position
+        dragging = false
     end
 end)
 
-botaoZ.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        draggingZ = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if draggingZ and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartZ
-        botaoZ.Position = UDim2.new(startPosZ.X.Scale, startPosZ.X.Offset + delta.X, startPosZ.Y.Scale, startPosZ.Y.Offset + delta.Y)
+mouse.Move:Connect(function()
+    if dragging then
+        local delta = Vector2.new(mouse.X, mouse.Y) - dragStart
+        botaoZ.Position = UDim2.new(buttonStartPos.X.Scale, buttonStartPos.X.Offset + delta.X, buttonStartPos.Y.Scale, buttonStartPos.Y.Offset + delta.Y)
     end
 end)
 
@@ -71,37 +69,9 @@ menu.Position = UDim2.new(0.5, -190, 0.5, -190)
 menu.BackgroundColor3 = corFundo
 menu.Visible = false
 menu.Parent = gui
-menu.ZIndex = 5
 Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 12)
 
--- Sistema de drag para o menu (apenas na barra superior)
-local draggingMenu = false
-local dragStartMenu
-local startPosMenu
-
--- Apenas a barra superior pode arrastar o menu
-topo.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        draggingMenu = true
-        dragStartMenu = Vector2.new(input.Position.X, input.Position.Y)
-        startPosMenu = menu.Position
-    end
-end)
-
-topo.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        draggingMenu = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if draggingMenu and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartMenu
-        menu.Position = UDim2.new(startPosMenu.X.Scale, startPosMenu.X.Offset + delta.X, startPosMenu.Y.Scale, startPosMenu.Y.Offset + delta.Y)
-    end
-end)
-
--- TOPO
+-- TOPO (para arrastar o menu)
 local topo = Instance.new("Frame")
 topo.Size = UDim2.new(1, 0, 0, 45)
 topo.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
@@ -137,7 +107,30 @@ fechar.TextSize = 12
 fechar.TextColor3 = corTextoBranco
 fechar.BackgroundTransparency = 1
 fechar.Parent = topo
-fechar.ZIndex = 10
+
+-- Sistema de drag para o menu
+local draggingMenu = false
+local dragStartMenu
+local menuStartPos
+
+topo.MouseButton1Down:Connect(function()
+    draggingMenu = true
+    dragStartMenu = Vector2.new(mouse.X, mouse.Y)
+    menuStartPos = menu.Position
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingMenu = false
+    end
+end)
+
+mouse.Move:Connect(function()
+    if draggingMenu then
+        local delta = Vector2.new(mouse.X, mouse.Y) - dragStartMenu
+        menu.Position = UDim2.new(menuStartPos.X.Scale, menuStartPos.X.Offset + delta.X, menuStartPos.Y.Scale, menuStartPos.Y.Offset + delta.Y)
+    end
+end)
 
 -- SIDEBAR
 local sidebar = Instance.new("Frame")
@@ -261,66 +254,6 @@ infoFrame.BackgroundTransparency = 1
 infoFrame.Parent = scroll
 y = y + 70
 
-local indice = Instance.new("TextLabel")
-indice.Size = UDim2.new(1, 0, 0, 16)
-indice.Position = UDim2.new(0, 0, 0, 0)
-indice.Text = "📊 Indice"
-indice.Font = Enum.Font.GothamBold
-indice.TextSize = 10
-indice.TextColor3 = corToggleOn
-indice.BackgroundTransparency = 1
-indice.Parent = infoFrame
-
-local duelos = Instance.new("TextLabel")
-duelos.Size = UDim2.new(0.5, 0, 0, 14)
-duelos.Position = UDim2.new(0, 0, 0, 18)
-duelos.Text = "⚔️ Duelos"
-duelos.Font = Enum.Font.Gotham
-duelos.TextSize = 9
-duelos.TextColor3 = corTextoClaro
-duelos.BackgroundTransparency = 1
-duelos.Parent = infoFrame
-
-local anchorText = Instance.new("TextLabel")
-anchorText.Size = UDim2.new(0.5, 0, 0, 14)
-anchorText.Position = UDim2.new(0, 0, 0, 34)
-anchorText.Text = "⚓ Anchor"
-anchorText.Font = Enum.Font.Gotham
-anchorText.TextSize = 9
-anchorText.TextColor3 = corTextoClaro
-anchorText.BackgroundTransparency = 1
-anchorText.Parent = infoFrame
-
-local x28 = Instance.new("TextLabel")
-x28.Size = UDim2.new(0.3, 0, 0, 18)
-x28.Position = UDim2.new(0.5, 0, 0, 16)
-x28.Text = "x28"
-x28.Font = Enum.Font.GothamBold
-x28.TextSize = 14
-x28.TextColor3 = Color3.fromRGB(200, 180, 100)
-x28.BackgroundTransparency = 1
-x28.Parent = infoFrame
-
-local x30 = Instance.new("TextLabel")
-x30.Size = UDim2.new(0.3, 0, 0, 18)
-x30.Position = UDim2.new(0.7, 0, 0, 16)
-x30.Text = "x30"
-x30.Font = Enum.Font.GothamBold
-x30.TextSize = 14
-x30.TextColor3 = Color3.fromRGB(200, 180, 100)
-x30.BackgroundTransparency = 1
-x30.Parent = infoFrame
-
-local money = Instance.new("TextLabel")
-money.Size = UDim2.new(0.5, 0, 0, 18)
-money.Position = UDim2.new(0, 0, 0, 48)
-money.Text = "$684.65T"
-money.Font = Enum.Font.GothamBold
-money.TextSize = 11
-money.TextColor3 = Color3.fromRGB(100, 180, 100)
-money.BackgroundTransparency = 1
-money.Parent = infoFrame
-
 local autoRejoin = Instance.new("TextButton")
 autoRejoin.Size = UDim2.new(1, 0, 0, 30)
 autoRejoin.Position = UDim2.new(0, 0, 0, y)
@@ -361,13 +294,11 @@ local function collectMoney()
             local isMoneyObject = false
             
             if obj:IsA("BasePart") then
-                if objName:find("coin") or objName:find("money") or objName:find("cash") or 
-                   objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+                if objName:find("coin") or objName:find("money") or objName:find("cash") then
                     isMoneyObject = true
                 end
             elseif obj:IsA("Model") then
-                if objName:find("coin") or objName:find("money") or objName:find("cash") or 
-                   objName:find("diamond") or objName:find("crystal") or objName:find("gem") then
+                if objName:find("coin") or objName:find("money") or objName:find("cash") then
                     isMoneyObject = true
                 end
             end
@@ -396,7 +327,7 @@ spawn(function()
     end
 end)
 
--- ========== ANCHOR (ANTI-KNOCKBACK) ==========
+-- ========== ANCHOR ==========
 local anchorAtivo = false
 local anchorPosition = nil
 local anchorConnection = nil
@@ -432,8 +363,6 @@ anchor.onToggle(function(v)
                     
                     anchorPosition = anchorPosition:Lerp(hrp.Position, 0.1)
                 end
-            elseif not anchorAtivo then
-                anchorPosition = nil
             end
         end)
     else
@@ -647,20 +576,14 @@ abaCredits.MouseButton1Click:Connect(function()
     creditsScroll.Visible = true
 end)
 
--- ABRIR/FECHAR (CORRIGIDO)
+-- ABRIR/FECHAR (SIMPLIFICADO)
 botaoZ.MouseButton1Click:Connect(function()
     menu.Visible = not menu.Visible
-    print("Menu aberto/fechado: " .. tostring(menu.Visible))
+    print("Menu: " .. (menu.Visible and "ABERTO" or "FECHADO"))
 end)
 
 fechar.MouseButton1Click:Connect(function()
     menu.Visible = false
-    print("Menu fechado")
 end)
 
-print("✅ SCRIPT CARREGADO!")
-print("👉 Clique no botão Z para abrir o menu")
-print("👉 Clique e arraste o Z para mover")
-print("👉 Arraste o menu pela barra superior")
-print("⚓ Ative ANCHOR para não ser empurrado")
-print("💰 Ative Auto Collect Money para coletar dinheiro")
+print("✅ SCRIPT CARREGADO! Clique no Z para abrir o menu")
