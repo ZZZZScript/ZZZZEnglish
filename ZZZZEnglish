@@ -25,9 +25,8 @@ local corTextoClaro = Color3.fromRGB(160, 160, 170)
 
 -- ========== VARIÁVEIS ==========
 local coletando = false
-local anchorAtivo = false
-local savedPos = nil
-local cooldown = false
+local plataformaAtiva = false
+local plataforma = nil
 
 -- ========== BOTÃO Z ==========
 local botaoZ = Instance.new("TextButton")
@@ -63,8 +62,8 @@ end)
 
 -- ========== MENU ==========
 local menu = Instance.new("Frame")
-menu.Size = UDim2.new(0, 350, 0, 320)
-menu.Position = UDim2.new(0.5, -175, 0.5, -160)
+menu.Size = UDim2.new(0, 350, 0, 350)
+menu.Position = UDim2.new(0.5, -175, 0.5, -175)
 menu.BackgroundColor3 = corFundo
 menu.Visible = false
 menu.Parent = gui
@@ -217,7 +216,7 @@ local spinBtn = criarBotao("🌀", "Spin Bot", y); y = y + 46
 local superJumpBtn = criarBotao("🦘", "Super Jump", y); y = y + 46
 local autoHitBtn = criarBotao("👊", "Auto Hit", y); y = y + 46
 local autoCollectBtn = criarBotao("💰", "Auto Collect Money", y); y = y + 46
-local anchorBtn = criarBotao("⚓", "Anchor", y); y = y + 50
+local plataformaBtn = criarBotao("🛡️", "Plataforma Anti-Queda", y); y = y + 50
 
 -- INFO
 local infoFrame = Instance.new("Frame")
@@ -250,7 +249,7 @@ duelos.Parent = infoFrame
 local anchorText = Instance.new("TextLabel")
 anchorText.Size = UDim2.new(0.5, 0, 0, 14)
 anchorText.Position = UDim2.new(0, 0, 0, 34)
-anchorText.Text = "⚓ Anchor"
+anchorText.Text = "🛡️ Anti-Queda"
 anchorText.Font = Enum.Font.Gotham
 anchorText.TextSize = 9
 anchorText.TextColor3 = corTextoClaro
@@ -304,6 +303,63 @@ end)
 
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 45)
 
+-- ========== FUNÇÃO PARA CRIAR PLATAFORMA ==========
+local function criarPlataforma()
+    -- Destruir plataforma antiga se existir
+    if plataforma then
+        plataforma:Destroy()
+        plataforma = nil
+    end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    -- Criar plataforma invisível
+    local platform = Instance.new("Part")
+    platform.Size = Vector3.new(8, 0.5, 8)
+    platform.Position = hrp.Position - Vector3.new(0, 3, 0)
+    platform.Anchored = true
+    platform.CanCollide = true
+    platform.Transparency = 0.8
+    platform.BrickColor = BrickColor.new("Bright blue")
+    platform.Material = Enum.Material.SmoothPlastic
+    platform.Name = "AntiFallPlatform"
+    platform.Parent = workspace
+    
+    -- Efeito de brilho
+    local glow = Instance.new("SelectionBox")
+    glow.Adornee = platform
+    glow.Color3 = Color3.fromRGB(0, 150, 255)
+    glow.LineThickness = 0.1
+    glow.Transparency = 0.5
+    glow.Parent = platform
+    
+    plataforma = platform
+    print("🛡️ Plataforma anti-queda criada abaixo de você!")
+    
+    -- Atualizar posição da plataforma a cada segundo
+    spawn(function()
+        while plataformaAtiva and plataforma and player.Character do
+            local root = player.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                plataforma.Position = root.Position - Vector3.new(0, 3, 0)
+            end
+            task.wait(0.5)
+        end
+    end)
+end
+
+local function removerPlataforma()
+    if plataforma then
+        plataforma:Destroy()
+        plataforma = nil
+        print("🛡️ Plataforma anti-queda removida!")
+    end
+end
+
 -- ========== ESTADOS DOS BOTÕES ==========
 local autoAtk = false
 local espOn = false
@@ -355,23 +411,31 @@ autoCollectBtn.MouseButton1Click:Connect(function()
     print("💰 Auto Collect: " .. (coletando and "LIGADO" or "DESLIGADO"))
 end)
 
--- ANCHOR
-anchorBtn.MouseButton1Click:Connect(function()
-    anchorAtivo = not anchorAtivo
-    anchorBtn.Text = anchorAtivo and "ON" or "OFF"
-    anchorBtn.TextColor3 = anchorAtivo and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
-    anchorBtn.BackgroundColor3 = anchorAtivo and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
-    print("⚓ Anchor: " .. (anchorAtivo and "LIGADO" or "DESLIGADO"))
-    if anchorAtivo and player.Character then
-        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            savedPos = hrp.Position
-            print("Posição salva: " .. math.floor(savedPos.X) .. ", " .. math.floor(savedPos.Y) .. ", " .. math.floor(savedPos.Z))
-        end
+-- PLATAFORMA ANTI-QUEDA
+plataformaBtn.MouseButton1Click:Connect(function()
+    plataformaAtiva = not plataformaAtiva
+    plataformaBtn.Text = plataformaAtiva and "ON" or "OFF"
+    plataformaBtn.TextColor3 = plataformaAtiva and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+    plataformaBtn.BackgroundColor3 = plataformaAtiva and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
+    
+    if plataformaAtiva then
+        criarPlataforma()
+        print("🛡️ Plataforma anti-queda ATIVADA!")
+    else
+        removerPlataforma()
+        print("🛡️ Plataforma anti-queda DESATIVADA!")
     end
 end)
 
--- ========== LOOP AUTO COLLECT (RODA SEMPRE) ==========
+-- Monitorar personagem renascendo
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    if plataformaAtiva then
+        criarPlataforma()
+    end
+end)
+
+-- ========== LOOP AUTO COLLECT ==========
 spawn(function()
     while true do
         if coletando then
@@ -397,39 +461,6 @@ spawn(function()
             end
         end
         task.wait(0.15)
-    end
-end)
-
--- ========== LOOP ANCHOR ==========
-spawn(function()
-    while true do
-        if anchorAtivo and player.Character then
-            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                -- Salvar posição
-                if hrp.Position.Y > -5 then
-                    savedPos = hrp.Position
-                end
-                
-                -- Verificar se caiu
-                local hum = player.Character:FindFirstChildOfClass("Humanoid")
-                if hum then
-                    local state = hum:GetState()
-                    if hrp.Position.Y < 0 or state == Enum.HumanoidStateType.FallingDown or state == Enum.HumanoidStateType.GettingUp or hum.Health <= 0 then
-                        if not cooldown and savedPos then
-                            cooldown = true
-                            task.wait(0.5)
-                            hrp.CFrame = CFrame.new(savedPos)
-                            hum:ChangeState(Enum.HumanoidStateType.Running)
-                            print("⚓ Teleportado de volta!")
-                            task.wait(2)
-                            cooldown = false
-                        end
-                    end
-                end
-            end
-        end
-        task.wait(0.3)
     end
 end)
 
@@ -626,5 +657,5 @@ end)
 
 print("✅ SCRIPT CARREGADO!")
 print("👉 Clique no Z para abrir o menu")
-print("💰 AUTO COLLECT MONEY: Clique no botão para LIGAR - vai coletar dinheiro CONSTANTEMENTE")
-print("⚓ ANCHOR: Clique no botão para LIGAR - vai salvar sua posição e te trazer de volta quando cair")
+print("🛡️ PLATAFORMA ANTI-QUEDA: Cria uma plataforma invisível abaixo de você para não cair!")
+print("💰 AUTO COLLECT MONEY: Coleta dinheiro automaticamente!")
