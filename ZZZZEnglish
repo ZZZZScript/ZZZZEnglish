@@ -29,33 +29,28 @@ local corTextoClaro = Color3.fromRGB(160, 160, 170)
 local corDourado = Color3.fromRGB(200, 180, 100)
 local corVerde = Color3.fromRGB(100, 180, 100)
 
--- ========== FUNÇÃO PARA DRAG (MOVER) ==========
+-- ========== FUNÇÃO PARA DRAG (MOVER) - CORRIGIDA ==========
 local function makeDraggable(frame)
     local dragging = false
-    local dragInput, dragStart, startPos
+    local dragStart = nil
+    local startPos = nil
     
     frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
             startPos = frame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
         end
     end)
     
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
+    frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
@@ -94,7 +89,6 @@ topo.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
 topo.BackgroundTransparency = 0
 topo.Parent = menu
 Instance.new("UICorner", topo).CornerRadius = UDim.new(0, 12)
-makeDraggable(topo)
 
 local comerciante = Instance.new("TextLabel")
 comerciante.Size = UDim2.new(1, 0, 0, 24)
@@ -354,95 +348,68 @@ end)
 y = y + 40
 scroll.CanvasSize = UDim2.new(0, 0, 0, y + 10)
 
--- ========== AUTO COLLECT MONEY (CORRIGIDO - COLETA DINHEIRO DO CHÃO) ==========
+-- ========== AUTO COLLECT MONEY (CORRIGIDO - FUNCIONA O TEMPO TODO) ==========
 local collectActive = false
 
--- Função para coletar dinheiro do chão
-local function coletarDinheiro()
-    if not collectActive then return end
-    
-    local character = player.Character
-    if not character then return end
-    
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    
-    local coletados = 0
-    
-    -- Procurar por dinheiro/coins no workspace
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            local nome = obj.Name:lower()
-            -- Verificar se é dinheiro/coin (nomes comuns)
-            if string.find(nome, "coin") or 
-               string.find(nome, "money") or 
-               string.find(nome, "cash") or 
-               string.find(nome, "drop") or
-               string.find(nome, "brainrot") or
-               obj:FindFirstChild("TouchInterest") then
-                
-                pcall(function()
-                    -- Teleportar o dinheiro para perto do jogador
-                    local distancia = (obj.Position - hrp.Position).Magnitude
-                    if distancia > 3 then
-                        -- Mover para perto do jogador
-                        obj.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
-                    end
-                    
-                    -- Se estiver muito perto, coletar
-                    if distancia < 5 then
-                        -- Remover sons e efeitos
-                        local sound = obj:FindFirstChildWhichIsA("Sound")
-                        if sound then sound:Destroy() end
-                        
-                        local billboard = obj:FindFirstChildWhichIsA("BillboardGui")
-                        if billboard then billboard:Destroy() end
-                        
-                        -- Destruir o objeto
-                        obj:Destroy()
-                        coletados = coletados + 1
-                    end
-                end)
-            end
-        end
-        
-        -- Verificar por modelos de dinheiro
-        if obj:IsA("Model") then
-            local nome = obj.Name:lower()
-            if string.find(nome, "coin") or string.find(nome, "money") or string.find(nome, "cash") then
-                pcall(function()
-                    local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                    if primary then
-                        local distancia = (primary.Position - hrp.Position).Magnitude
-                        if distancia > 3 then
-                            primary.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
-                        end
-                        
-                        if distancia < 5 then
-                            -- Remover sons e efeitos
-                            for _, sound in pairs(obj:GetDescendants()) do
-                                if sound:IsA("Sound") then
-                                    sound:Destroy()
-                                end
-                                if sound:IsA("BillboardGui") then
-                                    sound:Destroy()
-                                end
-                            end
-                            obj:Destroy()
-                            coletados = coletados + 1
-                        end
-                    end
-                end)
-            end
-        end
-    end
-end
-
--- Loop de coleta (a cada 0.2 segundos)
+-- Função para coletar dinheiro do chão (roda constantemente)
 spawn(function()
     while true do
-        task.wait(0.2)
-        coletarDinheiro()
+        if collectActive then
+            local character = player.Character
+            if character then
+                local hrp = character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    -- Procurar por dinheiro/coins no workspace
+                    for _, obj in pairs(workspace:GetDescendants()) do
+                        if obj:IsA("BasePart") then
+                            local nome = obj.Name:lower()
+                            -- Verificar se é dinheiro/coin
+                            if string.find(nome, "coin") or 
+                               string.find(nome, "money") or 
+                               string.find(nome, "cash") or 
+                               string.find(nome, "drop") then
+                                
+                                pcall(function()
+                                    -- Teleportar o dinheiro para perto do jogador
+                                    obj.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
+                                    -- Remover sons e efeitos
+                                    local sound = obj:FindFirstChildWhichIsA("Sound")
+                                    if sound then sound:Destroy() end
+                                    local billboard = obj:FindFirstChildWhichIsA("BillboardGui")
+                                    if billboard then billboard:Destroy() end
+                                    -- Destruir o objeto imediatamente
+                                    obj:Destroy()
+                                end)
+                            end
+                        end
+                        
+                        -- Verificar por modelos de dinheiro
+                        if obj:IsA("Model") then
+                            local nome = obj.Name:lower()
+                            if string.find(nome, "coin") or string.find(nome, "money") or string.find(nome, "cash") then
+                                pcall(function()
+                                    local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                                    if primary then
+                                        primary.CFrame = hrp.CFrame + Vector3.new(0, 1, 0)
+                                    end
+                                    -- Remover sons e efeitos
+                                    for _, sound in pairs(obj:GetDescendants()) do
+                                        if sound:IsA("Sound") then
+                                            sound:Destroy()
+                                        end
+                                        if sound:IsA("BillboardGui") then
+                                            sound:Destroy()
+                                        end
+                                    end
+                                    obj:Destroy()
+                                end)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(0.1)
     end
 end)
 
@@ -715,6 +682,6 @@ fechar.MouseButton1Click:Connect(function()
 end)
 
 print("✅ Zzz V1 Carregado!")
-print("📌 Ícone e menu podem ser movidos (arraste com o mouse)")
-print("💰 Auto Collect Money - Coleta DINHEIRO do chão automaticamente!")
-print("🔘 Ative o toggle para começar a coletar")
+print("📌 Ícone e menu podem ser movidos (segure e arraste)")
+print("💰 Auto Collect Money - Coleta DINHEIRO automaticamente O TEMPO TODO quando ativado!")
+print("🔘 Ative o toggle e ele vai coletar tudo sem parar")
