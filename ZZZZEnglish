@@ -1,5 +1,5 @@
 -- ============================================
--- Zzz SCRIPT V1 - SISTEMA DE KEY POR HWID COM PAINEL ADMIN
+-- Zzz SCRIPT V1 - SISTEMA DE KEY (MENU REDUZIDO)
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -52,7 +52,6 @@ local function carregarKeysSalvas()
         for key, hwid in pairs(decoded) do
             keysAtivadas[key] = hwid
         end
-        print("📀 Keys ativadas carregadas!")
     end
 end
 
@@ -60,9 +59,6 @@ local function salvarKeysAtivadas()
     local success, err = pcall(function()
         writefile("ZzzKeys.json", HttpService:JSONEncode(keysAtivadas))
     end)
-    if success then
-        print("💾 Keys salvas!")
-    end
 end
 
 carregarKeysSalvas()
@@ -78,21 +74,21 @@ local function verificarKey(key)
     end
     
     if not keyEncontrada then
-        return false, "Key não encontrada na lista!"
+        return false, "Key não encontrada!"
     end
     
     local hwid = getHWID()
     
     if keysAtivadas[key] then
         if keysAtivadas[key] == hwid then
-            return true, "Key válida para este computador!"
+            return true, "Key válida!"
         else
-            return false, "Key já está em uso por outro computador!"
+            return false, "Key já em uso por outro PC!"
         end
     else
         keysAtivadas[key] = hwid
         salvarKeysAtivadas()
-        return true, "Key ativada com sucesso para este computador!"
+        return true, "Key ativada com sucesso!"
     end
 end
 
@@ -103,193 +99,146 @@ local function abrirPainelAdmin()
     adminGui.Parent = player:WaitForChild("PlayerGui")
     
     local painel = Instance.new("Frame")
-    painel.Size = UDim2.new(0, 550, 0, 500)
-    painel.Position = UDim2.new(0.5, -275, 0.5, -250)
+    painel.Size = UDim2.new(0, 500, 0, 450)
+    painel.Position = UDim2.new(0.5, -250, 0.5, -225)
     painel.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
     painel.Parent = adminGui
-    Instance.new("UICorner", painel).CornerRadius = UDim.new(0, 20)
+    Instance.new("UICorner", painel).CornerRadius = UDim.new(0, 16)
     Instance.new("UIStroke", painel).Color = Color3.fromRGB(100, 100, 180)
-    Instance.new("UIStroke", painel).Thickness = 1.5
+    Instance.new("UIStroke", painel).Thickness = 1
     
-    -- Topo
     local topo = Instance.new("Frame")
-    topo.Size = UDim2.new(1, 0, 0, 60)
+    topo.Size = UDim2.new(1, 0, 0, 50)
     topo.BackgroundColor3 = Color3.fromRGB(80, 70, 180)
     topo.Parent = painel
-    Instance.new("UICorner", topo).CornerRadius = UDim.new(0, 20)
+    Instance.new("UICorner", topo).CornerRadius = UDim.new(0, 16)
     
     local titulo = Instance.new("TextLabel")
-    titulo.Size = UDim2.new(1, 0, 0, 35)
-    titulo.Position = UDim2.new(0, 0, 0, 12)
-    titulo.Text = "🔐 PAINEL ADMIN - Zzz SCRIPT"
-    titulo.Font = Enum.Font.GothamBlack
-    titulo.TextSize = 20
+    titulo.Size = UDim2.new(1, 0, 0, 30)
+    titulo.Position = UDim2.new(0, 0, 0, 10)
+    titulo.Text = "🔐 PAINEL ADMIN"
+    titulo.Font = Enum.Font.GothamBold
+    titulo.TextSize = 18
     titulo.TextColor3 = Color3.fromRGB(255, 255, 255)
     titulo.BackgroundTransparency = 1
     titulo.Parent = topo
     
-    local subTitulo = Instance.new("TextLabel")
-    subTitulo.Size = UDim2.new(1, 0, 0, 18)
-    subTitulo.Position = UDim2.new(0, 0, 0, 45)
-    subTitulo.Text = "Gerenciamento de Keys por HWID"
-    subTitulo.Font = Enum.Font.Gotham
-    subTitulo.TextSize = 10
-    subTitulo.TextColor3 = Color3.fromRGB(220, 210, 255)
-    subTitulo.BackgroundTransparency = 1
-    subTitulo.Parent = topo
-    
     -- Estatísticas
     local statsFrame = Instance.new("Frame")
-    statsFrame.Size = UDim2.new(0.96, 0, 0, 60)
-    statsFrame.Position = UDim2.new(0.02, 0, 0, 70)
+    statsFrame.Size = UDim2.new(0.96, 0, 0, 45)
+    statsFrame.Position = UDim2.new(0.02, 0, 0, 60)
     statsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     statsFrame.Parent = painel
-    Instance.new("UICorner", statsFrame).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", statsFrame).CornerRadius = UDim.new(0, 8)
     
     local keysUsadas = 0
     for _ in pairs(keysAtivadas) do keysUsadas = keysUsadas + 1 end
     
     local statsText = Instance.new("TextLabel")
     statsText.Size = UDim2.new(1, 0, 1, 0)
-    statsText.Text = "📊 ESTATÍSTICAS\n🔑 Keys Ativadas: " .. keysUsadas .. " | 📦 Keys Disponíveis: " .. #keysDisponiveis .. " | 💻 Total de Keys: " .. (#keysDisponiveis + keysUsadas)
+    statsText.Text = "📊 Ativadas: " .. keysUsadas .. " | Disponíveis: " .. #keysDisponiveis
     statsText.Font = Enum.Font.Gotham
     statsText.TextSize = 11
     statsText.TextColor3 = Color3.fromRGB(200, 200, 220)
     statsText.BackgroundTransparency = 1
     statsText.Parent = statsFrame
     
-    -- Lista de keys (scroll)
+    -- Lista de keys
     local scroll = Instance.new("ScrollingFrame")
-    scroll.Size = UDim2.new(0.96, 0, 0.55, 0)
-    scroll.Position = UDim2.new(0.02, 0, 0, 140)
+    scroll.Size = UDim2.new(0.96, 0, 0.5, 0)
+    scroll.Position = UDim2.new(0.02, 0, 0, 115)
     scroll.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-    scroll.CanvasSize = UDim2.new(0, 0, 0, 400)
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 350)
     scroll.ScrollBarThickness = 4
     scroll.Parent = painel
-    Instance.new("UICorner", scroll).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", scroll).CornerRadius = UDim.new(0, 8)
     
-    -- Título da lista
-    local listTitle = Instance.new("TextLabel")
-    listTitle.Size = UDim2.new(1, 0, 0, 30)
-    listTitle.Position = UDim2.new(0, 0, 0, 0)
-    listTitle.Text = "📋 KEYS ATIVADAS"
-    listTitle.Font = Enum.Font.GothamBold
-    listTitle.TextSize = 12
-    listTitle.TextColor3 = Color3.fromRGB(100, 150, 255)
-    listTitle.BackgroundTransparency = 1
-    listTitle.Parent = scroll
-    
-    local y = 35
+    local y = 5
     for key, hwid in pairs(keysAtivadas) do
         local card = Instance.new("Frame")
-        card.Size = UDim2.new(0.98, 0, 0, 65)
+        card.Size = UDim2.new(0.98, 0, 0, 55)
         card.Position = UDim2.new(0.01, 0, 0, y)
         card.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
         card.Parent = scroll
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
         
         local keyText = Instance.new("TextLabel")
-        keyText.Size = UDim2.new(0.45, 0, 0, 22)
-        keyText.Position = UDim2.new(0, 8, 0, 8)
+        keyText.Size = UDim2.new(0.5, 0, 0, 18)
+        keyText.Position = UDim2.new(0, 8, 0, 6)
         keyText.Text = "🔑 " .. key
         keyText.Font = Enum.Font.GothamBold
-        keyText.TextSize = 12
+        keyText.TextSize = 11
         keyText.TextColor3 = Color3.fromRGB(100, 200, 255)
         keyText.BackgroundTransparency = 1
         keyText.Parent = card
         
         local hwidText = Instance.new("TextLabel")
-        hwidText.Size = UDim2.new(0.45, 0, 0, 16)
-        hwidText.Position = UDim2.new(0, 8, 0, 32)
-        hwidText.Text = "💻 HWID: " .. string.sub(hwid, 1, 30) .. "..."
+        hwidText.Size = UDim2.new(0.5, 0, 0, 14)
+        hwidText.Position = UDim2.new(0, 8, 0, 26)
+        hwidText.Text = "💻 " .. string.sub(hwid, 1, 25) .. "..."
         hwidText.Font = Enum.Font.Gotham
-        hwidText.TextSize = 9
+        hwidText.TextSize = 8
         hwidText.TextColor3 = Color3.fromRGB(180, 180, 210)
         hwidText.BackgroundTransparency = 1
         hwidText.Parent = card
         
-        local dataText = Instance.new("TextLabel")
-        dataText.Size = UDim2.new(0.45, 0, 0, 14)
-        dataText.Position = UDim2.new(0, 8, 0, 48)
-        dataText.Text = "📅 Ativada: " .. os.date("%d/%m/%Y %H:%M")
-        dataText.Font = Enum.Font.Gotham
-        dataText.TextSize = 8
-        dataText.TextColor3 = Color3.fromRGB(150, 150, 180)
-        dataText.BackgroundTransparency = 1
-        dataText.Parent = card
-        
         local resetBtn = Instance.new("TextButton")
-        resetBtn.Size = UDim2.new(0.2, 0, 0, 32)
-        resetBtn.Position = UDim2.new(0.77, 0, 0.5, -16)
-        resetBtn.Text = "🔄 RESET"
+        resetBtn.Size = UDim2.new(0.2, 0, 0, 28)
+        resetBtn.Position = UDim2.new(0.78, 0, 0.5, -14)
+        resetBtn.Text = "RESET"
         resetBtn.Font = Enum.Font.GothamBold
-        resetBtn.TextSize = 11
+        resetBtn.TextSize = 10
         resetBtn.TextColor3 = Color3.fromRGB(255, 200, 100)
         resetBtn.BackgroundColor3 = Color3.fromRGB(80, 60, 40)
         resetBtn.Parent = card
-        Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 5)
         
         resetBtn.MouseButton1Click:Connect(function()
             keysAtivadas[key] = nil
             table.insert(keysDisponiveis, key)
             salvarKeysAtivadas()
-            card:Destroy()
-            print("🔄 Key " .. key .. " resetada com sucesso!")
-            -- Atualizar estatísticas
-            local novasKeysUsadas = 0
-            for _ in pairs(keysAtivadas) do novasKeysUsadas = novasKeysUsadas + 1 end
-            statsText.Text = "📊 ESTATÍSTICAS\n🔑 Keys Ativadas: " .. novasKeysUsadas .. " | 📦 Keys Disponíveis: " .. #keysDisponiveis .. " | 💻 Total de Keys: " .. (#keysDisponiveis + novasKeysUsadas)
+            adminGui:Destroy()
+            abrirPainelAdmin()
         end)
         
-        y = y + 72
+        y = y + 62
     end
     
-    scroll.CanvasSize = UDim2.new(0, 0, 0, y + 20)
+    scroll.CanvasSize = UDim2.new(0, 0, 0, y + 10)
     
-    -- Área para adicionar nova key
+    -- Adicionar key
     local addFrame = Instance.new("Frame")
-    addFrame.Size = UDim2.new(0.96, 0, 0, 70)
-    addFrame.Position = UDim2.new(0.02, 0, 0.71, 0)
+    addFrame.Size = UDim2.new(0.96, 0, 0, 65)
+    addFrame.Position = UDim2.new(0.02, 0, 0.67, 0)
     addFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     addFrame.Parent = painel
-    Instance.new("UICorner", addFrame).CornerRadius = UDim.new(0, 10)
-    
-    local addLabel = Instance.new("TextLabel")
-    addLabel.Size = UDim2.new(0.3, 0, 0, 20)
-    addLabel.Position = UDim2.new(0.02, 0, 0, 8)
-    addLabel.Text = "➕ ADICIONAR NOVA KEY"
-    addLabel.Font = Enum.Font.GothamBold
-    addLabel.TextSize = 11
-    addLabel.TextColor3 = Color3.fromRGB(100, 200, 100)
-    addLabel.BackgroundTransparency = 1
-    addLabel.Parent = addFrame
+    Instance.new("UICorner", addFrame).CornerRadius = UDim.new(0, 8)
     
     local newKeyInput = Instance.new("TextBox")
-    newKeyInput.Size = UDim2.new(0.6, 0, 0, 35)
-    newKeyInput.Position = UDim2.new(0.02, 0, 0, 28)
-    newKeyInput.PlaceholderText = "Digite a nova key (ex: NOVA-KEY-123)"
+    newKeyInput.Size = UDim2.new(0.65, 0, 0, 32)
+    newKeyInput.Position = UDim2.new(0.02, 0, 0.15, 0)
+    newKeyInput.PlaceholderText = "Nova key"
     newKeyInput.Font = Enum.Font.Gotham
     newKeyInput.TextSize = 11
     newKeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     newKeyInput.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
     newKeyInput.Parent = addFrame
-    Instance.new("UICorner", newKeyInput).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", newKeyInput).CornerRadius = UDim.new(0, 5)
     
     local addBtn = Instance.new("TextButton")
-    addBtn.Size = UDim2.new(0.3, 0, 0, 35)
-    addBtn.Position = UDim2.new(0.68, 0, 0, 28)
-    addBtn.Text = "✅ ADICIONAR"
+    addBtn.Size = UDim2.new(0.28, 0, 0, 32)
+    addBtn.Position = UDim2.new(0.7, 0, 0.15, 0)
+    addBtn.Text = "+ ADICIONAR"
     addBtn.Font = Enum.Font.GothamBold
-    addBtn.TextSize = 11
+    addBtn.TextSize = 10
     addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     addBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 180)
     addBtn.Parent = addFrame
-    Instance.new("UICorner", addBtn).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", addBtn).CornerRadius = UDim.new(0, 5)
     
     addBtn.MouseButton1Click:Connect(function()
         local novaKey = string.upper(newKeyInput.Text)
         if novaKey ~= "" then
-            -- Verificar se key já existe
             local keyExiste = false
             for _, k in pairs(keysDisponiveis) do
                 if k == novaKey then keyExiste = true break end
@@ -302,35 +251,29 @@ local function abrirPainelAdmin()
                 table.insert(keysDisponiveis, novaKey)
                 salvarKeysAtivadas()
                 newKeyInput.Text = ""
-                print("✅ Nova key adicionada: " .. novaKey)
                 adminGui:Destroy()
                 abrirPainelAdmin()
-            else
-                newKeyInput.Text = ""
-                newKeyInput.PlaceholderText = "⚠️ Key já existe!"
-                task.wait(2)
-                newKeyInput.PlaceholderText = "Digite a nova key (ex: NOVA-KEY-123)"
             end
         end
     end)
     
-    -- Botões de ação
+    -- Botões
     local btnFrame = Instance.new("Frame")
-    btnFrame.Size = UDim2.new(0.96, 0, 0, 45)
-    btnFrame.Position = UDim2.new(0.02, 0, 0.86, 0)
+    btnFrame.Size = UDim2.new(0.96, 0, 0, 35)
+    btnFrame.Position = UDim2.new(0.02, 0, 0.79, 0)
     btnFrame.BackgroundTransparency = 1
     btnFrame.Parent = painel
     
     local resetAllBtn = Instance.new("TextButton")
-    resetAllBtn.Size = UDim2.new(0.32, 0, 1, 0)
+    resetAllBtn.Size = UDim2.new(0.48, 0, 1, 0)
     resetAllBtn.Position = UDim2.new(0, 0, 0, 0)
     resetAllBtn.Text = "🔄 RESETAR TODAS"
     resetAllBtn.Font = Enum.Font.GothamBold
-    resetAllBtn.TextSize = 11
+    resetAllBtn.TextSize = 10
     resetAllBtn.TextColor3 = Color3.fromRGB(255, 200, 100)
     resetAllBtn.BackgroundColor3 = Color3.fromRGB(80, 60, 40)
     resetAllBtn.Parent = btnFrame
-    Instance.new("UICorner", resetAllBtn).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", resetAllBtn).CornerRadius = UDim.new(0, 5)
     
     resetAllBtn.MouseButton1Click:Connect(function()
         for key, _ in pairs(keysAtivadas) do
@@ -340,177 +283,136 @@ local function abrirPainelAdmin()
         salvarKeysAtivadas()
         adminGui:Destroy()
         abrirPainelAdmin()
-        print("🔄 Todas as keys foram resetadas!")
-    end)
-    
-    local refreshBtn = Instance.new("TextButton")
-    refreshBtn.Size = UDim2.new(0.32, 0, 1, 0)
-    refreshBtn.Position = UDim2.new(0.34, 0, 0, 0)
-    refreshBtn.Text = "🔄 ATUALIZAR"
-    refreshBtn.Font = Enum.Font.GothamBold
-    refreshBtn.TextSize = 11
-    refreshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    refreshBtn.BackgroundColor3 = Color3.fromRGB(60, 80, 120)
-    refreshBtn.Parent = btnFrame
-    Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 8)
-    
-    refreshBtn.MouseButton1Click:Connect(function()
-        adminGui:Destroy()
-        abrirPainelAdmin()
     end)
     
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0.32, 0, 1, 0)
-    closeBtn.Position = UDim2.new(0.68, 0, 0, 0)
+    closeBtn.Size = UDim2.new(0.48, 0, 1, 0)
+    closeBtn.Position = UDim2.new(0.52, 0, 0, 0)
     closeBtn.Text = "❌ FECHAR"
     closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.TextSize = 11
+    closeBtn.TextSize = 10
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
     closeBtn.Parent = btnFrame
-    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 5)
     
     closeBtn.MouseButton1Click:Connect(function()
         adminGui:Destroy()
     end)
-    
-    -- Versão
-    local versionText = Instance.new("TextLabel")
-    versionText.Size = UDim2.new(1, 0, 0, 20)
-    versionText.Position = UDim2.new(0, 0, 0, 0.94)
-    versionText.Text = "Zzz Script V1 | Painel Administrativo"
-    versionText.Font = Enum.Font.Gotham
-    versionText.TextSize = 8
-    versionText.TextColor3 = Color3.fromRGB(100, 100, 130)
-    versionText.BackgroundTransparency = 1
-    versionText.Parent = painel
 end
 
 -- ========== ACESSO AO PAINEL VIA CHAT ==========
 game:GetService("Players").LocalPlayer.Chatted:Connect(function(msg)
     if msg == "!admin " .. SENHA_ADMIN then
         abrirPainelAdmin()
-        print("🔓 Painel Admin aberto!")
     end
 end)
 
--- ========== GUI DE KEY ==========
+-- ========== GUI DE KEY (MENU REDUZIDO) ==========
 local keyGui = Instance.new("ScreenGui")
 keyGui.Name = "KeySystem"
 keyGui.Parent = player:WaitForChild("PlayerGui")
 
 local keyFrame = Instance.new("Frame")
-keyFrame.Size = UDim2.new(0, 450, 0, 400)
-keyFrame.Position = UDim2.new(0.5, -225, 0.5, -200)
+keyFrame.Size = UDim2.new(0, 320, 0, 280)
+keyFrame.Position = UDim2.new(0.5, -160, 0.5, -140)
 keyFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
 keyFrame.Parent = keyGui
-Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0, 20)
+Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0, 16)
 Instance.new("UIStroke", keyFrame).Color = Color3.fromRGB(100, 100, 180)
-Instance.new("UIStroke", keyFrame).Thickness = 1.5
+Instance.new("UIStroke", keyFrame).Thickness = 1
 
 -- Topo
 local topoKey = Instance.new("Frame")
-topoKey.Size = UDim2.new(1, 0, 0, 85)
+topoKey.Size = UDim2.new(1, 0, 0, 60)
 topoKey.BackgroundColor3 = Color3.fromRGB(80, 70, 180)
 topoKey.Parent = keyFrame
-Instance.new("UICorner", topoKey).CornerRadius = UDim.new(0, 20)
+Instance.new("UICorner", topoKey).CornerRadius = UDim.new(0, 16)
 
 local tituloKey = Instance.new("TextLabel")
-tituloKey.Size = UDim2.new(1, 0, 0, 45)
-tituloKey.Position = UDim2.new(0, 0, 0, 15)
-tituloKey.Text = "🔐 Zzz SCRIPT V1"
+tituloKey.Size = UDim2.new(1, 0, 0, 35)
+tituloKey.Position = UDim2.new(0, 0, 0, 12)
+tituloKey.Text = "🔐 Zzz SCRIPT"
 tituloKey.Font = Enum.Font.GothamBlack
-tituloKey.TextSize = 26
+tituloKey.TextSize = 20
 tituloKey.TextColor3 = Color3.fromRGB(255, 255, 255)
 tituloKey.BackgroundTransparency = 1
 tituloKey.Parent = topoKey
 
 local subTituloKey = Instance.new("TextLabel")
-subTituloKey.Size = UDim2.new(1, 0, 0, 20)
-subTituloKey.Position = UDim2.new(0, 0, 0, 58)
-subTituloKey.Text = "Sistema de Key por HWID - Único uso por computador"
+subTituloKey.Size = UDim2.new(1, 0, 0, 16)
+subTituloKey.Position = UDim2.new(0, 0, 0, 45)
+subTituloKey.Text = "Sistema de Key por HWID"
 subTituloKey.Font = Enum.Font.Gotham
-subTituloKey.TextSize = 10
+subTituloKey.TextSize = 9
 subTituloKey.TextColor3 = Color3.fromRGB(220, 210, 255)
 subTituloKey.BackgroundTransparency = 1
 subTituloKey.Parent = topoKey
 
 -- Input da key
 local keyInput = Instance.new("TextBox")
-keyInput.Size = UDim2.new(0.85, 0, 0, 50)
-keyInput.Position = UDim2.new(0.075, 0, 0, 110)
-keyInput.PlaceholderText = "Digite sua key aqui (ex: 7X9K-2M4P-8Q1R)"
+keyInput.Size = UDim2.new(0.85, 0, 0, 40)
+keyInput.Position = UDim2.new(0.075, 0, 0, 80)
+keyInput.PlaceholderText = "Digite sua key"
 keyInput.Font = Enum.Font.Gotham
-keyInput.TextSize = 14
+keyInput.TextSize = 13
 keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 keyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 keyInput.Parent = keyFrame
-Instance.new("UICorner", keyInput).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", keyInput).CornerRadius = UDim.new(0, 8)
 
 -- Botão verificar
 local verificarBtn = Instance.new("TextButton")
-verificarBtn.Size = UDim2.new(0.85, 0, 0, 50)
-verificarBtn.Position = UDim2.new(0.075, 0, 0, 175)
-verificarBtn.Text = "VERIFICAR KEY"
+verificarBtn.Size = UDim2.new(0.85, 0, 0, 40)
+verificarBtn.Position = UDim2.new(0.075, 0, 0, 135)
+verificarBtn.Text = "VERIFICAR"
 verificarBtn.Font = Enum.Font.GothamBold
-verificarBtn.TextSize = 15
+verificarBtn.TextSize = 14
 verificarBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 verificarBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 180)
 verificarBtn.Parent = keyFrame
-Instance.new("UICorner", verificarBtn).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", verificarBtn).CornerRadius = UDim.new(0, 8)
 
 -- Status
 local statusText = Instance.new("TextLabel")
-statusText.Size = UDim2.new(0.85, 0, 0, 45)
-statusText.Position = UDim2.new(0.075, 0, 0, 240)
+statusText.Size = UDim2.new(0.85, 0, 0, 35)
+statusText.Position = UDim2.new(0.075, 0, 0, 190)
 statusText.Text = ""
 statusText.Font = Enum.Font.Gotham
-statusText.TextSize = 11
+statusText.TextSize = 10
 statusText.TextWrapped = true
 statusText.BackgroundTransparency = 1
 statusText.Parent = keyFrame
 
 -- Informação do HWID
 local hwidLabel = Instance.new("TextLabel")
-hwidLabel.Size = UDim2.new(0.85, 0, 0, 35)
-hwidLabel.Position = UDim2.new(0.075, 0, 0, 295)
-hwidLabel.Text = "🔒 HWID: " .. string.sub(getHWID(), 1, 30) .. "..."
+hwidLabel.Size = UDim2.new(0.85, 0, 0, 25)
+hwidLabel.Position = UDim2.new(0.075, 0, 0, 230)
+hwidLabel.Text = "🔒 HWID: " .. string.sub(getHWID(), 1, 25) .. "..."
 hwidLabel.Font = Enum.Font.Gotham
-hwidLabel.TextSize = 9
+hwidLabel.TextSize = 8
 hwidLabel.TextColor3 = Color3.fromRGB(150, 150, 180)
 hwidLabel.BackgroundTransparency = 1
 hwidLabel.Parent = keyFrame
 
 -- Informação das keys
 local infoKeys = Instance.new("TextLabel")
-infoKeys.Size = UDim2.new(0.85, 0, 0, 30)
-infoKeys.Position = UDim2.new(0.075, 0, 0, 330)
-infoKeys.Text = "🔑 50 keys disponíveis | Cada key = 1 computador"
+infoKeys.Size = UDim2.new(0.85, 0, 0, 20)
+infoKeys.Position = UDim2.new(0.075, 0, 0, 255)
+infoKeys.Text = "🔑 50 keys disponíveis"
 infoKeys.Font = Enum.Font.Gotham
-infoKeys.TextSize = 9
+infoKeys.TextSize = 8
 infoKeys.TextColor3 = Color3.fromRGB(150, 150, 180)
 infoKeys.BackgroundTransparency = 1
 infoKeys.Parent = keyFrame
-
--- Acesso ao painel (dica)
-local adminHint = Instance.new("TextLabel")
-adminHint.Size = UDim2.new(0.85, 0, 0, 25)
-adminHint.Position = UDim2.new(0.075, 0, 0, 365)
-adminHint.Font = Enum.Font.Gotham
-adminHint.TextSize = 8
-adminHint.TextColor3 = Color3.fromRGB(120, 120, 150)
-adminHint.BackgroundTransparency = 1
-adminHint.Parent = keyFrame
 
 -- ========== FUNÇÃO QUE CARREGA O SCRIPT PRINCIPAL ==========
 local function carregarScriptPrincipal(keyUsada)
     keyGui:Destroy()
     
     print("✅ KEY VÁLIDA! HWID vinculado: " .. getHWID())
-    print("🔑 Key usada: " .. keyUsada)
     
-    -- ========== SCRIPT PRINCIPAL ==========
-    -- Remover GUIs antigas
+    -- ========== SCRIPT PRINCIPAL (RESUMIDO) ==========
     for _, gui in pairs(player.PlayerGui:GetChildren()) do
         if gui.Name == "ZzzUI" then
             gui:Destroy()
@@ -522,19 +424,16 @@ local function carregarScriptPrincipal(keyUsada)
     gui.ResetOnSpawn = false
     gui.Parent = player:WaitForChild("PlayerGui")
 
-    -- CORES
     local corFundo = Color3.fromRGB(8, 8, 10)
     local corCard = Color3.fromRGB(20, 20, 25)
     local corTextoBranco = Color3.fromRGB(255, 255, 255)
     local corTextoClaro = Color3.fromRGB(160, 160, 170)
 
-    -- ========== VARIÁVEIS ==========
     local coletando = false
     local plataformaAtiva = false
     local plataforma = nil
     local plataformaPosicao = nil
 
-    -- ========== BOTÃO Z ==========
     local botaoZ = Instance.new("TextButton")
     botaoZ.Size = UDim2.new(0, 55, 0, 55)
     botaoZ.Position = UDim2.new(0, 10, 0.5, -27)
@@ -546,7 +445,6 @@ local function carregarScriptPrincipal(keyUsada)
     botaoZ.Parent = gui
     Instance.new("UICorner", botaoZ).CornerRadius = UDim.new(0, 15)
 
-    -- DRAG
     local arrastandoZ = false
     local posZ, mouseZ
     botaoZ.InputBegan:Connect(function(i)
@@ -566,7 +464,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end)
 
-    -- ========== MENU ==========
     local menu = Instance.new("Frame")
     menu.Size = UDim2.new(0, 350, 0, 350)
     menu.Position = UDim2.new(0.5, -175, 0.5, -175)
@@ -575,7 +472,6 @@ local function carregarScriptPrincipal(keyUsada)
     menu.Parent = gui
     Instance.new("UICorner", menu).CornerRadius = UDim.new(0, 12)
 
-    -- DRAG MENU
     local arrastandoM = false
     local posM, mouseM
     menu.InputBegan:Connect(function(i)
@@ -595,7 +491,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end)
 
-    -- TOPO
     local topoMenu = Instance.new("Frame")
     topoMenu.Size = UDim2.new(1, 0, 0, 45)
     topoMenu.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
@@ -632,7 +527,6 @@ local function carregarScriptPrincipal(keyUsada)
     fechar.BackgroundTransparency = 1
     fechar.Parent = topoMenu
 
-    -- SIDEBAR
     local sidebar = Instance.new("Frame")
     sidebar.Size = UDim2.new(0, 70, 1, -45)
     sidebar.Position = UDim2.new(0, 0, 0, 45)
@@ -661,7 +555,6 @@ local function carregarScriptPrincipal(keyUsada)
     abaCredits.Parent = sidebar
     Instance.new("UICorner", abaCredits).CornerRadius = UDim.new(0, 6)
 
-    -- SCROLL
     local scroll = Instance.new("ScrollingFrame")
     scroll.Size = UDim2.new(1, -80, 1, -55)
     scroll.Position = UDim2.new(0, 75, 0, 55)
@@ -670,7 +563,6 @@ local function carregarScriptPrincipal(keyUsada)
     scroll.ScrollBarThickness = 3
     scroll.Parent = menu
 
-    -- FUNÇÃO CRIAR BOTÃO
     local function criarBotao(icone, texto, y)
         local card = Instance.new("Frame")
         card.Size = UDim2.new(1, 0, 0, 40)
@@ -714,7 +606,6 @@ local function carregarScriptPrincipal(keyUsada)
         return toggleBtn
     end
 
-    -- CRIAR BOTÕES
     local y = 8
     local autoAtkBtn = criarBotao("⚔️", "Auto Attack", y); y = y + 46
     local espBtn = criarBotao("👁️", "ESP", y); y = y + 46
@@ -724,7 +615,6 @@ local function carregarScriptPrincipal(keyUsada)
     local autoCollectBtn = criarBotao("💰", "Auto Collect Money", y); y = y + 46
     local plataformaBtn = criarBotao("🛡️", "Plataforma Anti-Queda", y); y = y + 50
 
-    -- INFO
     local infoFrame = Instance.new("Frame")
     infoFrame.Size = UDim2.new(1, 0, 0, 65)
     infoFrame.Position = UDim2.new(0, 0, 0, y)
@@ -809,7 +699,6 @@ local function carregarScriptPrincipal(keyUsada)
 
     scroll.CanvasSize = UDim2.new(0, 0, 0, y + 45)
 
-    -- ========== FUNÇÃO DA PLATAFORMA ==========
     local function criarPlataforma()
         if plataforma then plataforma:Destroy() end
         local character = player.Character
@@ -843,7 +732,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end
 
-    -- ========== ESTADOS DOS BOTÕES ==========
     local autoAtk = false
     local espOn = false
     local spinOn = false
@@ -885,7 +773,6 @@ local function carregarScriptPrincipal(keyUsada)
         autoHitBtn.BackgroundColor3 = autoHitOn and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
     end)
 
-    -- AUTO COLLECT
     autoCollectBtn.MouseButton1Click:Connect(function()
         coletando = not coletando
         autoCollectBtn.Text = coletando and "ON" or "OFF"
@@ -893,18 +780,12 @@ local function carregarScriptPrincipal(keyUsada)
         autoCollectBtn.BackgroundColor3 = coletando and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
     end)
 
-    -- PLATAFORMA
     plataformaBtn.MouseButton1Click:Connect(function()
         plataformaAtiva = not plataformaAtiva
         plataformaBtn.Text = plataformaAtiva and "ON" or "OFF"
         plataformaBtn.TextColor3 = plataformaAtiva and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
         plataformaBtn.BackgroundColor3 = plataformaAtiva and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(55, 55, 65)
-        
-        if plataformaAtiva then
-            criarPlataforma()
-        else
-            removerPlataforma()
-        end
+        if plataformaAtiva then criarPlataforma() else removerPlataforma() end
     end)
 
     player.CharacterAdded:Connect(function()
@@ -920,19 +801,16 @@ local function carregarScriptPrincipal(keyUsada)
             platform.Material = Enum.Material.SmoothPlastic
             platform.Name = "AntiFallPlatform"
             platform.Parent = workspace
-            
             local glow = Instance.new("SelectionBox")
             glow.Adornee = platform
             glow.Color3 = Color3.fromRGB(0, 150, 255)
             glow.LineThickness = 0.5
             glow.Transparency = 0.3
             glow.Parent = platform
-            
             plataforma = platform
         end
     end)
 
-    -- ========== LOOP AUTO COLLECT ==========
     spawn(function()
         while true do
             if coletando then
@@ -961,7 +839,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end)
 
-    -- ========== CREDITS ==========
     local creditsScroll = Instance.new("ScrollingFrame")
     creditsScroll.Size = UDim2.new(1, -80, 1, -55)
     creditsScroll.Position = UDim2.new(0, 75, 0, 55)
@@ -1036,7 +913,6 @@ local function carregarScriptPrincipal(keyUsada)
 
     creditsScroll.CanvasSize = UDim2.new(0, 0, 0, cy + 40)
 
-    -- ========== PVP FUNÇÕES ==========
     local function setJump()
         if player.Character then
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -1046,7 +922,6 @@ local function carregarScriptPrincipal(keyUsada)
     player.CharacterAdded:Connect(function() task.wait(0.2); setJump() end)
     RunService.RenderStepped:Connect(setJump)
 
-    -- Auto Attack
     RunService.RenderStepped:Connect(function()
         if autoAtk and player.Character then
             local hrp = player.Character:FindFirstChild("HumanoidRootPart")
@@ -1069,7 +944,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end)
 
-    -- Auto Hit
     RunService.RenderStepped:Connect(function()
         if autoHitOn and player.Character then
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -1091,7 +965,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end)
 
-    -- Spin Bot
     RunService.RenderStepped:Connect(function()
         if spinOn and player.Character then
             local hrp = player.Character:FindFirstChild("HumanoidRootPart")
@@ -1099,7 +972,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end)
 
-    -- ESP
     RunService.RenderStepped:Connect(function()
         if espOn then
             for _, v in pairs(Players:GetPlayers()) do
@@ -1123,7 +995,6 @@ local function carregarScriptPrincipal(keyUsada)
         end
     end)
 
-    -- TROCAR ABA
     abaMain.MouseButton1Click:Connect(function()
         abaMain.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
         abaMain.TextColor3 = corTextoBranco
@@ -1142,7 +1013,6 @@ local function carregarScriptPrincipal(keyUsada)
         creditsScroll.Visible = true
     end)
 
-    -- ABRIR/FECHAR
     botaoZ.MouseButton1Click:Connect(function()
         menu.Visible = not menu.Visible
     end)
@@ -1151,9 +1021,7 @@ local function carregarScriptPrincipal(keyUsada)
         menu.Visible = false
     end)
 
-    print("✅ Zzz Script Carregado com Sucesso!")
-    print("🔒 HWID vinculado: " .. getHWID())
-    print("🔑 Key utilizada: " .. keyUsada)
+    print("✅ Zzz Script Carregado!")
 end
 
 -- ========== VERIFICAR KEY ==========
@@ -1165,7 +1033,7 @@ verificarBtn.MouseButton1Click:Connect(function()
         return
     end
     
-    statusText.Text = "🔄 Verificando key..."
+    statusText.Text = "🔄 Verificando..."
     statusText.TextColor3 = Color3.fromRGB(255, 200, 100)
     
     task.wait(0.5)
@@ -1175,7 +1043,7 @@ verificarBtn.MouseButton1Click:Connect(function()
     if valido then
         statusText.Text = "✅ " .. mensagem
         statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-        task.wait(1.5)
+        task.wait(1)
         carregarScriptPrincipal(key)
     else
         statusText.Text = "❌ " .. mensagem
