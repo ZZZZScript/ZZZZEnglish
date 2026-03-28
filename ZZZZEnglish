@@ -1,19 +1,11 @@
--- TESTE: Criar ícone simples
 local CoreGui = game:GetService("CoreGui")
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "TestIcon"
-ScreenGui.Parent = CoreGui
+local screenGui = CoreGui:FindFirstChild("ChironDuels")
 
-local btn = Instance.new("TextButton")
-btn.Size = UDim2.new(0, 60, 0, 60)
-btn.Position = UDim2.new(0.5, -30, 0.5, -30)
-btn.Text = "⚡"
-btn.TextSize = 30
-btn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-btn.Parent = ScreenGui
-
-btn.MouseButton1Click:Connect(function()
-    print("Clicou!")
-end)
-
-print("✅ Ícone de teste criado! Ele deve aparecer no centro da tela")
+if screenGui then
+    print("✅ ScreenGui encontrado!")
+    for _, child in pairs(screenGui:GetChildren()) do
+        print("  - " .. child.Name .. " (" .. child.ClassName .. ")")
+    end
+else
+    print("❌ ScreenGui 'ChironDuels' não encontrado!")
+end
