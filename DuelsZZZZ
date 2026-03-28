@@ -1,5 +1,5 @@
--- ⚡ ZZZZ DUELS ⚡
--- Blue Edition - Vertical Single Column UI
+-- ⚡ CHIRON DUELS ⚡
+-- Pink Edition - Vertical Single Column UI (CORRIGIDO)
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -23,16 +23,6 @@ local function waitForCharacter()
     return Player.CharacterAdded:Wait()
 end
 task.spawn(waitForCharacter)
-
--- ============================================================
--- CORES (AZUL E PRETO)
--- ============================================================
-local BLUE = Color3.fromRGB(0, 150, 255)
-local BLUE_LIGHT = Color3.fromRGB(80, 180, 255)
-local BLUE_DARK = Color3.fromRGB(0, 80, 150)
-local BG_DARK = Color3.fromRGB(18, 18, 22)
-local BG_MID = Color3.fromRGB(25, 25, 30)
-local SECTION_BG = Color3.fromRGB(14, 14, 18)
 
 -- ============================================================
 -- STATE
@@ -60,7 +50,7 @@ local Values = {
     SpinSpeed            = 30,
     StealingSpeedValue   = 29,
     STEAL_RADIUS         = 20,
-    STEAL_DURATION       = 2,  -- ⚠️ 2 SEGUNDOS NO BRAINROT
+    STEAL_DURATION       = 2,  -- ⚠️ TEMPO QUE FICA NO BRAINROT (2 SEGUNDOS)
     DEFAULT_GRAVITY      = 196.2,
     GalaxyGravityPercent = 70,
     HOP_POWER            = 35,
@@ -122,7 +112,7 @@ local function findBat()
 end
 
 -- ============================================================
--- FEATURE LOGIC
+-- FEATURE LOGIC (CORRIGIDO)
 -- ============================================================
 
 -- Speed Boost
@@ -173,7 +163,7 @@ local function stopSpeedWhileStealing()
     end
 end
 
--- Anti Ragdoll
+-- Anti Ragdoll (CORRIGIDO)
 local antiRagdollActive = false
 local arBoostConnection = nil
 
@@ -208,6 +198,7 @@ local function startAntiRagdoll()
                         end
                     end
                 end
+                
                 hum.AutoRotate = true
             end
         end)
@@ -222,7 +213,7 @@ local function stopAntiRagdoll()
     end
 end
 
--- Spam Bat
+-- Spam Bat (CORRIGIDO)
 local function startSpamBat()
     if Connections.spamBat then return end
     Connections.spamBat = RunService.Heartbeat:Connect(function()
@@ -248,7 +239,7 @@ local function stopSpamBat()
     end
 end
 
--- Helicopter
+-- Helicopter (CORRIGIDO)
 local helicopterBAV = nil
 
 local function startHelicopter()
@@ -280,7 +271,7 @@ local function stopHelicopter()
     end
 end
 
--- Float
+-- Float (CORRIGIDO)
 local floatConn = nil
 local floatDescending = false
 local floatStartTime = 0
@@ -304,10 +295,10 @@ local function startFloat()
         end
         
         local currentY = h.Position.Y
+        local targetY = floatDescending and (h.Position.Y - 5) or (h.Position.Y + 2)
         local vertVel = 0
         
         if not floatDescending then
-            local targetY = h.Position.Y + 2
             vertVel = math.clamp((targetY - currentY) * 5, -15, 15)
         else
             vertVel = -15
@@ -369,7 +360,7 @@ local function stopUnwalk()
     end
 end
 
--- Hit Circle
+-- Hit Circle (Melee Aimbot) - CORRIGIDO
 local HitCircleData = { Conn = nil, Circle = nil, Align = nil, Attach = nil }
 
 local function startHitCircle()
@@ -388,7 +379,7 @@ local function startHitCircle()
     HitCircleData.Circle.Shape = Enum.PartType.Cylinder
     HitCircleData.Circle.Material = Enum.Material.Neon
     HitCircleData.Circle.Size = Vector3.new(0.05, 14.5, 14.5)
-    HitCircleData.Circle.Color = BLUE
+    HitCircleData.Circle.Color = Color3.fromRGB(255, 120, 0)
     HitCircleData.Circle.CanCollide = false
     HitCircleData.Circle.Massless = true
     HitCircleData.Circle.Parent = Workspace
@@ -451,7 +442,7 @@ local function stopHitCircle()
     end
 end
 
--- Bat Aimbot
+-- Bat Aimbot (CORRIGIDO)
 local function findNearestEnemy(myHRP)
     local nearest, nearestDist, nearestTorso = nil, math.huge, nil
     for _, p in ipairs(Players:GetPlayers()) do
@@ -512,7 +503,7 @@ local function stopBatAimbot()
     end
 end
 
--- Galaxy Mode
+-- Galaxy Mode (CORRIGIDO)
 local galaxyModeEnabled = false
 local galaxyHopsEnabled = false
 local galaxyLastHopTime = 0
@@ -626,6 +617,7 @@ local function stopGalaxyMode()
     galaxyAdjustJump()
 end
 
+-- Galaxy Mode Loops
 RunService.Heartbeat:Connect(function()
     if galaxyHopsEnabled and galaxySpaceHeld then 
         galaxyDoMiniHop() 
@@ -655,7 +647,7 @@ Player.CharacterAdded:Connect(function()
     end
 end)
 
--- Optimizer + XRay
+-- Optimizer + XRay (CORRIGIDO)
 local originalTransparency = {}
 local optimizerActive = false
 
@@ -707,108 +699,109 @@ local function disableXRay()
     originalTransparency = {}
 end
 
--- Blue Moon (ANTIGO PINK MOON)
-local blueMoonCC = nil
-local blueMoonBloom = nil
-local blueMoonConn = nil
-local blueMoonFOV = nil
-local blueMoonBall = nil
+-- Pink Moon (CORRIGIDO)
+local pinkMoonCC = nil
+local pinkMoonBloom = nil
+local pinkMoonConn = nil
+local pinkMoonSky = nil
+local pinkMoonFOV = nil
+local pinkMoonBall = nil
 
-local function enableBlueMoon()
-    if blueMoonCC then return end
+local function enablePinkMoon()
+    if pinkMoonCC then return end
     
-    blueMoonCC = Instance.new("ColorCorrectionEffect")
-    blueMoonCC.TintColor = Color3.fromRGB(0, 120, 255)
-    blueMoonCC.Saturation = 0.6
-    blueMoonCC.Contrast = 0.15
-    blueMoonCC.Brightness = 0.05
-    blueMoonCC.Parent = Lighting
+    pinkMoonCC = Instance.new("ColorCorrectionEffect")
+    pinkMoonCC.TintColor = Color3.fromRGB(255, 140, 30)
+    pinkMoonCC.Saturation = 0.6
+    pinkMoonCC.Contrast = 0.15
+    pinkMoonCC.Brightness = 0.05
+    pinkMoonCC.Parent = Lighting
 
-    blueMoonBloom = Instance.new("BloomEffect")
-    blueMoonBloom.Intensity = 1.2
-    blueMoonBloom.Size = 20
-    blueMoonBloom.Threshold = 0.7
-    blueMoonBloom.Parent = Lighting
+    pinkMoonBloom = Instance.new("BloomEffect")
+    pinkMoonBloom.Intensity = 1.2
+    pinkMoonBloom.Size = 20
+    pinkMoonBloom.Threshold = 0.7
+    pinkMoonBloom.Parent = Lighting
 
     Lighting.ExposureCompensation = 0.2
-    Lighting.Ambient = Color3.fromRGB(25, 40, 60)
-    Lighting.OutdoorAmbient = Color3.fromRGB(35, 50, 80)
+    Lighting.Ambient = Color3.fromRGB(60, 25, 5)
+    Lighting.OutdoorAmbient = Color3.fromRGB(80, 35, 8)
 
-    blueMoonBall = Instance.new("Part")
-    blueMoonBall.Name = "BlueMoon"
-    blueMoonBall.Anchored = true
-    blueMoonBall.CanCollide = false
-    blueMoonBall.CastShadow = false
-    blueMoonBall.Massless = true
-    blueMoonBall.Material = Enum.Material.Neon
-    blueMoonBall.Shape = Enum.PartType.Ball
-    blueMoonBall.Color = Color3.fromRGB(0, 100, 255)
-    blueMoonBall.Size = Vector3.new(60, 60, 60)
-    blueMoonBall.Position = Vector3.new(0, 800, -500)
-    blueMoonBall.Parent = Workspace
+    pinkMoonBall = Instance.new("Part")
+    pinkMoonBall.Name = "PinkMoon"
+    pinkMoonBall.Anchored = true
+    pinkMoonBall.CanCollide = false
+    pinkMoonBall.CastShadow = false
+    pinkMoonBall.Massless = true
+    pinkMoonBall.Material = Enum.Material.Neon
+    pinkMoonBall.Shape = Enum.PartType.Ball
+    pinkMoonBall.Color = Color3.fromRGB(255, 100, 0)
+    pinkMoonBall.Size = Vector3.new(60, 60, 60)
+    pinkMoonBall.Position = Vector3.new(0, 800, -500)
+    pinkMoonBall.Parent = Workspace
 
-    blueMoonFOV = Instance.new("ImageLabel")
-    blueMoonFOV.Name = "BlueMoonFOV"
-    blueMoonFOV.Size = UDim2.new(1, 0, 1, 0)
-    blueMoonFOV.Position = UDim2.new(0, 0, 0, 0)
-    blueMoonFOV.BackgroundTransparency = 1
-    blueMoonFOV.Image = "rbxassetid://6923796549"
-    blueMoonFOV.ImageColor3 = Color3.fromRGB(0, 120, 255)
-    blueMoonFOV.ImageTransparency = 0.55
-    blueMoonFOV.ZIndex = 1
-    blueMoonFOV.Parent = CoreGui:FindFirstChild("ZzzDuels") or CoreGui
+    pinkMoonFOV = Instance.new("ImageLabel")
+    pinkMoonFOV.Name = "PinkMoonFOV"
+    pinkMoonFOV.Size = UDim2.new(1, 0, 1, 0)
+    pinkMoonFOV.Position = UDim2.new(0, 0, 0, 0)
+    pinkMoonFOV.BackgroundTransparency = 1
+    pinkMoonFOV.Image = "rbxassetid://6923796549"
+    pinkMoonFOV.ImageColor3 = Color3.fromRGB(255, 120, 0)
+    pinkMoonFOV.ImageTransparency = 0.55
+    pinkMoonFOV.ZIndex = 1
+    pinkMoonFOV.Parent = CoreGui:FindFirstChild("ChironDuels") or CoreGui
 
-    blueMoonConn = RunService.Heartbeat:Connect(function()
+    pinkMoonConn = RunService.Heartbeat:Connect(function()
         if not Enabled.Vibrance then return end
         local t = tick()
         local pulse = math.sin(t * 0.9) * 0.08
-        if blueMoonCC then
-            blueMoonCC.Saturation = 0.55 + pulse
-            blueMoonCC.Brightness = 0.04 + pulse * 0.3
+        if pinkMoonCC then
+            pinkMoonCC.Saturation = 0.55 + pulse
+            pinkMoonCC.Brightness = 0.04 + pulse * 0.3
         end
-        if blueMoonBloom then
-            blueMoonBloom.Intensity = 1.1 + math.sin(t * 1.3) * 0.3
+        if pinkMoonBloom then
+            pinkMoonBloom.Intensity = 1.1 + math.sin(t * 1.3) * 0.3
         end
-        if blueMoonFOV then
-            blueMoonFOV.ImageTransparency = 0.52 + math.sin(t * 0.7) * 0.06
+        if pinkMoonFOV then
+            pinkMoonFOV.ImageTransparency = 0.52 + math.sin(t * 0.7) * 0.06
         end
-        if blueMoonBall then
-            blueMoonBall.Color = Color3.fromRGB(
-                0,
+        if pinkMoonBall then
+            pinkMoonBall.Color = Color3.fromRGB(
+                255,
                 math.floor(100 + math.sin(t * 0.5) * 40),
-                math.floor(255 - math.sin(t * 0.8) * 40)
+                math.floor(0 + math.sin(t * 0.8) * 15)
             )
         end
     end)
 end
 
-local function disableBlueMoon()
-    if blueMoonConn then 
-        blueMoonConn:Disconnect() 
-        blueMoonConn = nil 
+local function disablePinkMoon()
+    if pinkMoonConn then 
+        pinkMoonConn:Disconnect() 
+        pinkMoonConn = nil 
     end
-    if blueMoonBloom then 
-        blueMoonBloom:Destroy() 
-        blueMoonBloom = nil 
+    if pinkMoonBloom then 
+        pinkMoonBloom:Destroy() 
+        pinkMoonBloom = nil 
     end
-    if blueMoonCC then 
-        blueMoonCC:Destroy() 
-        blueMoonCC = nil 
+    if pinkMoonCC then 
+        pinkMoonCC:Destroy() 
+        pinkMoonCC = nil 
     end
-    if blueMoonBall then 
-        blueMoonBall:Destroy() 
-        blueMoonBall = nil 
+    if pinkMoonBall then 
+        pinkMoonBall:Destroy() 
+        pinkMoonBall = nil 
     end
-    if blueMoonFOV then 
-        blueMoonFOV:Destroy() 
-        blueMoonFOV = nil 
+    if pinkMoonFOV then 
+        pinkMoonFOV:Destroy() 
+        pinkMoonFOV = nil 
     end
     Lighting.ExposureCompensation = 0
     Lighting.Ambient = Color3.fromRGB(70, 70, 70)
     Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
 end
 
--- Auto Steal
+-- Auto Steal (CORRIGIDO)
 local StealData = {}
 local stealStartTime = nil
 local progressConnection = nil
@@ -881,12 +874,12 @@ local function ResetProgressBar()
     end
 end
 
-local ZZZZ_TEXT = "Zzzz Duels"
-local function getZzzzProgress(percent)
-    local total = #ZZZZ_TEXT
+local CHIRON_TEXT = "Chiron Duels"
+local function getChironProgress(percent)
+    local total = #CHIRON_TEXT
     local adjusted = math.min(percent * 1.5, 100)
     local chars = math.floor((adjusted / 100) * total)
-    return string.sub(ZZZZ_TEXT, 1, chars)
+    return string.sub(CHIRON_TEXT, 1, chars)
 end
 
 local function executeSteal(prompt, name)
@@ -930,7 +923,7 @@ local function executeSteal(prompt, name)
         end
         if ProgressPercentLabel then
             local pct = math.floor(prog * 100)
-            ProgressPercentLabel.Text = getZzzzProgress(pct)
+            ProgressPercentLabel.Text = getChironProgress(pct)
         end
     end)
     task.spawn(function()
@@ -970,7 +963,7 @@ local function stopAutoSteal()
     ResetProgressBar()
 end
 
--- Steal Paths
+-- Steal Paths (CORRIGIDO)
 local stealPathActive = false
 local stealLastFlatVel = Vector3.zero
 local STEAL_PATH_VELOCITY_SPEED = 59.2
@@ -1068,15 +1061,23 @@ end
 -- ============================================================
 -- UI CONSTRUCTION — SINGLE VERTICAL COLUMN
 -- ============================================================
-if CoreGui:FindFirstChild("ZzzDuels") then
-    CoreGui.ZzzDuels:Destroy()
+if CoreGui:FindFirstChild("ChironDuels") then
+    CoreGui.ChironDuels:Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ZzzDuels"
+ScreenGui.Name = "ChironDuels"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = CoreGui
+
+-- Colors
+local PINK = Color3.fromRGB(255, 120, 0)
+local PINK_LIGHT = Color3.fromRGB(255, 160, 40)
+local PINK_DARK = Color3.fromRGB(200, 80, 0)
+local BG_DARK = Color3.fromRGB(18, 8, 2)
+local BG_MID = Color3.fromRGB(25, 10, 3)
+local SECTION_BG = Color3.fromRGB(14, 6, 1)
 
 -- Size constants
 local PANEL_W = 230
@@ -1094,6 +1095,7 @@ local DOT_S = 11
 local PBAR_W = 310
 local PBAR_H = 38
 
+-- Helper function
 local function Create(className, properties, children)
     local inst = Instance.new(className)
     for k, v in pairs(properties or {}) do 
@@ -1105,77 +1107,16 @@ local function Create(className, properties, children)
     return inst
 end
 
--- ============================================================
--- ÍCONE FLUTUANTE COM "Z" (MEIO ESQUERDO, MAIS PRA CIMA)
--- ============================================================
-local iconSize = 55
-local iconFrame = Instance.new("Frame")
-iconFrame.Name = "FloatingIcon"
-iconFrame.Size = UDim2.new(0, iconSize, 0, iconSize)
-iconFrame.Position = UDim2.new(0, 20, 0.28, -25)  -- Lado esquerdo, mais pra cima
-iconFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-iconFrame.BorderSizePixel = 0
-iconFrame.ZIndex = 1000
-iconFrame.Parent = ScreenGui
-
-local iconCorner = Instance.new("UICorner")
-iconCorner.CornerRadius = UDim.new(0, iconSize / 2)
-iconCorner.Parent = iconFrame
-
-local iconBorder = Instance.new("UIStroke")
-iconBorder.Thickness = 3
-iconBorder.Color = BLUE
-iconBorder.Parent = iconFrame
-
-local iconGradient = Instance.new("UIGradient")
-iconGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 200)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 150, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 200))
-})
-iconGradient.Parent = iconBorder
-
-local iconGlow = Instance.new("Frame")
-iconGlow.Size = UDim2.new(1, 10, 1, 10)
-iconGlow.Position = UDim2.new(0, -5, 0, -5)
-iconGlow.BackgroundColor3 = BLUE
-iconGlow.BackgroundTransparency = 0.7
-iconGlow.BorderSizePixel = 0
-iconGlow.ZIndex = 999
-iconGlow.Parent = iconFrame
-local iconGlowCorner = Instance.new("UICorner")
-iconGlowCorner.CornerRadius = UDim.new(0, (iconSize + 10) / 2)
-iconGlowCorner.Parent = iconGlow
-
-local iconText = Instance.new("TextLabel")
-iconText.Size = UDim2.new(1, 0, 1, 0)
-iconText.BackgroundTransparency = 1
-iconText.Text = "Z"
-iconText.TextColor3 = BLUE
-iconText.TextSize = 32
-iconText.Font = Enum.Font.GothamBlack
-iconText.TextXAlignment = Enum.TextXAlignment.Center
-iconText.TextYAlignment = Enum.TextYAlignment.Center
-iconText.Parent = iconFrame
-
-local iconButton = Instance.new("TextButton")
-iconButton.Size = UDim2.new(1, 0, 1, 0)
-iconButton.BackgroundTransparency = 1
-iconButton.Text = ""
-iconButton.Parent = iconFrame
-
--- ============================================================
--- MAIN CONTAINER (MENU)
--- ============================================================
+-- MAIN CONTAINER
 local MainContainer = Create("Frame", {
     Name = "MainContainer",
     BackgroundTransparency = 1,
     Position = UDim2.new(0, 16, 0.5, -240),
     Size = UDim2.new(0, PANEL_W, 0, 480),
-    Visible = true,
     Parent = ScreenGui
 })
 
+-- PANEL FRAME
 local PanelFrame = Create("Frame", {
     Name = "PanelFrame",
     BackgroundColor3 = BG_DARK,
@@ -1186,7 +1127,7 @@ local PanelFrame = Create("Frame", {
     Parent = MainContainer
 }, {
     Create("UICorner", {CornerRadius = UDim.new(0, 12)}),
-    Create("UIStroke", {Color = BLUE, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border})
+    Create("UIStroke", {Color = PINK, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border})
 })
 
 -- Background gradient
@@ -1200,14 +1141,98 @@ Create("Frame", {
     Create("UICorner", {CornerRadius = UDim.new(0, 12)}),
     Create("UIGradient", {
         Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 28, 32)),
-            ColorSequenceKeypoint.new(0.4, Color3.fromRGB(35, 35, 40)),
-            ColorSequenceKeypoint.new(0.8, Color3.fromRGB(45, 45, 50)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 35))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 10, 2)),
+            ColorSequenceKeypoint.new(0.4, Color3.fromRGB(35, 13, 3)),
+            ColorSequenceKeypoint.new(0.8, Color3.fromRGB(45, 18, 4)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 11, 2))
         },
         Rotation = 135
     })
 })
+
+-- Floating CH Circle Logo
+local chSize = 48
+local chCircle = Instance.new("Frame")
+chCircle.Name = "CH_Logo"
+chCircle.Size = UDim2.new(0, chSize, 0, chSize)
+chCircle.Position = UDim2.new(0, 16, 0.5, -(480/2) - chSize - 10)
+chCircle.BackgroundColor3 = Color3.fromRGB(20, 8, 1)
+chCircle.BorderSizePixel = 0
+chCircle.ZIndex = 50
+chCircle.Parent = ScreenGui
+
+Instance.new("UICorner", chCircle).CornerRadius = UDim.new(1, 0)
+
+local chStroke = Instance.new("UIStroke", chCircle)
+chStroke.Thickness = 2.5
+chStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+local chGrad = Instance.new("UIGradient", chStroke)
+chGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 140, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 70, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 140, 0)),
+})
+
+task.spawn(function()
+    local r = 0
+    while chCircle.Parent do
+        r = (r + 2) % 360
+        chGrad.Rotation = r
+        task.wait(0.02)
+    end
+end)
+
+local chText = Instance.new("TextLabel", chCircle)
+chText.BackgroundTransparency = 1
+chText.Size = UDim2.new(1, 0, 1, 0)
+chText.Font = Enum.Font.GothamBlack
+chText.Text = "CH"
+chText.TextColor3 = Color3.fromRGB(255, 255, 255)
+chText.TextSize = 18
+chText.TextXAlignment = Enum.TextXAlignment.Center
+chText.TextYAlignment = Enum.TextYAlignment.Center
+chText.ZIndex = 51
+
+local chBtn = Instance.new("TextButton", chCircle)
+chBtn.Size = UDim2.new(1, 0, 1, 0)
+chBtn.BackgroundTransparency = 1
+chBtn.Text = ""
+chBtn.ZIndex = 52
+
+local uiVisible = true
+chBtn.MouseButton1Click:Connect(function()
+    uiVisible = not uiVisible
+    MainContainer.Visible = uiVisible
+    TweenService:Create(chCircle, TweenInfo.new(0.2), {
+        BackgroundColor3 = uiVisible and Color3.fromRGB(20, 8, 1) or Color3.fromRGB(50, 20, 2)
+    }):Play()
+end)
+
+-- Drag support for circle logo
+local cDrag, cDragStart, cDragPos, cMoved = false, nil, nil, false
+chBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        cDrag = true
+        cMoved = false
+        cDragStart = input.Position
+        cDragPos = chCircle.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then 
+                cDrag = false 
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if cDrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - cDragStart
+        if delta.Magnitude > 4 then
+            cMoved = true
+            chCircle.Position = UDim2.new(cDragPos.X.Scale, cDragPos.X.Offset + delta.X, cDragPos.Y.Scale, cDragPos.Y.Offset + delta.Y)
+        end
+    end
+end)
 
 -- TITLE BAR
 local TitleBar = Create("Frame", {
@@ -1222,8 +1247,8 @@ Create("TextLabel", {
     Size = UDim2.new(1, -36, 1, 0),
     Position = UDim2.new(0, 10, 0, 0),
     Font = Enum.Font.GothamBold,
-    Text = "Zzzz Duels",
-    TextColor3 = BLUE,
+    Text = "Chiron Duels",
+    TextColor3 = PINK,
     TextSize = FONT_TITLE,
     TextStrokeTransparency = 0.3,
     TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
@@ -1233,7 +1258,7 @@ Create("TextLabel", {
 })
 
 local CloseBtn = Create("TextButton", {
-    BackgroundColor3 = BLUE_DARK,
+    BackgroundColor3 = PINK_DARK,
     Position = UDim2.new(1, -28, 0.5, -9),
     Size = UDim2.new(0, 18, 0, 18),
     Font = Enum.Font.GothamBold,
@@ -1245,7 +1270,7 @@ local CloseBtn = Create("TextButton", {
     Parent = TitleBar
 }, {
     Create("UICorner", {CornerRadius=UDim.new(1,0)}),
-    Create("UIStroke", {Color=BLUE_LIGHT, Thickness=2})
+    Create("UIStroke", {Color=PINK_LIGHT, Thickness=2})
 })
 CloseBtn.MouseButton1Click:Connect(function() 
     ScreenGui:Destroy() 
@@ -1253,7 +1278,7 @@ end)
 
 -- Separator
 Create("Frame", {
-    BackgroundColor3 = BLUE,
+    BackgroundColor3 = PINK,
     BackgroundTransparency = 0.6,
     Position = UDim2.new(0, 8, 0, BANNER_H - 2),
     Size = UDim2.new(1, -16, 0, 1),
@@ -1297,7 +1322,7 @@ local ScrollFrame = Create("ScrollingFrame", {
     Size = UDim2.new(1, -12, 1, -(BANNER_H + 10)),
     CanvasSize = UDim2.new(0, 0, 0, 0),
     ScrollBarThickness = 3,
-    ScrollBarImageColor3 = BLUE,
+    ScrollBarImageColor3 = PINK,
     BorderSizePixel = 0,
     ZIndex = 5,
     Parent = PanelFrame
@@ -1325,7 +1350,7 @@ local function CreateSection(parent, title, order)
         Parent = parent
     }, {
         Create("UICorner", {CornerRadius=UDim.new(0,6)}),
-        Create("UIStroke", {Color=BLUE_DARK, Thickness=1.5, Transparency=0.4})
+        Create("UIStroke", {Color=PINK_DARK, Thickness=1.5, Transparency=0.4})
     })
     Create("TextLabel", {
         BackgroundTransparency = 1,
@@ -1333,14 +1358,14 @@ local function CreateSection(parent, title, order)
         Position = UDim2.new(0,8,0,0),
         Font = Enum.Font.GothamBold,
         Text = title,
-        TextColor3 = Color3.fromRGB(100, 180, 255),
+        TextColor3 = Color3.fromRGB(200,130,255),
         TextSize = FONT_SECTION,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 7,
         Parent = sec
     })
     Create("Frame", {
-        BackgroundColor3 = BLUE,
+        BackgroundColor3 = PINK,
         BackgroundTransparency = 0.5,
         Position = UDim2.new(0, 4, 1, -1),
         Size = UDim2.new(1, -8, 0, 1),
@@ -1356,7 +1381,7 @@ local VisualSetters = {}
 
 local function CreateToggle(parent, labelText, enabledKey, callback, order)
     local row = Create("Frame", {
-        BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+        BackgroundColor3 = Color3.fromRGB(22, 9, 2),
         Size = UDim2.new(1, -4, 0, TOGGLE_H),
         LayoutOrder = order or 0,
         BorderSizePixel = 0,
@@ -1364,7 +1389,7 @@ local function CreateToggle(parent, labelText, enabledKey, callback, order)
         Parent = parent
     }, {
         Create("UICorner", {CornerRadius=UDim.new(0,8)}),
-        Create("UIStroke", {Color=BLUE_DARK, Thickness=1.5})
+        Create("UIStroke", {Color=PINK_DARK, Thickness=1.5})
     })
 
     Create("TextLabel", {
@@ -1373,7 +1398,7 @@ local function CreateToggle(parent, labelText, enabledKey, callback, order)
         Position = UDim2.new(0, 8, 0, 0),
         Font = Enum.Font.GothamBold,
         Text = labelText,
-        TextColor3 = Color3.fromRGB(200, 210, 220),
+        TextColor3 = Color3.fromRGB(255, 220, 180),
         TextSize = FONT_TOGGLE,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 7,
@@ -1385,7 +1410,7 @@ local function CreateToggle(parent, labelText, enabledKey, callback, order)
     local toggleBg = Create("Frame", {
         Size = UDim2.new(0, TOGGLE_W, 0, TOGGLE_H2),
         Position = UDim2.new(1, -(TOGGLE_W + 8), 0.5, -TOGGLE_H2/2),
-        BackgroundColor3 = isOn and BLUE or Color3.fromRGB(45, 45, 55),
+        BackgroundColor3 = isOn and PINK or Color3.fromRGB(55, 22, 5),
         ZIndex = 7,
         Parent = row
     }, {Create("UICorner", {CornerRadius=UDim.new(1,0)})})
@@ -1408,7 +1433,7 @@ local function CreateToggle(parent, labelText, enabledKey, callback, order)
 
     local function setVisual(state, skipCb)
         isOn = state
-        TweenService:Create(toggleBg, TweenInfo.new(0.25), {BackgroundColor3 = isOn and BLUE or Color3.fromRGB(45,45,55)}):Play()
+        TweenService:Create(toggleBg, TweenInfo.new(0.25), {BackgroundColor3 = isOn and PINK or Color3.fromRGB(50,15,32)}):Play()
         TweenService:Create(toggleDot, TweenInfo.new(0.25, Enum.EasingStyle.Back), {
             Position = isOn and UDim2.new(1,-(DOT_S+3),0.5,-DOT_S/2) or UDim2.new(0,3,0.5,-DOT_S/2)
         }):Play()
@@ -1429,7 +1454,7 @@ end
 
 local function CreateSlider(parent, labelText, minVal, maxVal, valueKey, callback, order)
     local container = Create("Frame", {
-        BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+        BackgroundColor3 = Color3.fromRGB(22, 9, 2),
         Size = UDim2.new(1, -4, 0, SLIDER_H),
         LayoutOrder = order or 0,
         BorderSizePixel = 0,
@@ -1437,7 +1462,7 @@ local function CreateSlider(parent, labelText, minVal, maxVal, valueKey, callbac
         Parent = parent
     }, {
         Create("UICorner", {CornerRadius=UDim.new(0,8)}),
-        Create("UIStroke", {Color=BLUE_DARK, Thickness=1.5})
+        Create("UIStroke", {Color=PINK_DARK, Thickness=1.5})
     })
 
     local labelFrame = Create("TextLabel", {
@@ -1446,7 +1471,7 @@ local function CreateSlider(parent, labelText, minVal, maxVal, valueKey, callbac
         Position = UDim2.new(0, 8, 0, 4),
         Font = Enum.Font.GothamBold,
         Text = labelText .. ": " .. tostring(Values[valueKey]),
-        TextColor3 = Color3.fromRGB(200, 210, 220),
+        TextColor3 = Color3.fromRGB(255, 200, 150),
         TextSize = FONT_SLIDER,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 7,
@@ -1454,7 +1479,7 @@ local function CreateSlider(parent, labelText, minVal, maxVal, valueKey, callbac
     })
 
     local sliderBg = Create("Frame", {
-        BackgroundColor3 = Color3.fromRGB(35, 35, 42),
+        BackgroundColor3 = Color3.fromRGB(22, 9, 2),
         Position = UDim2.new(0, 8, 0, 24),
         Size = UDim2.new(1, -16, 0, 10),
         ZIndex = 7,
@@ -1464,7 +1489,7 @@ local function CreateSlider(parent, labelText, minVal, maxVal, valueKey, callbac
     local pct = math.clamp((Values[valueKey] - minVal) / (maxVal - minVal), 0, 1)
 
     local fill = Create("Frame", {
-        BackgroundColor3 = BLUE,
+        BackgroundColor3 = PINK,
         Size = UDim2.new(pct, 0, 1, 0),
         ZIndex = 8,
         Parent = sliderBg
@@ -1478,7 +1503,7 @@ local function CreateSlider(parent, labelText, minVal, maxVal, valueKey, callbac
         Parent = sliderBg
     }, {
         Create("UICorner", {CornerRadius=UDim.new(1,0)}),
-        Create("UIStroke", {Color=BLUE, Thickness=2})
+        Create("UIStroke", {Color=PINK, Thickness=2})
     })
 
     local sliderBtn = Create("TextButton", {
@@ -1520,7 +1545,7 @@ end
 local pbar = Instance.new("Frame")
 pbar.Size = UDim2.new(0, PBAR_W, 0, 44)
 pbar.Position = UDim2.new(0.5, -PBAR_W/2, 1, -110)
-pbar.BackgroundColor3 = Color3.fromRGB(12, 12, 16)
+pbar.BackgroundColor3 = Color3.fromRGB(8, 4, 1)
 pbar.BorderSizePixel = 0
 pbar.ClipsDescendants = false
 pbar.ZIndex = 10
@@ -1532,11 +1557,11 @@ pStroke.Thickness = 2.5
 pStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 local pGrad = Instance.new("UIGradient", pStroke)
 pGrad.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 200)),
-    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(0, 60, 120)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 120, 255)),
-    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 50, 100)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 200)),
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 130, 0)),
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(80, 30, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 100, 0)),
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(60, 20, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 130, 0)),
 })
 
 task.spawn(function()
@@ -1564,7 +1589,7 @@ ProgressPercentLabel.Size = UDim2.new(0.4, 0, 1, 0)
 ProgressPercentLabel.Position = UDim2.new(0.3, 0, 0, 0)
 ProgressPercentLabel.BackgroundTransparency = 1
 ProgressPercentLabel.Text = ""
-ProgressPercentLabel.TextColor3 = BLUE_LIGHT
+ProgressPercentLabel.TextColor3 = Color3.fromRGB(255, 160, 40)
 ProgressPercentLabel.Font = Enum.Font.GothamBlack
 ProgressPercentLabel.TextSize = 13
 ProgressPercentLabel.TextXAlignment = Enum.TextXAlignment.Center
@@ -1575,7 +1600,7 @@ statRadius.Size = UDim2.new(0, 38, 0, 1)
 statRadius.Position = UDim2.new(1, -44, 0, 0)
 statRadius.BackgroundTransparency = 1
 statRadius.Text = tostring(Values.STEAL_RADIUS)
-statRadius.TextColor3 = BLUE_LIGHT
+statRadius.TextColor3 = Color3.fromRGB(255, 140, 40)
 statRadius.Font = Enum.Font.GothamBold
 statRadius.TextSize = 13
 statRadius.TextXAlignment = Enum.TextXAlignment.Right
@@ -1584,14 +1609,14 @@ statRadius.ZIndex = 12
 local pTrack = Instance.new("Frame", pbar)
 pTrack.Size = UDim2.new(1, -16, 0, 4)
 pTrack.Position = UDim2.new(0, 8, 1, -7)
-pTrack.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+pTrack.BackgroundColor3 = Color3.fromRGB(25, 12, 2)
 pTrack.BorderSizePixel = 0
 pTrack.ZIndex = 11
 Instance.new("UICorner", pTrack).CornerRadius = UDim.new(1, 0)
 
 ProgressBarFill = Instance.new("Frame", pTrack)
 ProgressBarFill.Size = UDim2.new(0, 0, 1, 0)
-ProgressBarFill.BackgroundColor3 = BLUE
+ProgressBarFill.BackgroundColor3 = Color3.fromRGB(255, 120, 0)
 ProgressBarFill.BorderSizePixel = 0
 ProgressBarFill.ZIndex = 12
 Instance.new("UICorner", ProgressBarFill).CornerRadius = UDim.new(1, 0)
@@ -1643,13 +1668,13 @@ order = order + 1
 CreateSection(ScrollFrame, "🐾  STEALING", order) 
 order = order + 1
 
-CreateToggle(ScrollFrame, "Auto Steal (2s)", "AutoSteal", function(s)
+CreateToggle(ScrollFrame, "Auto Grab", "AutoSteal", function(s)
     Enabled.AutoSteal = s
     if s then startAutoSteal() else stopAutoSteal() end
 end, order) 
 order = order + 1
 
-CreateSlider(ScrollFrame, "Steal Radius", 5, 50, "STEAL_RADIUS", function(v)
+CreateSlider(ScrollFrame, "Steal Radius", 5, 100, "STEAL_RADIUS", function(v)
     Values.STEAL_RADIUS = v
 end, order) 
 order = order + 1
@@ -1752,9 +1777,9 @@ order = order + 1
 CreateSection(ScrollFrame, "✨  VISUAL & MISC", order) 
 order = order + 1
 
-CreateToggle(ScrollFrame, "🌙 Blue Moon", "Vibrance", function(s)
+CreateToggle(ScrollFrame, "🌙 Orange Moon", "Vibrance", function(s)
     Enabled.Vibrance = s
-    if s then enableBlueMoon() else disableBlueMoon() end
+    if s then enablePinkMoon() else disablePinkMoon() end
 end, order) 
 order = order + 1
 
@@ -1775,7 +1800,7 @@ order = order + 1
 -- ============================================================
 local function CreateFloatingButton(labelText, icon, defaultPos, enabledKey, onToggle)
     local btnFrame = Create("Frame", {
-        BackgroundColor3 = Color3.fromRGB(18, 18, 22),
+        BackgroundColor3 = Color3.fromRGB(18, 7, 2),
         Position = defaultPos,
         Size = UDim2.new(0, 130, 0, 36),
         BorderSizePixel = 0,
@@ -1783,18 +1808,18 @@ local function CreateFloatingButton(labelText, icon, defaultPos, enabledKey, onT
         Parent = ScreenGui
     }, {
         Create("UICorner", {CornerRadius = UDim.new(0, 12)}),
-        Create("UIStroke", {Color = BLUE, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border}),
+        Create("UIStroke", {Color = PINK, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border}),
         Create("UIGradient", {
             Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 42)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 22))
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 13, 3)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 7, 1))
             },
             Rotation = 90
         })
     })
 
     local glowFrame = Create("Frame", {
-        BackgroundColor3 = BLUE,
+        BackgroundColor3 = PINK,
         BackgroundTransparency = 0.85,
         Size = UDim2.new(1, 6, 1, 6),
         Position = UDim2.new(0, -3, 0, -3),
@@ -1809,7 +1834,7 @@ local function CreateFloatingButton(labelText, icon, defaultPos, enabledKey, onT
         Size = UDim2.new(0, 26, 1, 0),
         Font = Enum.Font.GothamBold,
         Text = icon,
-        TextColor3 = BLUE,
+        TextColor3 = PINK,
         TextSize = 15,
         ZIndex = 22,
         Parent = btnFrame
@@ -1821,7 +1846,7 @@ local function CreateFloatingButton(labelText, icon, defaultPos, enabledKey, onT
         Size = UDim2.new(1, -50, 1, 0),
         Font = Enum.Font.GothamBold,
         Text = labelText,
-        TextColor3 = Color3.fromRGB(200, 210, 220),
+        TextColor3 = Color3.fromRGB(255, 220, 180),
         TextSize = 10,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 22,
@@ -1845,13 +1870,13 @@ local function CreateFloatingButton(labelText, icon, defaultPos, enabledKey, onT
             BackgroundColor3 = state and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(80, 80, 80)
         }):Play()
         TweenService:Create(btnFrame, TweenInfo.new(0.2), {
-            BackgroundColor3 = state and Color3.fromRGB(40, 40, 50) or Color3.fromRGB(18, 18, 22)
+            BackgroundColor3 = state and Color3.fromRGB(50, 20, 3) or Color3.fromRGB(18, 7, 2)
         }):Play()
         TweenService:Create(glowFrame, TweenInfo.new(0.2), {
             BackgroundTransparency = state and 0.6 or 0.85
         }):Play()
         TweenService:Create(textLabel, TweenInfo.new(0.2), {
-            TextColor3 = state and BLUE or Color3.fromRGB(200, 210, 220)
+            TextColor3 = state and PINK or Color3.fromRGB(255, 220, 180)
         }):Play()
     end
 
@@ -1993,150 +2018,19 @@ floatBtnUpdateAimbot = CreateFloatingButton(
 )
 
 -- ============================================================
--- ANIMAÇÕES DO ÍCONE
--- ============================================================
-
-task.spawn(function()
-    local angle = 0
-    while iconFrame and iconFrame.Parent do
-        angle = (angle + 2) % 360
-        iconGradient.Rotation = angle
-        task.wait(0.02)
-    end
-end)
-
-task.spawn(function()
-    while iconFrame and iconFrame.Parent do
-        TweenService:Create(iconGlow, TweenInfo.new(1, Enum.EasingStyle.Sine), {
-            BackgroundTransparency = 0.5
-        }):Play()
-        task.wait(1)
-        TweenService:Create(iconGlow, TweenInfo.new(1, Enum.EasingStyle.Sine), {
-            BackgroundTransparency = 0.8
-        }):Play()
-        task.wait(1)
-    end
-end)
-
--- ============================================================
--- ARRASTAR ÍCONE
--- ============================================================
-local iconDragging = false
-local iconDragStart = nil
-local iconStartPos = nil
-
-iconButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        iconDragging = true
-        iconDragStart = input.Position
-        iconStartPos = iconFrame.Position
-    end
-end)
-
-iconButton.InputEnded:Connect(function()
-    iconDragging = false
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if iconDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - iconDragStart
-        iconFrame.Position = UDim2.new(
-            iconStartPos.X.Scale,
-            iconStartPos.X.Offset + delta.X,
-            iconStartPos.Y.Scale,
-            iconStartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
--- ============================================================
--- FUNÇÕES DO MENU
--- ============================================================
-local menuVisible = true
-
-iconButton.MouseButton1Click:Connect(function()
-    menuVisible = not menuVisible
-    MainContainer.Visible = menuVisible
-    
-    TweenService:Create(iconFrame, TweenInfo.new(0.1), {
-        Size = UDim2.new(0, iconSize - 8, 0, iconSize - 8)
-    }):Play()
-    task.wait(0.08)
-    TweenService:Create(iconFrame, TweenInfo.new(0.08), {
-        Size = UDim2.new(0, iconSize, 0, iconSize)
-    }):Play()
-    
-    iconText.TextColor3 = menuVisible and BLUE or Color3.fromRGB(80, 100, 150)
-end)
-
-CloseBtn.MouseButton1Click:Connect(function()
-    MainContainer.Visible = false
-    menuVisible = false
-    iconText.TextColor3 = Color3.fromRGB(80, 100, 150)
-end)
-
--- Arrastar menu
-local menuDragging = false
-local menuDragStart = nil
-local menuStartPos = nil
-
-TitleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        menuDragging = true
-        menuDragStart = input.Position
-        menuStartPos = MainContainer.Position
-    end
-end)
-
-TitleBar.InputEnded:Connect(function()
-    menuDragging = false
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if menuDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - menuDragStart
-        MainContainer.Position = UDim2.new(
-            menuStartPos.X.Scale,
-            menuStartPos.X.Offset + delta.X,
-            menuStartPos.Y.Scale,
-            menuStartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
--- Hover
-iconFrame.MouseEnter:Connect(function()
-    TweenService:Create(iconFrame, TweenInfo.new(0.2), {
-        Size = UDim2.new(0, iconSize + 5, 0, iconSize + 5)
-    }):Play()
-    TweenService:Create(iconGlow, TweenInfo.new(0.2), {
-        BackgroundTransparency = 0.4
-    }):Play()
-end)
-
-iconFrame.MouseLeave:Connect(function()
-    TweenService:Create(iconFrame, TweenInfo.new(0.2), {
-        Size = UDim2.new(0, iconSize, 0, iconSize)
-    }):Play()
-    TweenService:Create(iconGlow, TweenInfo.new(0.2), {
-        BackgroundTransparency = 0.7
-    }):Play()
-end)
-
--- ============================================================
 -- KEYBINDS
 -- ============================================================
-local uiVisible = true
-
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
 
     if input.KeyCode == Enum.KeyCode.Delete then
         ScreenGui:Destroy()
     elseif input.KeyCode == Enum.KeyCode.U then
-        menuVisible = not menuVisible
-        MainContainer.Visible = menuVisible
-        iconText.TextColor3 = menuVisible and BLUE or Color3.fromRGB(80, 100, 150)
+        uiVisible = not uiVisible
+        MainContainer.Visible = uiVisible
+        TweenService:Create(chCircle, TweenInfo.new(0.2), {
+            BackgroundColor3 = uiVisible and Color3.fromRGB(20, 8, 1) or Color3.fromRGB(50, 20, 2)
+        }):Play()
 
     elseif input.KeyCode == KEYBINDS.SPEED then
         Enabled.SpeedBoost = not Enabled.SpeedBoost
@@ -2263,8 +2157,6 @@ Player.CharacterAdded:Connect(function()
     end
 end)
 
-print("✅ Zzzz Duels Script Carregado com Sucesso!")
-print("📌 Clique no ícone Z para abrir/fechar o menu")
-print("📌 Arraste o ícone Z para qualquer lugar")
+print("✅ Chiron Duels Script Carregado com Sucesso!")
 print("📌 Pressione U para abrir/fechar o menu")
 print("📌 Delete para fechar o script")
