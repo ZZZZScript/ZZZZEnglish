@@ -1,7 +1,19 @@
--- Floating CH Circle Logo
-local chSize = 48
-local chCircle = Instance.new("Frame")
-chCircle.Name = "CH_Logo"
-chCircle.Size = UDim2.new(0, chSize, 0, chSize)
-chCircle.Position = UDim2.new(0, 16, 0.5, -(480/2) - chSize - 10)
--- ... resto do código
+-- TESTE: Criar ícone simples
+local CoreGui = game:GetService("CoreGui")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TestIcon"
+ScreenGui.Parent = CoreGui
+
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.new(0, 60, 0, 60)
+btn.Position = UDim2.new(0.5, -30, 0.5, -30)
+btn.Text = "⚡"
+btn.TextSize = 30
+btn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+btn.Parent = ScreenGui
+
+btn.MouseButton1Click:Connect(function()
+    print("Clicou!")
+end)
+
+print("✅ Ícone de teste criado! Ele deve aparecer no centro da tela")
